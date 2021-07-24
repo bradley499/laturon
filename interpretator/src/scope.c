@@ -243,7 +243,7 @@ void scope_destroy(struct scope_t *scope)
 			previous_scope = current_scope->left;
 		}
 	}
-	free(scope); // Free up child scope memory
+	free(scope); // Free up root scope memory
 }
 
 #endif

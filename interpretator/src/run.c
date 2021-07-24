@@ -116,7 +116,7 @@ int step(struct scope_t *scope)
 			{
 				if (scope_get_result_type(scope_get_left(scope)) == SCOPE_TYPE_STRING)
 				{
-					if (strlen(scope_get_result_string(variable_get_scope(scope_get_result(scope_get_left(scope))))) == 0)
+					if (strlen(scope_get_result_string(variable_get_scope(scope_get_result(scope_get_left(scope)), function_scope))) == 0)
 						scope_set_result(scope, SCOPE_BOOLEAN_TRUE);
 					else
 						scope_set_result(scope, SCOPE_BOOLEAN_FALSE);
@@ -131,7 +131,7 @@ int step(struct scope_t *scope)
 			{
 				if (scope_get_result_type(scope_get_left(scope)) == SCOPE_TYPE_STRING && scope_get_result_type(scope_get_right(scope)) == SCOPE_TYPE_STRING)
 				{
-					if (strcmp(scope_get_result_string(variable_get_scope(scope_get_result(scope_get_left(scope)))), scope_get_result_string(variable_get_scope(scope_get_result(scope_get_left(scope))))) == 0)
+					if (strcmp(scope_get_result_string(variable_get_scope(scope_get_result(scope_get_left(scope)), function_scope)), scope_get_result_string(variable_get_scope(scope_get_result(scope_get_left(scope)), function_scope))) == 0)
 						scope_set_result(scope, SCOPE_BOOLEAN_TRUE);
 					else
 						scope_set_result(scope, SCOPE_BOOLEAN_FALSE);
@@ -227,8 +227,8 @@ int step(struct scope_t *scope)
 					unsigned int scope_current_size = scope_size();
 					char *temporary_strings[3] = {
 						// Utilise the current string value, or allocated memory for new conversions
-						((scope_get_type(scope_get_left(scope)) == SCOPE_TYPE_STRING) ? scope_get_result_string(variable_get_scope(scope_get_result(scope_get_left(scope)))) : new_string()),
-						((scope_get_type(scope_get_right(scope)) == SCOPE_TYPE_STRING) ? scope_get_result_string(variable_get_scope(scope_get_result(scope_get_right(scope)))) : new_string()),
+						((scope_get_type(scope_get_left(scope)) == SCOPE_TYPE_STRING) ? scope_get_result_string(variable_get_scope(scope_get_result(scope_get_left(scope)), function_scope)) : new_string()),
+						((scope_get_type(scope_get_right(scope)) == SCOPE_TYPE_STRING) ? scope_get_result_string(variable_get_scope(scope_get_result(scope_get_right(scope)), function_scope)) : new_string()),
 						NULL
 					};
 					if (temporary_strings[0] == NULL || temporary_strings[1] == NULL) // Failed to allocate memory for temporary strings
@@ -272,8 +272,8 @@ int step(struct scope_t *scope)
 					free(temporary_strings[0]);
 					strcat(temporary_strings[2], temporary_strings[1]); // Concatenate string values together
 					free(temporary_strings[1]);
-					scope_set_result(scope, new_variable(scope_current_size, function_scope)); // Assign a new variable as a response value
-					scope_set_result_string(variable_get_scope(scope_get_result(scope)), temporary_strings[2]); // Assign a string value to response value
+					scope_set_result(scope, new_variable(scope_current_size, function_scope, VARIABLE_TEMPORARY)); // Assign a new variable as a response value
+					scope_set_result_string(variable_get_scope(scope_get_result(scope), function_scope), temporary_strings[2]); // Assign a string value to response value
 					free(temporary_strings[2]);
 				}
 				break;
@@ -328,11 +328,11 @@ int step(struct scope_t *scope)
 			}
 			case SCOPE_VARIABLE_UPDATE:
 			{
-				struct scope_t *variable_scope = variable_get_scope(scope_get_result(scope_get_right(scope)));
+				struct scope_t *variable_scope = variable_get_scope(scope_get_result(scope_get_right(scope)), function_scope);
 				if (scope_get_result_type(scope_get_left(scope)) == SCOPE_TYPE_STRING)
 				{
 					scope_set_result_type(variable_scope, SCOPE_TYPE_STRING);
-					scope_set_result_string(variable_scope, scope_get_result_string(variable_get_scope(scope_get_result(scope_get_left(scope)))));
+					scope_set_result_string(variable_scope, scope_get_result_string(variable_get_scope(scope_get_result(scope_get_left(scope)), function_scope)));
 				}
 				else
 				{

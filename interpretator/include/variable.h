@@ -3,31 +3,33 @@
 
 #include "scope.h"
 
-#define VARIABLE_MAX_TOTAL       9999  // Total number of variables that is allowed to be used
-#define VARIABLE_UNASSIGNED      0     // Variable is unassigned
-#define VARIABLE_ASSIGN_SUCCESS  1     // Variable has been assigned
+#define VARIABLE_MAX_TOTAL            9999                                                // Total number of variables that is allowed to be used
+#define VARIABLE_MAX_TOTAL_RESERVED   99                                                  // Total number of variables that is reserved for temporary variables
+#define VARIABLE_MAX_TOTAL_UNRESERVED (VARIABLE_MAX_TOTAL - VARIABLE_MAX_TOTAL_RESERVED)  // Total number of variables that is not reserved for temporary variables
+#define VARIABLE_UNASSIGNED           0                                                   // Variable is unassigned
+#define VARIABLE_ASSIGN_SUCCESS       1                                                   // Variable has been assigned
+#define VARIABLE_TEMPORARY            0                                                   // A temporary variable defintion
 
-#define variable_get_result(a) scope_get_result(variable_get_scope(a))
-#define variable_get_result_string(a) scope_get_result_string(variable_get_scope(a))
-#define variable_set_result(a, b) scope_set_result(variable_get_scope(a), b)
-#define variable_set_result_string(a, b) scope_set_result_string(variable_get_scope(a), b)
-#define variable_get_result_type(a) scope_get_result_type(variable_get_scope(a))
-#define variable_set_result_type(a, b) scope_set_result_type(variable_get_scope(a), b)
+#define variable_get_result(variable_hash, function_scope) scope_get_result(variable_get_scope(variable_hash, function_scope))
+#define variable_get_result_string(variable_hash, function_scope) scope_get_result_string(variable_get_scope(variable_hash, function_scope))
+#define variable_set_result(variable_hash, function_scope, set_result) scope_set_result(variable_get_scope(variable_hash, function_scope), set_result)
+#define variable_set_result_string(variable_hash, function_scope, set_result_string) scope_set_result_string(variable_get_scope(variable_hash, function_scope), set_result_string)
+#define variable_get_result_type(variable_hash, function_scope) scope_get_result_type(variable_get_scope(variable_hash, function_scope))
+#define variable_set_result_type(variable_hash, function_scope, set_result_type) scope_set_result_type(variable_get_scope(variable_hash, function_scope), set_result_type)
 
 typedef struct variable
 {
 	unsigned int execution_scope;
 	unsigned int function_scope;
+	unsigned int variable_hash;
 	struct scope_t *scope;
 } variable;
 
-typedef unsigned short variable_id;
-
 void variable_initialisation();
-variable_id new_variable(unsigned int scope, unsigned int function_scope);
-void refresh_variable_scope(variable_id id, unsigned int scope);
-void delete_variable(variable_id id);
-struct scope_t *variable_get_scope(variable_id id);
-void cleanup(unsigned int scope);
+unsigned int new_variable(unsigned int execution_scope, unsigned int function_scope, unsigned int variable_hash);
+void refresh_variable_scope(unsigned int variable_hash, unsigned int function_scope, unsigned int execution_scope);
+void delete_variable(unsigned int variable_hash, unsigned int function_scope);
+struct scope_t *variable_get_scope(unsigned int variable_hash, unsigned int function_scope);
+void cleanup(unsigned int execution_scope);
 
 #endif

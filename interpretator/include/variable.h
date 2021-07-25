@@ -7,8 +7,9 @@
 #define VARIABLE_MAX_TOTAL_RESERVED   99                                                  // Total number of variables that is reserved for temporary variables
 #define VARIABLE_MAX_TOTAL_UNRESERVED (VARIABLE_MAX_TOTAL - VARIABLE_MAX_TOTAL_RESERVED)  // Total number of variables that is not reserved for temporary variables
 #define VARIABLE_UNASSIGNED           0                                                   // Variable is unassigned
-#define VARIABLE_ASSIGN_SUCCESS       1                                                   // Variable has been assigned
+#define VARIABLE_ASSIGNED             1                                                   // Variable has been assigned
 #define VARIABLE_TEMPORARY            0                                                   // A temporary variable defintion
+#define VARIABLE_SCOPE_GLOBAL         0                                                   // Variable's scope is global
 
 #define variable_get_result(variable_hash, function_scope) scope_get_result(variable_get_scope(variable_hash, function_scope))
 #define variable_get_result_string(variable_hash, function_scope) scope_get_result_string(variable_get_scope(variable_hash, function_scope))
@@ -25,10 +26,12 @@ typedef struct variable
 	struct scope_t *scope;
 } variable;
 
+typedef unsigned short variable_id;
+
 void variable_initialisation();
 unsigned int new_variable(unsigned int execution_scope, unsigned int function_scope, unsigned int variable_hash);
 void refresh_variable_scope(unsigned int variable_hash, unsigned int function_scope, unsigned int execution_scope);
-void delete_variable(unsigned int variable_hash, unsigned int function_scope);
+void delete_variable(variable_id id);
 struct scope_t *variable_get_scope(unsigned int variable_hash, unsigned int function_scope);
 void cleanup(unsigned int execution_scope);
 

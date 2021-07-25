@@ -13,8 +13,11 @@ struct parameter_t
 	struct scope_t *parameter_scope;
 };
 
-void clear_parameter_stack();															  // Removes all values from parameter stack
-void pop_parameter_stack(unsigned short scope_level);									  // Removes all values that are beyond the current scope level
-unsigned int push_parameter_stack(unsigned short scope_level, struct scope_t *parameter); // Adds a value to the parameter stack
+// Removes all values from parameter stack
+void clear_parameter_stack();
+// Removes all values that are beyond the current scope level
+void pop_parameter_stack(unsigned short scope_level);
+// Adds a value to the parameter stack
+unsigned int push_parameter_stack(unsigned short scope_level, struct scope_t *parameter);
 
 #endif

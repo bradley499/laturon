@@ -1,11 +1,8 @@
 #ifndef scope_c
 #define scope_c
 
-#include <stddef.h>
 #include <stdlib.h>
-#include <stdio.h>
 #include <string.h>
-#include <assert.h>
 
 #include "scope.h"
 #include "misc.h"
@@ -229,10 +226,8 @@ void scope_destroy(struct scope_t *scope)
 		else
 		{
 			if (current_scope->result_type == SCOPE_TYPE_STRING)
-			{
 				if (current_scope->result.string != NULL)
 					free(current_scope->result.string); // Free up memory for current string
-			}
 			if (current_scope == scope) // Root scope has no children
 				break;
 			current_scope_left_child = current_scope->left;

@@ -50,7 +50,7 @@ int new_tree(int branch_position)
 struct position *new_branch()
 {
 	struct position *position_tree_node = (struct position *)malloc(sizeof(struct position)); // Allocate a new position node
-	if (position_tree_node != NULL)											 // If a position node was allocated
+	if (position_tree_node != NULL)															  // If a position node was allocated
 	{
 		position_tree_node->branch = RUN_POSITION_BRANCH_NULL; // Set branch direction to null
 		position_tree_node->next = NULL;					   // Set branch child to null
@@ -109,7 +109,7 @@ int step(struct scope_t *scope)
 			{
 			case SCOPE_LOGIC_AND:
 			{
-				scope_set_result(scope, (scope_get_result(scope_get_left(scope)) == SCOPE_BOOLEAN_TRUE && scope_get_result(scope_get_right(scope)) == SCOPE_BOOLEAN_TRUE));
+				scope_set_result(scope, createFromInt(equals(scope_get_result(scope_get_left(scope)), SCOPE_BOOLEAN_BIGFLOAT_TRUE) && equals(scope_get_result(scope_get_right(scope)), SCOPE_BOOLEAN_BIGFLOAT_TRUE)));
 				break;
 			}
 			case SCOPE_LOGIC_NOT:
@@ -117,14 +117,14 @@ int step(struct scope_t *scope)
 				if (scope_get_result_type(scope_get_left(scope)) == SCOPE_TYPE_STRING)
 				{
 					if (strlen(scope_get_result_string(variable_get_scope(scope_get_result(scope_get_left(scope)), function_scope))) == 0)
-						scope_set_result(scope, SCOPE_BOOLEAN_TRUE);
+						scope_set_result(scope, SCOPE_BOOLEAN_BIGFLOAT_TRUE);
 					else
-						scope_set_result(scope, SCOPE_BOOLEAN_FALSE);
+						scope_set_result(scope, SCOPE_BOOLEAN_BIGFLOAT_FALSE);
 				}
-				else if (scope_get_result(scope_get_left(scope)) == SCOPE_BOOLEAN_TRUE)
-					scope_set_result(scope, SCOPE_BOOLEAN_FALSE);
+				else if (equals(scope_get_result(scope_get_left(scope)), SCOPE_BOOLEAN_BIGFLOAT_TRUE))
+					scope_set_result(scope, SCOPE_BOOLEAN_BIGFLOAT_FALSE);
 				else
-					scope_set_result(scope, SCOPE_BOOLEAN_TRUE);
+					scope_set_result(scope, SCOPE_BOOLEAN_BIGFLOAT_TRUE);
 				break;
 			}
 			case SCOPE_LOGIC_EQUAL:
@@ -132,16 +132,16 @@ int step(struct scope_t *scope)
 				if (scope_get_result_type(scope_get_left(scope)) == SCOPE_TYPE_STRING && scope_get_result_type(scope_get_right(scope)) == SCOPE_TYPE_STRING)
 				{
 					if (strcmp(scope_get_result_string(variable_get_scope(scope_get_result(scope_get_left(scope)), function_scope)), scope_get_result_string(variable_get_scope(scope_get_result(scope_get_left(scope)), function_scope))) == 0)
-						scope_set_result(scope, SCOPE_BOOLEAN_TRUE);
+						scope_set_result(scope, SCOPE_BOOLEAN_BIGFLOAT_TRUE);
 					else
-						scope_set_result(scope, SCOPE_BOOLEAN_FALSE);
+						scope_set_result(scope, SCOPE_BOOLEAN_BIGFLOAT_FALSE);
 				}
 				else if ((scope_get_result_type(scope_get_left(scope)) == SCOPE_TYPE_STRING && scope_get_result_type(scope_get_right(scope)) != SCOPE_TYPE_STRING) || (scope_get_result_type(scope_get_left(scope)) != SCOPE_TYPE_STRING && scope_get_result_type(scope_get_right(scope)) == SCOPE_TYPE_STRING))
-					scope_set_result(scope, SCOPE_BOOLEAN_FALSE);
+					scope_set_result(scope, SCOPE_BOOLEAN_BIGFLOAT_FALSE);
 				else if (scope_get_result(scope_get_left(scope)) == scope_get_result(scope_get_right(scope)))
-					scope_set_result(scope, SCOPE_BOOLEAN_TRUE);
+					scope_set_result(scope, SCOPE_BOOLEAN_BIGFLOAT_TRUE);
 				else
-					scope_set_result(scope, SCOPE_BOOLEAN_FALSE);
+					scope_set_result(scope, SCOPE_BOOLEAN_BIGFLOAT_FALSE);
 				break;
 			}
 			case SCOPE_LOGIC_LESS:
@@ -151,9 +151,9 @@ int step(struct scope_t *scope)
 				else if (scope_get_type(scope_get_left(scope)) == SCOPE_TYPE_ARRAY || scope_get_type(scope_get_right(scope)) == SCOPE_TYPE_ARRAY)
 					return RUN_ARRAY_LOGIC_ERROR;
 				if (scope_get_result(scope_get_left(scope)) < scope_get_result(scope_get_right(scope)))
-					scope_set_result(scope, SCOPE_BOOLEAN_TRUE);
+					scope_set_result(scope, SCOPE_BOOLEAN_BIGFLOAT_TRUE);
 				else
-					scope_set_result(scope, SCOPE_BOOLEAN_FALSE);
+					scope_set_result(scope, SCOPE_BOOLEAN_BIGFLOAT_FALSE);
 				break;
 			}
 			case SCOPE_LOGIC_LESS_OR_EQUAL:
@@ -163,9 +163,9 @@ int step(struct scope_t *scope)
 				else if (scope_get_type(scope_get_left(scope)) == SCOPE_TYPE_ARRAY || scope_get_type(scope_get_right(scope)) == SCOPE_TYPE_ARRAY)
 					return RUN_ARRAY_LOGIC_ERROR;
 				if (scope_get_result(scope_get_left(scope)) <= scope_get_result(scope_get_right(scope)))
-					scope_set_result(scope, SCOPE_BOOLEAN_TRUE);
+					scope_set_result(scope, SCOPE_BOOLEAN_BIGFLOAT_TRUE);
 				else
-					scope_set_result(scope, SCOPE_BOOLEAN_FALSE);
+					scope_set_result(scope, SCOPE_BOOLEAN_BIGFLOAT_FALSE);
 				break;
 			}
 			case SCOPE_LOGIC_MORE:
@@ -175,9 +175,9 @@ int step(struct scope_t *scope)
 				else if (scope_get_type(scope_get_left(scope)) == SCOPE_TYPE_ARRAY || scope_get_type(scope_get_right(scope)) == SCOPE_TYPE_ARRAY)
 					return RUN_ARRAY_LOGIC_ERROR;
 				if (scope_get_result(scope_get_left(scope)) > scope_get_result(scope_get_right(scope)))
-					scope_set_result(scope, SCOPE_BOOLEAN_TRUE);
+					scope_set_result(scope, SCOPE_BOOLEAN_BIGFLOAT_TRUE);
 				else
-					scope_set_result(scope, SCOPE_BOOLEAN_FALSE);
+					scope_set_result(scope, SCOPE_BOOLEAN_BIGFLOAT_FALSE);
 				break;
 			}
 			case SCOPE_LOGIC_MORE_OR_EQUAL:
@@ -187,9 +187,9 @@ int step(struct scope_t *scope)
 				else if (scope_get_type(scope_get_left(scope)) == SCOPE_TYPE_ARRAY || scope_get_type(scope_get_right(scope)) == SCOPE_TYPE_ARRAY)
 					return RUN_ARRAY_LOGIC_ERROR;
 				if (scope_get_result(scope_get_left(scope)) >= scope_get_result(scope_get_right(scope)))
-					scope_set_result(scope, SCOPE_BOOLEAN_TRUE);
+					scope_set_result(scope, SCOPE_BOOLEAN_BIGFLOAT_TRUE);
 				else
-					scope_set_result(scope, SCOPE_BOOLEAN_FALSE);
+					scope_set_result(scope, SCOPE_BOOLEAN_BIGFLOAT_FALSE);
 				break;
 			}
 			case SCOPE_MATH_ADD:
@@ -212,7 +212,7 @@ int step(struct scope_t *scope)
 				{
 					if (scope_get_type(scope_get_left(scope)) == SCOPE_TYPE_ARRAY && scope_get_type(scope_get_right(scope)) == SCOPE_TYPE_ARRAY)
 					{
-					//	scope_array_append()
+						//	scope_array_append()
 					}
 					else
 						return RUN_ARRAY_LOGIC_ERROR;
@@ -220,29 +220,32 @@ int step(struct scope_t *scope)
 				else
 					scope_set_result_type(scope, SCOPE_TYPE_STRING);
 				if (scope_get_result_type(scope) == SCOPE_TYPE_INT || scope_get_result_type(scope) == SCOPE_TYPE_DOUBLE)
-					scope_set_result(scope, (scope_get_result(scope_get_left(scope)) + scope_get_result(scope_get_right(scope))));
+				{
+					BigFloat *result = create(NULL);
+					add(scope_get_result(scope_get_left(scope)), scope_get_result(scope_get_right(scope)), result);
+					scope_set_result(scope, result);
+				}
 				else
 				{
 					// Result will be a string
 					unsigned int scope_current_size = scope_size();
 					char *temporary_strings[3] = {
 						// Utilise the current string value, or allocated memory for new conversions
-						((scope_get_type(scope_get_left(scope)) == SCOPE_TYPE_STRING) ? scope_get_result_string(variable_get_scope(scope_get_result(scope_get_left(scope)), function_scope)) : new_string()),
-						((scope_get_type(scope_get_right(scope)) == SCOPE_TYPE_STRING) ? scope_get_result_string(variable_get_scope(scope_get_result(scope_get_right(scope)), function_scope)) : new_string()),
-						NULL
-					};
+						((scope_get_type(scope_get_left(scope)) == SCOPE_TYPE_STRING) ? scope_get_result_string(variable_get_scope(scope_get_result(scope_get_left(scope)), function_scope)) : NULL),
+						((scope_get_type(scope_get_right(scope)) == SCOPE_TYPE_STRING) ? scope_get_result_string(variable_get_scope(scope_get_result(scope_get_right(scope)), function_scope)) : NULL),
+						NULL};
 					if (temporary_strings[0] == NULL || temporary_strings[1] == NULL) // Failed to allocate memory for temporary strings
 						return RUN_MEMORY_ALLOCATION_ERROR;
 					switch (scope_get_type(scope_get_left(scope)))
 					{
 					case SCOPE_TYPE_INT:
-						int_to_str((int)scope_get_result(scope_get_left(scope)), temporary_strings[0], 0);
+						temporary_strings[0] = int_to_string(scope_get_result(scope_get_left(scope)));
 						break;
 					case SCOPE_TYPE_DOUBLE:
-						float_to_string(scope_get_result(scope_get_left(scope)), temporary_strings[0]);
+						temporary_strings[0] = float_to_string(scope_get_result(scope_get_left(scope)));
 						break;
 					case SCOPE_TYPE_BOOL:
-						bool_to_string(scope_get_result(scope_get_left(scope)), temporary_strings[0]);
+						temporary_strings[0] = bool_to_string(scope_get_result(scope_get_left(scope)));
 						break;
 					default:
 						return RUN_CONVERTION_FAILURE; // Unknown scope type
@@ -250,13 +253,13 @@ int step(struct scope_t *scope)
 					switch (scope_get_type(scope_get_right(scope)))
 					{
 					case SCOPE_TYPE_INT:
-						int_to_str((int)scope_get_result(scope_get_right(scope)), temporary_strings[1], 0);
+						temporary_strings[1] = int_to_string(scope_get_result(scope_get_right(scope)));
 						break;
 					case SCOPE_TYPE_DOUBLE:
-						float_to_string(scope_get_result(scope_get_right(scope)), temporary_strings[1]);
+						temporary_strings[1] = float_to_string(scope_get_result(scope_get_right(scope)));
 						break;
 					case SCOPE_TYPE_BOOL:
-						bool_to_string(scope_get_result(scope_get_right(scope)), temporary_strings[1]);
+						temporary_strings[1] = bool_to_string(scope_get_result(scope_get_right(scope)));
 						break;
 					default:
 						return RUN_CONVERTION_FAILURE; // Unknown scope type
@@ -272,8 +275,8 @@ int step(struct scope_t *scope)
 					free(temporary_strings[0]);
 					strcat(temporary_strings[2], temporary_strings[1]); // Concatenate string values together
 					free(temporary_strings[1]);
-					scope_set_result(scope, new_variable(scope_current_size, function_scope, VARIABLE_TEMPORARY)); // Assign a new variable as a response value
-					scope_set_result_string(variable_get_scope(scope_get_result(scope), function_scope), temporary_strings[2]); // Assign a string value to response value
+					scope_set_result(scope, createFromInt(new_variable(scope_current_size, function_scope, VARIABLE_TEMPORARY))); // Assign a new variable as a response value
+					scope_set_result_string(variable_get_scope(scope_get_result(scope), function_scope), temporary_strings[2]);	  // Assign a string value to response value
 					free(temporary_strings[2]);
 				}
 				break;
@@ -284,14 +287,18 @@ int step(struct scope_t *scope)
 					return RUN_STRING_LOGIC_ERROR;
 				else if (scope_get_type(scope_get_left(scope)) == SCOPE_TYPE_ARRAY || scope_get_type(scope_get_right(scope)) == SCOPE_TYPE_ARRAY)
 					return RUN_ARRAY_LOGIC_ERROR;
-				scope_set_result(scope, (scope_get_result(scope_get_left(scope)) - scope_get_result(scope_get_right(scope))));
+				BigFloat *result = create(NULL);
+				subtract(scope_get_result(scope_get_left(scope)), scope_get_result(scope_get_right(scope)), result);
+				scope_set_result(scope, result);
 				break;
 			}
 			case SCOPE_MATH_MULTIPLY:
 			{
 				if (scope_get_result_type(scope_get_left(scope)) == SCOPE_TYPE_STRING || scope_get_result_type(scope_get_right(scope)) == SCOPE_TYPE_STRING)
 					return RUN_STRING_LOGIC_ERROR;
-				scope_set_result(scope, (scope_get_result(scope_get_left(scope)) * scope_get_result(scope_get_right(scope))));
+				BigFloat *result = create(NULL);
+				multiply(scope_get_result(scope_get_left(scope)), scope_get_result(scope_get_right(scope)), result);
+				scope_set_result(scope, result);
 				break;
 			}
 			case SCOPE_MATH_DIVIDE:
@@ -301,11 +308,15 @@ int step(struct scope_t *scope)
 				else if (scope_get_type(scope_get_left(scope)) == SCOPE_TYPE_ARRAY || scope_get_type(scope_get_right(scope)) == SCOPE_TYPE_ARRAY)
 					return RUN_ARRAY_LOGIC_ERROR;
 				if (scope_get_result(scope_get_right(scope)) == 0)
-					return RUN_FAILURE;						 // Zero devision error
-				else if (scope_get_result(scope_get_left(scope)) == 0) // Will always result in a value of zero
-					scope_set_result(scope, 0);				 // Set result to zero in order to avoid unnecessary mathmatical calculation
+					return RUN_FAILURE;																	// Zero devision error
+				else if (equals(scope_get_result(scope_get_left(scope)), SCOPE_BOOLEAN_BIGFLOAT_FALSE)) // Will always result in a value of zero
+					scope_set_result(scope, SCOPE_BOOLEAN_BIGFLOAT_FALSE);								// Set result to zero in order to avoid unnecessary mathmatical calculation
 				else
-					scope_set_result(scope, (scope_get_result(scope_get_left(scope)) / scope_get_result(scope_get_right(scope))));
+				{
+					BigFloat *result = create(NULL);
+					divide(scope_get_result(scope_get_left(scope)), scope_get_result(scope_get_right(scope)), result);
+					scope_set_result(scope, result);
+				}
 				break;
 			}
 			case SCOPE_MATH_MODULO:
@@ -315,11 +326,15 @@ int step(struct scope_t *scope)
 				else if (scope_get_type(scope_get_left(scope)) == SCOPE_TYPE_ARRAY || scope_get_type(scope_get_right(scope)) == SCOPE_TYPE_ARRAY)
 					return RUN_ARRAY_LOGIC_ERROR;
 				if (scope_get_result(scope_get_right(scope)) == 0)
-					return RUN_FAILURE;						 // Modulo zero error
-				else if (scope_get_result(scope_get_left(scope)) == 0) // Will always result in a value of zero
-					scope_set_result(scope, 0);				 // Set result to zero in order to avoid mathmatical calculation
+					return RUN_FAILURE;																	// Modulo zero error
+				else if (equals(scope_get_result(scope_get_left(scope)), SCOPE_BOOLEAN_BIGFLOAT_FALSE)) // Will always result in a value of zero
+					scope_set_result(scope, SCOPE_BOOLEAN_BIGFLOAT_FALSE);								// Set result to zero in order to avoid mathmatical calculation
 				else
-					scope_set_result(scope, fmod(scope_get_result(scope_get_left(scope)), scope_get_result(scope_get_right(scope))));
+				{
+					BigFloat *result = create(NULL);
+					modulo(scope_get_result(scope_get_left(scope)), scope_get_result(scope_get_right(scope)), result);
+					scope_set_result(scope, result);
+				}
 				break;
 			}
 			case SCOPE_VARIABLE:

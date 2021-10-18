@@ -3,7 +3,10 @@ GCC=gcc
 EMCC=emcc
 ARGS=-Wall -g -ggdb
 WASM_ARGS=-fno-exceptions -fno-rtti -s ENVIRONMENT=web -s MALLOC=dlmalloc -s DISABLE_EXCEPTION_CATCHING=1 -s NO_FILESYSTEM=1 -s WASM=1 -s ALLOW_MEMORY_GROWTH=1 -s MAXIMUM_MEMORY=4GB -s WASM_BIGINT -g
-LIBS=
+LIBDIR=libs
+LIBFILES=$(wildcard $(LIBDIR)/*/src/*.c)
+LIBS=$(wildcard $(LIBDIR)/*)
+INC:=$(INC) -I$(wildcard $(LIBDIR)/*/include)
 SRCDIR=src
 OBJDIR=obj
 FILES=$(wildcard $(SRCDIR)/*.c)
@@ -11,16 +14,24 @@ OBJS=$(FILES:$(SRCDIR)/%.c=$(OBJDIR)/%.o)
 BUILD=build
 EXEC=program
 
-all: clean_objs setup $(OBJS) $(EXEC)
+.PHONY: $(LIBS)
 
-setup:
+all: clean_objs setup libraries $(OBJS) $(EXEC)
+
+setup: $(OBJDIR)
 	@mkdir -pv $(BUILD)
 
 $(EXEC):
-	$(GCC) $(OBJS) $(ARGS) -lm -o $(BUILD)/$(EXEC)
+	$(GCC) $(wildcard $(OBJDIR)/*.o) $(ARGS) -lm -o $(BUILD)/$(EXEC)
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.c $(OBJDIR)
 	$(GCC) $(ARGS) $(INC) -c $< -o $@
+
+libraries: $(LIBS)
+	@mv libs/*/obj/* $(OBJDIR) -v
+
+$(LIBS):
+	cd $@ && $(MAKE)
 
 $(OBJDIR):
 	@mkdir -pv $@

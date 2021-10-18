@@ -59,8 +59,9 @@ void delete_variable(variable_id id)
 	total_variables -= 1;								 // Decrease total variable count
 }
 
-struct scope_t *variable_get_scope(unsigned int variable_hash, unsigned int function_scope)
+struct scope_t *variable_get_scope(BigFloat *variable_hash_bigfloat, unsigned int function_scope)
 {
+	unsigned int variable_hash = toInt(variable_hash_bigfloat);
 	for (unsigned short i = 0; i < VARIABLE_MAX_TOTAL; i++)
 		if (variables[i].function_scope == function_scope || variables[i].function_scope == VARIABLE_SCOPE_GLOBAL)
 			if (variables[i].variable_hash == variable_hash)

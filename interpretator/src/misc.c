@@ -4,81 +4,47 @@
 #include <stdlib.h>
 #include <string.h>
 #include "misc.h"
+#include "run.h"
 #include "scope.h"
+#include "bigfloat.h"
 
-unsigned char int_to_str(int n, char str[], int padding)
+char * int_to_string(BigFloat *n)
 {
-	if (n == 0 && padding == 0)
-		padding = 1;
-	int i = 0;
-	if (n < 0)
-		str[i++] = '-';
-	while (n)
-	{
-		str[i++] = (n % 10) + '0'; // Convert last digit to ascii char
-		n = n / 10;
-	}
-
-	for (unsigned char ii = 0; ii < padding; ii++)
-		str[i++] = '0'; // Leftwards 0 padding
-	char str_tmp[i];
-	for (int ii = 0; ii < i; ii++)
-		str_tmp[ii] = str[(i - 1 - ii)];
-	for (int ii = 0; ii < i; ii++)
-		str[ii] = str_tmp[ii]; // Reverse char array
-	str[i] = '\0';
-	return i;
+	return toString(n, 0);
 }
 
-void float_to_string(double n, char *res)
+char * float_to_string(BigFloat *n)
 {
-	int whole_number = (int)n;					// Extract whole integer from double
-	double decimals = n - (double)whole_number; // Extract floating point decimal from double
-	unsigned char i = int_to_str(whole_number, res, (whole_number == 0));
-	unsigned char lessen[2] = {0, 0};
-	for (unsigned ii = 0; ii < FLOAT_MAX_PRECISION; ii++)
-	{
-		decimals *= 10;
-		if ((int)(decimals + FLOAT_PRECISION_COMPENSATE_EXPONENT) % 10 == 0 && lessen[1] == 0)
-			lessen[0]++; // Increase leftwards padding
-		else
-			lessen[1] = 1; // Decimal value is not completely 0
-	}
-	res[i++] = '.';
-	if (lessen[1] != 0)
-	{
-		while ((int)decimals % 10 == 0)
-			decimals /= 10;
-		decimals += FLOAT_PRECISION_COMPENSATE_EXPONENT; // Compensat for double precision inaccuracies
-		i += (int_to_str((int)decimals, (res + i), lessen[0]) - 1);
-		for (int ii = 0; ii < FLOAT_MAX_PRECISION; ii++)
-		{
-			if (res[i--] == '0')	 // If is trailing 0
-				res[(i + 1)] = '\0'; // Remove trailing 0
-			else
-			{
-				i += 2;
-				break;
-			}
-			if (ii == (FLOAT_MAX_PRECISION - 1))
-				i++;
-		}
-	}
-	else
-		res[i++] = '0';
-	res[i] = '\0';
+	return toString(n, 1);
 }
 
-void bool_to_string(double n, char *res)
+char * bool_to_string(BigFloat *n)
 {
-	if (n == SCOPE_BOOLEAN_TRUE)
+	char *res = NULL;
+	if (equals(n, SCOPE_BOOLEAN_BIGFLOAT_TRUE))
+	{
+		res = malloc(sizeof(char) * 5);
+		if (res == NULL)
+			fatal_error(RUN_MEMORY_ALLOCATION_ERROR);
 		strcpy(res, "True\0");
+	}
 	else
+	{
+		res = malloc(sizeof(char) * 6);
+		if (res == NULL)
+			fatal_error(RUN_MEMORY_ALLOCATION_ERROR);
 		strcpy(res, "False\0");
+	}
+	return res;
 }
 
 char *new_string() {
-	return malloc((sizeof(char) * STRING_MEMORY_MAX_LENGTH));
+	return malloc(STRING_MEMORY_MAX_LENGTH * sizeof(char));
+}
+
+void fatal_error(unsigned int error_code)
+{
+	exit(error_code);
 }
 
 char *new_string_size(unsigned short size) {

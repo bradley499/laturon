@@ -32,7 +32,7 @@ void variable_initialisation();
 unsigned int new_variable(unsigned int execution_scope, unsigned int function_scope, unsigned int variable_hash);
 void refresh_variable_scope(unsigned int variable_hash, unsigned int function_scope, unsigned int execution_scope);
 void delete_variable(variable_id id);
-struct scope_t *variable_get_scope(unsigned int variable_hash, unsigned int function_scope);
+struct scope_t *variable_get_scope(BigFloat *variable_hash_bigfloat, unsigned int function_scope);
 void cleanup(unsigned int execution_scope);
 
 #endif

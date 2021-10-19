@@ -11,7 +11,7 @@ static unsigned short total_variables = 0;
 
 void variable_initialisation()
 {
-	cleanup(0); // Remove all existing variables and prepare for new initialisation
+	cleanup(0);			 // Remove all existing variables and prepare for new initialisation
 	total_variables = 0; // Set total variables in use to 0
 }
 
@@ -61,7 +61,7 @@ void delete_variable(variable_id id)
 
 struct scope_t *variable_get_scope(BigFloat *variable_hash_bigfloat, unsigned int function_scope)
 {
-	unsigned int variable_hash = toInt(variable_hash_bigfloat);
+	unsigned int variable_hash = BigFloatToInt(variable_hash_bigfloat);
 	for (unsigned short i = 0; i < VARIABLE_MAX_TOTAL; i++)
 		if (variables[i].function_scope == function_scope || variables[i].function_scope == VARIABLE_SCOPE_GLOBAL)
 			if (variables[i].variable_hash == variable_hash)
@@ -73,7 +73,7 @@ void cleanup(unsigned int execution_scope)
 {
 	for (unsigned short i = 0; i < VARIABLE_MAX_TOTAL; i++)
 		if (((execution_scope == VARIABLE_SCOPE_GLOBAL) ? 1 : variables[i].execution_scope > execution_scope)) // If variable scope is destroyed
-			delete_variable(i);															   // Delete variable
+			delete_variable(i);																				   // Delete variable
 }
 
 #endif

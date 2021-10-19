@@ -10,18 +10,18 @@
 
 char * int_to_string(BigFloat *n)
 {
-	return toString(n, 0);
+	return BigFloatToString(n, 0);
 }
 
 char * float_to_string(BigFloat *n)
 {
-	return toString(n, 1);
+	return BigFloatToString(n, 1);
 }
 
 char * bool_to_string(BigFloat *n)
 {
 	char *res = NULL;
-	if (equals(n, SCOPE_BOOLEAN_BIGFLOAT_TRUE))
+	if (BigFloatEquals(n, SCOPE_BOOLEAN_BIGFLOAT_TRUE))
 	{
 		res = malloc(sizeof(char) * 5);
 		if (res == NULL)

@@ -1,0 +1,3 @@
+[submodule "interpretator/libs/BigFloat"]
+	path = interpretator/libs/BigFloat
+	url = https://github.com/bradley499/BigFloat.git

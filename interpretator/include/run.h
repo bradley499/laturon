@@ -20,7 +20,7 @@
 #define RUN_STEP_FINISHED           14 // No more steps remain
 #define RUN_PARAMETER_STACK_OPEN    15 // Add values to the parameter stack
 #define RUN_PARAMETER_STACK_CLOSED  16 // Do not add values to the parameter stack
-#define RUN_CONVERTION_FAILURE      17 // A the source for a conversion to another data type was not understood
+#define RUN_CONVERSION_FAILURE      17 // A the source for a conversion to another data type was not understood
 
 struct position
 {

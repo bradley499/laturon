@@ -6,11 +6,6 @@
 
 #include "scope.h"
 #include "misc.h"
-#include "bigfloat.h"
-
-BigFloat *scope_boolean_bigfloats[2] = {
-	NULL,
-	NULL};
 
 struct scope_t *scope_new()
 {
@@ -18,12 +13,12 @@ struct scope_t *scope_new()
 	scope = (struct scope_t *)malloc(sizeof(struct scope_t)); // Attempts to request for memory
 	if (scope != NULL)										  // No memory was allocated
 	{
-		scope->left = NULL;					  // Set scope left branch as undefined
-		scope->right = NULL;				  // Set scope right branch as undefined
-		scope->type = SCOPE_UNDEFINED;		  // Set scope type as undefined
-		scope->result_type = SCOPE_UNDEFINED; // Set scope result type as undefined
-		scope->result.numeric = BigFloatCreate(0);	  // Set scope result as undefined
-		scope->await = SCOPE_BOOLEAN_FALSE;	  // Set scope await to false
+		scope->left = NULL;							 // Set scope left branch as undefined
+		scope->right = NULL;						 // Set scope right branch as undefined
+		scope->type = SCOPE_UNDEFINED;				 // Set scope type as undefined
+		scope->result_type = SCOPE_UNDEFINED;		 // Set scope result type as undefined
+		scope->result.numeric = SCOPE_DEFAULT_VALUE; // Set scope result as undefined
+		scope->await = SCOPE_BOOLEAN_FALSE;			 // Set scope await to false
 	}
 	return scope;
 }
@@ -41,33 +36,16 @@ int scope_get_type(struct scope_t *scope)
 	return scope->type;
 }
 
-void scope_set_result(struct scope_t *scope, BigFloat *set_result)
+void scope_set_result(struct scope_t *scope, double set_result)
 {
-	if (scope->result_type == SCOPE_TYPE_STRING)
-		return;
-	if ((void *)scope->result.numeric != (void *)SCOPE_BOOLEAN_BIGFLOAT_TRUE && (void *)scope->result.numeric != (void *)SCOPE_BOOLEAN_BIGFLOAT_FALSE)
-	{
-		BigFloatFree(scope->result.numeric);
-		scope->result.numeric = NULL;
-	}
+	scope_set_result_type(scope, SCOPE_TYPE_DOUBLE);
 	scope->result.numeric = set_result; // Set scope result
 }
 
 unsigned char scope_set_result_string(struct scope_t *scope, char *str)
 {
-	unsigned short string_length = strlen(str);
-	if (scope->result_type == SCOPE_TYPE_STRING)
-	{
-		if (scope->result.string != NULL)
-			free(scope->result.string); // Free up memory for current string
-		scope->result.string = NULL;
-	}
-	else
-	{
-		if (scope->result.numeric != NULL)
-			BigFloatFree(scope->result.numeric);
-		scope->result.numeric = NULL;
-	}
+	unsigned long string_length = strlen(str);
+	scope_set_result_type(scope, SCOPE_TYPE_STRING);
 	scope->result.string = NULL;
 	scope->result.string = new_string_size((string_length + 1)); // Allocate memory for new string
 	if (scope->result.string == NULL)							 // Failed to allocate memory for new string
@@ -75,9 +53,8 @@ unsigned char scope_set_result_string(struct scope_t *scope, char *str)
 		scope->result_type = SCOPE_UNDEFINED;
 		return SCOPE_CREATION_FAILURE;
 	}
-	scope->result_type = SCOPE_TYPE_STRING;
 	scope->result.string[string_length] = '\0';
-	strncpy(scope->result.string, str, strlen(str)); // Set scope value to char array pointer
+	memcpy(scope->result.string, str, string_length); // Set scope value to char array pointer
 	return SCOPE_SUCCESS;
 }
 
@@ -91,18 +68,13 @@ void scope_set_result_type(struct scope_t *scope, int set_result_type)
 			free(scope->result.string); // Free up memory for current string
 		scope->result.string = NULL;
 	}
-	else
-	{
-		BigFloatFree(scope->result.numeric);
-		scope->result.numeric = NULL;
-	}
 	scope->result_type = set_result_type; // Set scope result type
 }
 
-BigFloat *scope_get_result(struct scope_t *scope)
+double scope_get_result(struct scope_t *scope)
 {
 	if (scope->result_type != SCOPE_TYPE_STRING || scope->type != SCOPE_UNDEFINED)
-		return NULL;
+		return SCOPE_DEFAULT_VALUE;
 	return scope->result.numeric; // Get scope result
 }
 
@@ -130,7 +102,7 @@ void scope_clear_result(struct scope_t *scope)
 	case SCOPE_TYPE_ARRAY:
 		break;
 	default:
-		BigFloatClear(scope->result.numeric); // Clear scope result;
+		scope->result.numeric = 0; // Clear scope result;
 	}
 }
 
@@ -253,8 +225,6 @@ void scope_destroy(struct scope_t *scope)
 				if (current_scope->result.string != NULL)
 					free(current_scope->result.string); // Free up memory for current string
 			}
-			else if (current_scope->result.numeric != NULL)
-				BigFloatFree(current_scope->result.numeric);
 			if (current_scope == scope) // Root scope has no children
 				break;
 			current_scope_left_child = current_scope->left;
@@ -266,20 +236,6 @@ void scope_destroy(struct scope_t *scope)
 		}
 	}
 	free(scope); // Free up root scope memory
-}
-
-BigFloat *scope_boolean_bigfloat_true()
-{
-	if (scope_boolean_bigfloats[(int)SCOPE_BOOLEAN_TRUE] == NULL)
-		scope_boolean_bigfloats[(int)SCOPE_BOOLEAN_TRUE] = BigFloatCreateFromInt((int)SCOPE_BOOLEAN_TRUE);
-	return scope_boolean_bigfloats[(int)SCOPE_BOOLEAN_TRUE];
-}
-
-BigFloat *scope_boolean_bigfloat_false()
-{
-	if (scope_boolean_bigfloats[(int)SCOPE_BOOLEAN_FALSE] == NULL)
-		scope_boolean_bigfloats[(int)SCOPE_BOOLEAN_FALSE] = BigFloatCreateFromInt((int)SCOPE_BOOLEAN_FALSE);
-	return scope_boolean_bigfloats[(int)SCOPE_BOOLEAN_FALSE];
 }
 
 #endif

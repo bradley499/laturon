@@ -1,15 +1,13 @@
 INC=-I./include
 CC?=gcc
+DEBUG=false
 ifeq ($(filter $(shell whereis emcc),$(CC)),$(CC))
 EMCC=$(CC)
-ARGS=-std=c99 -fno-exceptions -fno-rtti -s ENVIRONMENT=web -s MALLOC=dlmalloc -s DISABLE_EXCEPTION_CATCHING=1 -s NO_FILESYSTEM=1 -s WASM=1 -s ALLOW_MEMORY_GROWTH=1 -s MAXIMUM_MEMORY=4GB -s WASM_BIGINT -g -Wall -fdebug-compilation-dir='..'
+ARGS=-O3 -std=c99 -fno-exceptions -fno-rtti -s ENVIRONMENT=web -s MALLOC=emmalloc -s DISABLE_EXCEPTION_CATCHING=1 -s FORCE_FILESYSTEM=1 -s WASM=1 -s ALLOW_MEMORY_GROWTH=1 -s MAXIMUM_MEMORY=4GB -s WASM_BIGINT --closure 1 --pre-js src/js/interact.js
 else
-ARGS=-Wall -g -ggdb
+ARGS=-O2 -lm -Wall -g -ggdb
 endif
-LIBDIR=libs
-LIBFILES=$(wildcard $(LIBDIR)/*/src/*.c)
-LIBS=$(wildcard $(LIBDIR)/*)
-INC:=$(INC) -I$(wildcard $(LIBDIR)/*/include)
+INC:=$(INC)
 SRCDIR=src
 OBJDIR=obj
 FILES=$(wildcard $(SRCDIR)/*.c)
@@ -20,26 +18,26 @@ EXEC=program
 else
 EXEC=program.html
 endif
-.PHONY: $(LIBS)
 
 all: default $(OBJS) $(EXEC)
 
-default: clean_objs setup libraries
+default: clean_objs setup
+
+ifneq ($(EMCC),$(CC))
+debug: ARGS += -Wall -g -ggdb
+else
+debug: ARGS += -g -Wall -fdebug-compilation-dir='..'
+endif
+debug: all
 
 setup: $(OBJDIR)
 	@mkdir -pv $(BUILD)
 
 $(EXEC):
-	$(CC) $(wildcard $(OBJDIR)/*.o) $(ARGS) -lm -o $(BUILD)/$(EXEC)
+	$(CC) $(wildcard $(OBJDIR)/*.o) $(ARGS) -o $(BUILD)/$(EXEC)
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.c $(OBJDIR)
 	$(CC) $(ARGS) $(INC) -c $< -o $@
-
-libraries: $(LIBS)
-	@mv libs/*/obj/* $(OBJDIR) -v
-
-$(LIBS):
-	cd $@ && $(MAKE)
 
 $(OBJDIR):
 	@mkdir -pv $@

@@ -1,7 +1,7 @@
 #ifndef scope_h
 #define scope_h
 
-#include "bigfloat.h"
+#include "stack.h"
 
 #define SCOPE_SUCCESS               0   // Successful operation
 #define SCOPE_FAILURE               1   // Failed operation
@@ -51,14 +51,14 @@ struct scope_t
 	unsigned char type;    // Branch type
 	union result
 	{
-		BigFloat *numeric;
+		double numeric;
 		char *string;
-	} result;                  // Branch result
-	unsigned char result_type; // Branch result type
-	unsigned char await;       // Branch is awaiting result
+	} result;                   // Branch result
+	struct stack_t *call_stack; // Call stack parental references
+	unsigned char result_type;  // Branch result type
+	unsigned char await;        // Branch is awaiting result
 } __attribute__((__packed__));
 
-void scope_init();
 struct scope_t *scope_new();
 int scope_set_type(struct scope_t *scope, int set_type);
 int scope_get_type(struct scope_t *scope);
@@ -68,18 +68,14 @@ void scope_set_right(struct scope_t *scope, struct scope_t *set_scope);
 struct scope_t *scope_get_right(struct scope_t *scope);
 char* scope_traverse_string(struct scope_t *scope);
 void scope_destroy(struct scope_t *scope);
-void scope_set_result(struct scope_t *scope, BigFloat *set_result);
+void scope_set_result(struct scope_t *scope, double set_result);
 unsigned char scope_set_result_string(struct scope_t *scope, char *str);
 void scope_set_result_type(struct scope_t *scope, int set_result_type);
-BigFloat * scope_get_result(struct scope_t *scope);
+double scope_get_result(struct scope_t *scope);
 char *scope_get_result_string(struct scope_t *scope);
 int scope_get_result_type(struct scope_t *scope);
 void scope_clear_result(struct scope_t *scope);
 int scope_await(struct scope_t *scope);
 int scope_array_append(struct scope_t *scope_destination, struct scope_t *scope_source);
-BigFloat *scope_boolean_bigfloat_true();
-BigFloat *scope_boolean_bigfloat_false();
-#define SCOPE_BOOLEAN_BIGFLOAT_TRUE scope_boolean_bigfloat_true()
-#define SCOPE_BOOLEAN_BIGFLOAT_FALSE scope_boolean_bigfloat_false()
 
 #endif

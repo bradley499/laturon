@@ -16,12 +16,19 @@ typedef enum error_codes {
 	STRING_INPUT_ERROR,       // Failed to correctly read in user input string
 } error_codes;
 
+// Blocking malloc which will exit program execution on failure
 void *xmalloc(unsigned int size);
+// Convert integer to string
 unsigned char int_to_str(int n, char str[], int padding);
+// Convert float to string
 void float_to_string(double n, char *res);
+// Convert boolean to string
 void bool_to_string(double n, char *res);
+// Exit program with error code
 void fatal_error(error_codes code);
+// Allocate a new string
 char *new_string();
+// Allocate a new string of size
 char *new_string_size(unsigned short size);
 
 #endif

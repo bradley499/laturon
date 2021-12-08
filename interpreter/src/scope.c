@@ -150,9 +150,9 @@ int scope_array_append(struct scope_t *scope_destination, struct scope_t *scope_
 		appending_array = SCOPE_BOOLEAN_TRUE;
 		current_source_scope = current_source_scope->left; // Get first element within array
 	}
-	while (current_scope->left != NULL) // Repeat until the end of the string has been reached
+	while (current_scope->left != NULL) // Repeat until the end of the array has been reached
 		current_scope = current_scope->left;
-	while (current_source_scope->left != NULL) // Repeat until the end of the string has been reached
+	while (current_source_scope->left != NULL) // Repeat until the end of the array has been reached
 	{
 		struct scope_t *new_scope = scope_new();
 		if (new_scope == NULL)

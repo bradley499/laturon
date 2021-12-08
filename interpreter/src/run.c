@@ -312,8 +312,11 @@ int step()
 				break;
 			}
 			if (function_scope_parameter == RUN_PARAMETER_STACK_OPEN)
-				parameter_stack_push(function_scope, scope); // Add current parameter to the parameter stack
-			scope = stack_pop(scope);						 // Scope now points to scopes stack parent
+			{
+				if (parameter_stack_push(function_scope, scope) == PARAMETER_PUSH_FAILURE) // Add current parameter to the parameter stack
+					return RUN_MEMORY_EXHAUSTION_ERROR;									   // No more space exists on parameter stack
+			}
+			scope = stack_pop(scope); // Scope now points to scopes stack parent
 		}
 		else
 			return RUN_FAILURE;
@@ -331,7 +334,7 @@ int run()
 	stack_reset(scope);
 	if (scope == NULL) // No initial scope was provided
 		return RUN_FAILURE;
-	int operation = RUN_STEP_CONTINUE; // Set mode to continue
+	int operation = RUN_STEP_CONTINUE;	   // Set mode to continue
 	while (operation == RUN_STEP_CONTINUE) // If can continue
 	{
 		operation = step(); // Get continuation state of current execution step
@@ -340,6 +343,7 @@ int run()
 		case RUN_SWITCH_NODE: // Scope update - can still continue
 			operation = RUN_STEP_CONTINUE;
 			break;
+		case RUN_MEMORY_EXHAUSTION_ERROR:
 		case RUN_MEMORY_ALLOCATION_ERROR: // Failed to allocate memory
 			fatal_error(MEMORY_ALLOCATION_ERROR);
 			break;

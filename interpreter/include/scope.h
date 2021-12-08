@@ -59,23 +59,39 @@ struct scope_t
 	unsigned char await;        // Branch is awaiting result
 } __attribute__((__packed__));
 
+// Create a new scope
 struct scope_t *scope_new();
+// Set type of scope
 int scope_set_type(struct scope_t *scope, int set_type);
+// Get type of scope
 int scope_get_type(struct scope_t *scope);
+// Set scope leftward child scope
 void scope_set_left(struct scope_t *scope, struct scope_t *set_scope);
+// Get scope leftward child scope
 struct scope_t *scope_get_left(struct scope_t *scope);
+// Set scope rightward child scope
 void scope_set_right(struct scope_t *scope, struct scope_t *set_scope);
+// Get scope rightward child scope
 struct scope_t *scope_get_right(struct scope_t *scope);
-char* scope_traverse_string(struct scope_t *scope);
+// Free up scope memory
 void scope_destroy(struct scope_t *scope);
+// Set scope result value
 void scope_set_result(struct scope_t *scope, double set_result);
+// Set scope result string value
 unsigned char scope_set_result_string(struct scope_t *scope, char *str);
+// Set scope result type
 void scope_set_result_type(struct scope_t *scope, int set_result_type);
+// Get scope result value
 double scope_get_result(struct scope_t *scope);
+// Get scope result string value
 char *scope_get_result_string(struct scope_t *scope);
+// Get scope result type
 int scope_get_result_type(struct scope_t *scope);
+// Clear scope result value
 void scope_clear_result(struct scope_t *scope);
+// Get scope's awaited status
 int scope_await(struct scope_t *scope);
+// Append scope to array
 int scope_array_append(struct scope_t *scope_destination, struct scope_t *scope_source);
 
 #endif

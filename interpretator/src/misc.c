@@ -90,9 +90,10 @@ char *new_string() {
 	return malloc((sizeof(char) * STRING_MEMORY_MAX_LENGTH));
 }
 
-void fatal_error(unsigned int error_code)
+void fatal_error(error_codes code)
 {
-	exit(error_code);
+	// TODO: Implement cleanup routine
+	exit((int)code); // Terminate program
 }
 
 char *new_string_size(unsigned short size) {

@@ -1,3 +1,6 @@
+#ifndef interact_c
+#define interact_c
+
 #ifdef EMSCRIPTEN
 #include <stdbool.h>
 #include <emscripten/emscripten.h>
@@ -44,5 +47,37 @@ void output(char *message)
 	js_output(message);
 	emscripten_sleep(100); // Brief sleep to allow for JavaScript engine to render outputs.
 }
+
+#else
+#define _GNU_SOURCE
+#include <stdio.h>
+#include <stdlib.h>
+#include "misc.h"
+
+char * input(char *message)
+{
+	printf("%s", message);
+	char *input_string = NULL;
+	size_t len = 0;
+	long line_size = 0;
+	line_size = getline(&input_string, &len, stdin);
+	if (len <= 0)
+	{
+		if (input_string != NULL)
+			free(input_string);
+		fatal_error(STRING_INPUT_ERROR);
+	}
+	else
+		input_string[(line_size - 1)] = '\0';
+	return input_string;
+}
+
+void output(char *message)
+{
+	printf("%s\n", message);
+}
+
+#undef _GNU_SOURCE
+#endif
 
 #endif

@@ -11,10 +11,10 @@ struct parameter_t parameter_stack[PARAMETER_STACK_MAX_SIZE];
 
 void clear_parameter_stack()
 {
-	pop_parameter_stack(0);
+	parameter_stack_pop(0);
 }
 
-void pop_parameter_stack(unsigned short scope_level)
+void parameter_stack_pop(unsigned short scope_level)
 {
 	if (current_parameter_stack_size)
 		return;
@@ -35,7 +35,7 @@ void pop_parameter_stack(unsigned short scope_level)
 	current_parameter_stack_size = parameter_stack_reduced_size;
 }
 
-unsigned int push_parameter_stack(unsigned short scope_level, struct scope_t *parameter)
+unsigned int parameter_stack_push(unsigned short scope_level, struct scope_t *parameter)
 {
 	if (current_parameter_stack_size == PARAMETER_STACK_MAX_SIZE)							// Size of parameter stack is too big
 		return PARAMETER_PUSH_FAILURE;														// Do not push to parameter stack

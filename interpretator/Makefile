@@ -3,9 +3,11 @@ CC?=gcc
 DEBUG=false
 ifeq ($(filter $(shell whereis emcc),$(CC)),$(CC))
 EMCC=$(CC)
-ARGS=-O3 -std=c99 -fno-exceptions -fno-rtti -s ENVIRONMENT=web -s MALLOC=emmalloc -s DISABLE_EXCEPTION_CATCHING=1 -s FORCE_FILESYSTEM=1 -s WASM=1 -s ALLOW_MEMORY_GROWTH=1 -s MAXIMUM_MEMORY=4GB -s WASM_BIGINT --closure 1 --pre-js src/js/interact.js
+ARGS=-O3 -std=c99 -fno-exceptions -fno-rtti -s ENVIRONMENT=web -s MALLOC=emmalloc -s DISABLE_EXCEPTION_CATCHING=1 -s FORCE_FILESYSTEM=1 -s WASM=1 -s ALLOW_MEMORY_GROWTH=1 -s MAXIMUM_MEMORY=4GB -s WASM_BIGINT -s ASYNCIFY --pre-js src/js/interact.js
+OBJ_ARGS=-std=c99 -fno-exceptions -fno-rtti
 else
-ARGS=-O2 -lm -Wall -g -ggdb
+ARGS=-O2 -lm -Wall
+OBJ_ARGS=$(ARGS)
 endif
 INC:=$(INC)
 SRCDIR=src
@@ -37,7 +39,7 @@ $(EXEC):
 	$(CC) $(wildcard $(OBJDIR)/*.o) $(ARGS) -o $(BUILD)/$(EXEC)
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.c $(OBJDIR)
-	$(CC) $(ARGS) $(INC) -c $< -o $@
+	$(CC) $(OBJ_ARGS) $(INC) -c $< -o $@
 
 $(OBJDIR):
 	@mkdir -pv $@

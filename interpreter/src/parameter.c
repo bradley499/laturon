@@ -7,14 +7,14 @@
 #include "scope.h"
 
 unsigned int current_parameter_stack_size = 0;
-struct parameter_t parameter_stack[PARAMETER_STACK_MAX_SIZE];
+parameter_t parameter_stack[PARAMETER_STACK_MAX_SIZE];
 
 void clear_parameter_stack()
 {
-	parameter_stack_pop(0);
+	parameter_stack_parent_pop(0);
 }
 
-void parameter_stack_pop(unsigned short scope_level)
+void parameter_stack_parent_pop(unsigned short scope_level)
 {
 	if (current_parameter_stack_size)
 		return;
@@ -35,11 +35,11 @@ void parameter_stack_pop(unsigned short scope_level)
 	current_parameter_stack_size = parameter_stack_reduced_size;
 }
 
-unsigned int parameter_stack_push(unsigned short scope_level, struct scope_t *parameter)
+unsigned int parameter_stack_parent_push(unsigned short scope_level, scope_t *parameter)
 {
 	if (current_parameter_stack_size == PARAMETER_STACK_MAX_SIZE)							// Size of parameter stack is too big
 		return PARAMETER_PUSH_FAILURE;														// Do not push to parameter stack
-	struct scope_t *parameter_scope_rel = scope_new();										// Create a new scope
+	scope_t *parameter_scope_rel = scope_new();										// Create a new scope
 	if (parameter_scope_rel == NULL)														// No new scope was created
 		return PARAMETER_PUSH_FAILURE;														// Do not push to parameter stack because no relative parameter scope was created
 	scope_set_type(parameter_scope_rel, scope_get_type(parameter));							// Copy parameter type to relative parameter

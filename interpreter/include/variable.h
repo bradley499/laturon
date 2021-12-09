@@ -23,7 +23,7 @@ typedef struct variable
 	unsigned int execution_scope;
 	unsigned int function_scope;
 	unsigned int variable_hash;
-	struct scope_t *scope;
+	scope_t *scope;
 } variable;
 
 typedef unsigned short variable_id;
@@ -37,7 +37,7 @@ void refresh_variable_scope(unsigned int variable_hash, unsigned int function_sc
 // Delete variable reference
 void delete_variable(variable_id id);
 // Get scope of variable
-struct scope_t *variable_get_scope(unsigned int variable_hash, unsigned int function_scope);
+scope_t *variable_get_scope(unsigned int variable_hash, unsigned int function_scope);
 // Clean up all variables within execution scope
 void cleanup(unsigned int execution_scope);
 

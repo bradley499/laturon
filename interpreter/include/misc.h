@@ -14,6 +14,7 @@ typedef enum error_codes {
 	EXECUTION_ERROR,          // Failure to execute operation
 	STACK_REFERENCE_ERROR,    // An invalid reference to a call stack scope occurred
 	STRING_INPUT_ERROR,       // Failed to correctly read in user input string
+	MISSING_COMPOUND_LITERAL, // A reference to a compound literal does not exist
 } error_codes;
 
 // Blocking malloc which will exit program execution on failure

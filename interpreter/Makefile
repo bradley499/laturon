@@ -3,11 +3,11 @@ CC?=gcc
 DEBUG=false
 ifeq ($(filter $(shell whereis emcc),$(CC)),$(CC))
 EMCC=$(CC)
-ARGS=-O3 -std=c99 -fno-exceptions -fno-rtti -s ENVIRONMENT=web -s MALLOC=emmalloc -s DISABLE_EXCEPTION_CATCHING=1 -s FORCE_FILESYSTEM=1 -s WASM=1 -s ALLOW_MEMORY_GROWTH=1 -s MAXIMUM_MEMORY=4GB -s WASM_BIGINT -s ASYNCIFY --pre-js src/js/interact.js
-OBJ_ARGS=-std=c99 -fno-exceptions -fno-rtti
+ARGS=-Wall -O3 -std=c99 -fno-exceptions -fno-rtti -s ENVIRONMENT=web -s MALLOC=emmalloc -s DISABLE_EXCEPTION_CATCHING=1 -s FORCE_FILESYSTEM=1 -s WASM=1 -s ALLOW_MEMORY_GROWTH=1 -s MAXIMUM_MEMORY=4GB -s WASM_BIGINT -s ASYNCIFY --pre-js src/js/interact.js
+OBJ_ARGS=-Wall -std=c99 -fno-exceptions -fno-rtti
 else
 ARGS=-O2 -lm -Wall
-OBJ_ARGS=$(ARGS)
+OBJ_ARGS=-Wall
 endif
 INC:=$(INC)
 SRCDIR=src
@@ -26,9 +26,9 @@ all: default $(OBJS) $(EXEC)
 default: clean_objs setup
 
 ifneq ($(EMCC),$(CC))
-debug: ARGS += -Wall -g -ggdb
+debug: ARGS += -g -ggdb
 else
-debug: ARGS += -g -Wall -fdebug-compilation-dir='..'
+debug: ARGS += -g -fdebug-compilation-dir='..'
 endif
 debug: all
 

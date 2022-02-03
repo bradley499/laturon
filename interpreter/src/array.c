@@ -7,9 +7,9 @@
 #include "misc.h"
 #include "scope.h"
 
-array_value_t* array_new()
+array_value_t *array_new()
 {
-	array_value_t* array = xmalloc(sizeof(array_value_t));
+	array_value_t *array = xmalloc(sizeof(array_value_t));
 	array->next = NULL;
 	return array;
 }
@@ -20,19 +20,19 @@ void array_delete(array_value_t *array)
 		fatal_error(ARRAY_TYPE_EXPECTED_ERROR);
 	typedef struct array_references
 	{
-		array_value_t* array;
-		struct array_references* next;
+		array_value_t *array;
+		struct array_references *next;
 	} array_references;
-	array_references* arrays = xmalloc(sizeof(array_references));
+	array_references *arrays = xmalloc(sizeof(array_references));
 	arrays->array = array;
 	arrays->next = NULL;
 	for (;;)
 	{
 		if (arrays == NULL)
 			break;
-		array_value_t* current = arrays->array;
+		array_value_t *current = arrays->array;
 		arrays = arrays->next;
-		for (;current != NULL;)
+		for (; current != NULL;)
 		{
 			if (current->result_type == SCOPE_TYPE_ARRAY)
 			{
@@ -44,10 +44,10 @@ void array_delete(array_value_t *array)
 				}
 				else
 				{
-					array_references* array_current = arrays;
-					for (;array_current->next != NULL;)
+					array_references *array_current = arrays;
+					for (; array_current->next != NULL;)
 						array_current = array_current->next;
-					array_references* array_reference = xmalloc(sizeof(array_references));
+					array_references *array_reference = xmalloc(sizeof(array_references));
 					array_reference->array = (array_value_t *)current->result.result_int;
 					array_reference->next = NULL;
 					array_current->next = array_reference;
@@ -56,8 +56,8 @@ void array_delete(array_value_t *array)
 					continue;
 				}
 			}
-			array_value_t* next = current->next;
-			array_value_t* current_array_item = current;
+			array_value_t *next = current->next;
+			array_value_t *current_array_item = current;
 			current = next;
 			free(current_array_item);
 		}
@@ -66,7 +66,7 @@ void array_delete(array_value_t *array)
 
 int array_remove(array_value_t *array, int at)
 {
-	array_value_t* current = array;
+	array_value_t *current = array;
 	if (current == NULL)
 		fatal_error(ARRAY_TYPE_EXPECTED_ERROR);
 	if (current->next == NULL)
@@ -74,7 +74,7 @@ int array_remove(array_value_t *array, int at)
 		array_delete(current);
 		return SCOPE_BOOLEAN_TRUE;
 	}
-	array_value_t* previous = NULL;
+	array_value_t *previous = NULL;
 	unsigned int size = 0;
 	do
 	{
@@ -104,7 +104,7 @@ int array_remove(array_value_t *array, int at)
 
 int array_update(array_value_t *array, int at, unsigned char value_type, double value_double, signed long long int value_int)
 {
-	array_value_t* current = array;
+	array_value_t *current = array;
 	if (current == NULL)
 		fatal_error(ARRAY_TYPE_EXPECTED_ERROR);
 	unsigned int size = 0;
@@ -127,7 +127,7 @@ int array_update(array_value_t *array, int at, unsigned char value_type, double 
 
 int array_insert(array_value_t *array, int at, unsigned char value_type, double value_double, signed long long int value_int)
 {
-	array_value_t* current = array;
+	array_value_t *current = array;
 	if (current == NULL)
 		fatal_error(ARRAY_TYPE_EXPECTED_ERROR);
 	unsigned int size = 0;
@@ -164,9 +164,9 @@ int array_insert(array_value_t *array, int at, unsigned char value_type, double 
 	return SCOPE_BOOLEAN_FALSE;
 }
 
-array_value_t* array_get(array_value_t *array, int at)
+array_value_t *array_get(array_value_t *array, int at)
 {
-	array_value_t* current = array;
+	array_value_t *current = array;
 	if (current == NULL)
 		fatal_error(ARRAY_TYPE_EXPECTED_ERROR);
 	unsigned int size = 0;
@@ -182,7 +182,7 @@ array_value_t* array_get(array_value_t *array, int at)
 
 unsigned int array_length(array_value_t *array)
 {
-	array_value_t* current = array;
+	array_value_t *current = array;
 	if (current == NULL)
 		fatal_error(ARRAY_TYPE_EXPECTED_ERROR);
 	unsigned int size = 0;
@@ -191,31 +191,31 @@ unsigned int array_length(array_value_t *array)
 		size++;
 		current = current->next;
 	}
-	return size;	
+	return size;
 }
 
-array_value_t* array_duplicate(array_value_t *array)
+array_value_t *array_duplicate(array_value_t *array)
 {
 	if (array == NULL)
 		fatal_error(ARRAY_TYPE_EXPECTED_ERROR);
-	array_value_t* array_copy = NULL;
+	array_value_t *array_copy = NULL;
 	typedef struct array_references
 	{
-		array_value_t* array;
-		array_value_t* parent;
-		struct array_references* next;
+		array_value_t *array;
+		array_value_t *parent;
+		struct array_references *next;
 	} array_references;
-	array_references* arrays = xmalloc(sizeof(array_references));
+	array_references *arrays = xmalloc(sizeof(array_references));
 	arrays->array = array;
 	arrays->next = NULL;
 	arrays->parent = NULL;
-	for (;arrays != NULL;)
+	for (; arrays != NULL;)
 	{
-		array_references* current = arrays;
+		array_references *current = arrays;
 		int is_nested = SCOPE_BOOLEAN_FALSE;
 		for (;;)
 		{
-			struct array_value_t* new_value = xmalloc(sizeof(struct array_value_t));
+			struct array_value_t *new_value = xmalloc(sizeof(struct array_value_t));
 			new_value->result = current->array->result;
 			new_value->result_type = current->array->result_type;
 			new_value->next = NULL;
@@ -225,19 +225,19 @@ array_value_t* array_duplicate(array_value_t *array)
 					array_copy = new_value;
 				else
 				{
-					array_value_t * array_current = array_copy;
-					for (;array_current->next != NULL;)
+					array_value_t *array_current = array_copy;
+					for (; array_current->next != NULL;)
 						array_current = array_current->next;
 					array_current->next = new_value;
 				}
 			}
 			else // Nested array
 			{
-				array_value_t* array_current = current->parent;
+				array_value_t *array_current = current->parent;
 				if (is_nested)
 				{
-					struct array_value_t* array_nested = (array_value_t *)array_current->result.result_int;
-					for (;array_nested->next != NULL;)
+					struct array_value_t *array_nested = (array_value_t *)array_current->result.result_int;
+					for (; array_nested->next != NULL;)
 						array_nested = array_nested->next;
 					array_nested->next = new_value;
 				}
@@ -249,11 +249,11 @@ array_value_t* array_duplicate(array_value_t *array)
 			}
 			if (new_value->result_type == SCOPE_TYPE_ARRAY)
 			{
-				array_references* array_reference = xmalloc(sizeof(array_references));
+				array_references *array_reference = xmalloc(sizeof(array_references));
 				array_reference->array = (array_value_t *)new_value->result.result_int;
 				array_reference->parent = new_value;
-				array_references* arrays_appender = arrays;
-				for (;arrays_appender->next != NULL;)
+				array_references *arrays_appender = arrays;
+				for (; arrays_appender->next != NULL;)
 					arrays_appender = arrays_appender->next;
 				arrays_appender->next = array_reference;
 			}

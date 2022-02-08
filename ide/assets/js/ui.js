@@ -1,0 +1,223 @@
+(() => {
+	document.body.classList.add("loading");
+	document.body.innerText = "Loading...";
+	let executing = false;
+	const interactsContainer = document.createElement("div");
+	const loading = document.createElement("div");
+	const interacts = [document.createElement("div"), document.createElement("div")];
+	loading.id = "loading";
+	const loadingState = (message, active) => {
+		if (!active) {
+			loading.style.display = "none";
+			interacts[1].classList.remove("loading");
+			return;
+		}
+		loading.style.display = "inline-block";
+		loading.innerText = message;
+		interacts[1].classList.add("loading");
+	}
+	loadingState(null, false);
+	const changeExecutionState = (button) => {
+		let state = parseInt(button.target.getAttribute("state"));
+		tooltipIter(button.target, 2);
+		if (state == 0) {
+			button.target.classList.add("executing");
+			interactsContainer.classList.add("executing");
+			executing = true;
+			if (buttonData[3]["state"] == 3) {
+				resizeEditor();
+			}
+			loadingState("Parsing source code", true);
+			loadingState("Tokenising source code", true);
+			return;
+		}
+		button.target.classList.remove("executing");
+		interactsContainer.classList.remove("executing");
+		executing = false;
+	};
+	const load = (button) => {
+		if (interacts[0].innerText.trim().length > 0) {
+			if (!confirm("Are you sure you want to load a new file, whilst you're still working on something. All progress of your current project will be lost.")) {
+				return;
+			}
+		}
+		let element = document.createElement("input");
+		element.type = "file";
+		element.addEventListener("change", () => {
+			if (element.files.length == 0) {
+				return;
+			}
+			let file = element.files[0];
+			if (file.type.slice(0, 4) != "text") {
+				alert("That sort of file is not able to be read.");
+				return;
+			}
+			let reader = new FileReader();
+			reader.addEventListener("load", function (event) {
+				let text = event.target.result;
+				interacts[0].innerHTML = "";
+				updateEditor(null);
+				interacts[0].focus();
+				document.execCommand("insertText", false, text);
+			});
+			reader.readAsText(file);
+		});
+		element.click();
+	};
+	const save = (button) => {
+		tooltipIter(button.target, 1);
+		if (interacts[0].innerText.trim().length == 0) {
+			alert("Nothing to download.");
+			return;
+		}
+		let element = document.createElement("a");
+		element.setAttribute("href", "data:text/plain;charset=utf-8," + encodeURIComponent(interacts[0].innerText));
+		let name = "";
+		while (name.trim().length == 0) {
+			name = prompt("What would you like to name your file?")
+			if (name == null) {
+				return;
+			}
+		}
+		element.setAttribute("download", name + ".code");
+		element.click();
+		element.remove();
+	};
+	const resizeEditor = () => {
+		const sizes = ["editorSizing5050", "editorSizing7030", "editorSizing3070", "editorSizing100"];
+		sizes.forEach(size => {
+			interactsContainer.classList.remove(size)
+		});
+		switch (buttonData[3]["state"]) {
+			case 0:
+				interactsContainer.classList.add(sizes[1]);
+				break;
+			case 1:
+				interactsContainer.classList.add(sizes[2]);
+				break;
+			case 2:
+				interactsContainer.classList.add(sizes[{ true: 0, false: 3 }[executing]]);
+				if (executing) {
+					buttonData[3]["state"] = 3;
+				}
+				break;
+			case 3:
+				interactsContainer.classList.add(sizes[0]);
+				break;
+		}
+		buttonData[3]["state"]++;
+		if (buttonData[3]["state"] == 4) {
+			buttonData[3]["state"] = 0;
+		}
+	};
+	const tooltipIter = (button, rel) => {
+		let iter = parseInt(button.getAttribute("state"));
+		if (iter >= (buttonData[rel]["tooltip"].length - 1)) {
+			iter = 0;
+			button.title = buttonData[rel]["tooltip"][iter];
+		} else {
+			button.title = buttonData[rel]["tooltip"][++iter];
+		}
+		button.setAttribute("state", iter);
+	};
+	const updateEditor = (e) => {
+		if (interacts[0].innerHTML.trim().length == 0) {
+			if (e != null && e.keyCode == 8) {
+				e.preventDefault();
+			}
+			let line = document.createElement("span");
+			line.className = "line";
+			line.innerText = " ";
+			interacts[0].appendChild(line);
+		}
+	};
+	const buttons = [document.createElement("div"), document.createElement("div"), document.createElement("div"), document.createElement("div")];
+	const buttonContainer = document.createElement("div");
+	buttonContainer.id = "buttonContainer";
+	const buttonData = [{ "id": "load", "tooltip": ["Load source code from file"], "function": load, "state": 0 }, { "id": "save", "tooltip": ["Download source code", "Downloading source code"], "function": save, "state": 0 }, { "id": "start_stop", "tooltip": ["Run program", "Stop program"], "function": changeExecutionState, "state": 0 }, { "id": "resize", "tooltip": ["Resize editor"], "function": resizeEditor, "state": 0 }]
+	for (let i = 0; i < buttons.length; i++) {
+		buttons[i].id = buttonData[i]["id"];
+		buttons[i].title = buttonData[i]["tooltip"][0];
+		buttons[i].classList = "operationButton";
+		if (i != 3) {
+			buttons[i].setAttribute("state", buttonData[i]["state"]);
+		}
+		buttons[i].addEventListener("click", buttonData[i]["function"]);
+		buttonContainer.appendChild(buttons[i]);
+	}
+	interactsContainer.id = "interactsContainer";
+	interactsContainer.classList.add("editorSizing5050");
+	interacts[0].id = "editor";
+	interacts[0].classList = "interactive";
+	interacts[0].setAttribute("contenteditable", "true");
+	interacts[0].addEventListener("keypress", updateEditor);
+	interacts[0].addEventListener("keyup", updateEditor);
+	interacts[0].addEventListener("keydown", (e) => {
+		if (e.keyCode == 9) {
+			e.preventDefault();
+			document.execCommand("insertText", false, "    ");
+		}
+	});
+	interacts[0].addEventListener("paste", (e) => {
+		e.preventDefault();
+		let text = e.clipboardData.getData("text/plain");
+		let temp = document.createElement("div");
+		temp.value = text.replace(/(<([^>]+)>)/ig, "");
+		document.execCommand("insertText", false, temp.value);
+		temp.remove();
+		const selection = window.getSelection();
+		if (!selection.rangeCount) {
+			return;
+		}
+		const firstRange = selection.getRangeAt(0);
+		if (firstRange.commonAncestorContainer === document) {
+			return;
+		}
+		const tempAnchorEl = document.createElement("br");
+		firstRange.insertNode(tempAnchorEl);
+		tempAnchorEl.scrollIntoView({
+			block: "end",
+		});
+		tempAnchorEl.remove();
+	});
+	interacts[1].id = "runner";
+	interacts[1].classList = "interactive";
+	interacts[1].appendChild(loading);
+	const inputOutput = [[document.createElement("div"), document.createElement("input"), document.createElement("input")], document.createElement("div")];
+	const inputEnabler = (enabled) => {
+		for (let i = 1; i < 3; i++) {
+			if (enabled) {
+				inputOutput[0][i].removeAttribute("disabled");
+			} else {
+				inputOutput[0][i].setAttribute("disabled", "disabled");
+			}
+		}
+		if (enabled) {
+			inputOutput[0][2].title = " Submit input";
+			inputOutput[0][1].placeholder = " Please type your input here...";
+			inputOutput[0][0].removeAttribute("title");
+			inputOutput[0][0].classList.remove("disabled");
+		} else {
+			inputOutput[0][1].placeholder = "   Input is currently disabled!";
+			inputOutput[0][0].title = "   Input is currently disabled!";
+			inputOutput[0][0].classList.add("disabled");
+		}
+	};
+	inputOutput[0][2].type = "button";
+	inputOutput[0][0].id = "input";
+	inputEnabler(false);
+	inputOutput[0][0].appendChild(inputOutput[0][1]);
+	inputOutput[0][0].appendChild(inputOutput[0][2]);
+	inputOutput[1].id = "output";
+	interacts[1].append(inputOutput[1]);
+	interacts[1].append(inputOutput[0][0]);
+	interactsContainer.appendChild(interacts[0]);
+	interactsContainer.appendChild(interacts[1]);
+	// Interface ready for rendering
+	document.body.classList.remove("loading");
+	document.body.innerHTML = "";
+	document.body.appendChild(buttonContainer);
+	document.body.appendChild(interactsContainer);
+	loadingState("Loading interpreter...", true);
+	updateEditor();
+})();

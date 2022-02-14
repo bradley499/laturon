@@ -1,11 +1,127 @@
-(() => {
-	document.body.classList.add("loading");
-	document.body.innerText = "Loading...";
+(async () => {
 	let executing = false;
 	const interactsContainer = document.createElement("div");
 	const loading = document.createElement("div");
 	const interacts = [document.createElement("div"), document.createElement("div")];
 	loading.id = "loading";
+	const authorPicture = await fetch("https://api.github.com/users/bradley499").then(response => response.json()).then(async data => {
+		return await fetch(data["avatar_url"]).then(image => image.blob()).catch(error => {
+			throw new Error(error);
+		});
+	}).catch(error => {
+		return null;
+	});
+	const authorPictureBlob = (window.URL || window.webkitURL).createObjectURL(authorPicture);
+	let authorPictureImg = document.createElement("img");
+	authorPictureImg.src = authorPictureBlob;
+	let authorPictureDirection = (() => {
+		if (typeof gazeDetection !== "undefined") {
+			return gazeDetection.default;
+		} else {
+			return 0;
+		}
+	})();
+	(async () => {
+		if (typeof gazeDetection === "undefined"){
+			return;
+		}
+		authorPictureDirection = await new Promise((resolve, reject) => {
+			let attempts = 0;
+			let loop;
+			const isReady = () => {
+				if (gazeDetection.ready) {
+					clearInterval(loop);
+					resolve(true);
+				}
+				if (attempts < 50) {
+					attempts++;
+				} else {
+					clearInterval(loop);
+					reject(false);
+				}
+			};
+			loop = setInterval(isReady, 200);
+		}).then(async v => {
+			return await gazeDetection.direction(authorPictureImg);
+		}).catch(v => {
+			return gazeDetection.default;
+		});
+	})();
+	delete authorPictureImg;
+	const alertBuilder = async (title, message, buttons) => {
+		interacts[0].removeAttribute("contenteditable");
+		const overlay = document.createElement("div");
+		let response = await new Promise((resolve, reject) => {
+			overlay.id = "alertOverlay";
+			const container = document.createElement("div");
+			const containerContents = [document.createElement("div"), document.createElement("div"), document.createElement("div")];
+			containerContents[0].id = "authorAlertPicture";
+			containerContents[0].style.backgroundImage = "url(\"" + authorPictureBlob + "\")";
+			if (authorPictureDirection === 1) {
+				containerContents[0].classList.add("authorAlertPictureLeft");
+			}
+			containerContents[2].id = "alertContents";
+			let containerContentsDynamic = [];
+			if (title != null && title.trim().length > 0) {
+				let titleHeading = document.createElement("h2");
+				titleHeading.innerText = title.trim();
+				containerContentsDynamic.push(titleHeading);
+			}
+			if (message != null && message.trim().length > 0) {
+				message = message.trim();
+				message = message.split("\n");
+				message.forEach(paragraph => {
+					let paragraphElement = document.createElement("p");
+					paragraphElement.innerText = paragraph;
+					containerContentsDynamic.push(paragraphElement);
+				});
+			}
+			let containerContentsDynamicButtons = [];
+			if (buttons == null || buttons.length == 0) {
+				buttons = ["Close"];
+			} else if (typeof buttons == "string") {
+				buttons = [buttons];
+			}
+			let buttonNumber = 0;
+			buttons.forEach(button => {
+				let buttonElement = document.createElement("div");
+				buttonElement.innerText = button;
+				buttonElement.setAttribute("rel", buttonNumber);
+				buttonElement.addEventListener("click", (e) => {
+					let number = parseInt(e.target.getAttribute("rel"));
+					if (isNaN(number)) {
+						number = 0;
+					}
+					resolve(number);
+				});
+				buttonNumber++;
+				containerContentsDynamicButtons.push(buttonElement);
+			});
+			const containerContentsDynamicScrollable = [document.createElement("div"), document.createElement("div")];
+			containerContentsDynamicScrollable[0].id = "alertContentsMain";
+			containerContentsDynamicScrollable[1].id = "alertButtons";
+			containerContentsDynamic.forEach(element => {
+				containerContentsDynamicScrollable[0].appendChild(element);
+			});
+			containerContentsDynamicButtons.forEach(element => {
+				containerContentsDynamicScrollable[1].appendChild(element);
+			});
+			containerContents[1].appendChild(containerContentsDynamicScrollable[0]);
+			containerContents[1].appendChild(containerContentsDynamicScrollable[1]);
+			containerContents[2].appendChild(containerContents[1]);
+			container.appendChild(containerContents[0]);
+			container.appendChild(containerContents[2]);
+			container.id = "alertContainer";
+			overlay.appendChild(container);
+			document.body.appendChild(overlay);
+			containerContentsDynamicScrollable[0].focus();
+		}).then(number => {
+			overlay.remove();
+			return number;
+		});
+		interacts[0].setAttribute("contenteditable", "true");
+		return response;
+	}
 	const loadingState = (message, active) => {
 		if (!active) {
 			loading.style.display = "none";
@@ -35,26 +151,25 @@
 		interactsContainer.classList.remove("executing");
 		executing = false;
 	};
-	const load = (button) => {
+	const load = async (button) => {
 		if (interacts[0].innerText.trim().length > 0) {
-			if (!confirm("Are you sure you want to load a new file, whilst you're still working on something. All progress of your current project will be lost.")) {
+			if (await alertBuilder("You have unsaved work","Are you sure you want to load a new file, whilst you're still working on something?\nAll progress of your current project will be lost.",["Load a file", "Cancel"]) == 1) {
 				return;
 			}
 		}
 		let element = document.createElement("input");
 		element.type = "file";
-		element.addEventListener("change", () => {
+		element.addEventListener("change", async () => {
 			if (element.files.length == 0) {
 				return;
 			}
 			let file = element.files[0];
 			if (file.type.slice(0, 4) != "text") {
-				alert("That sort of file is not able to be read.");
-				return;
+				return await alertBuilder("Unable to read that file", "Sorry, but that sort of file is not able to be read.", null);
 			}
 			let reader = new FileReader();
 			reader.addEventListener("load", function (event) {
-				let text = event.target.result;
+				let text = event.target.result.replace(/\t/g, "    ");
 				interacts[0].innerHTML = "";
 				updateEditor(null);
 				interacts[0].focus();
@@ -64,11 +179,10 @@
 		});
 		element.click();
 	};
-	const save = (button) => {
+	const save = async (button) => {
 		tooltipIter(button.target, 1);
 		if (interacts[0].innerText.trim().length == 0) {
-			alert("Nothing to download.");
-			return;
+			return alertBuilder("Unable to download", "Sorry, but you're unable to download an empty file.", "Continue coding");
 		}
 		let element = document.createElement("a");
 		element.setAttribute("href", "data:text/plain;charset=utf-8," + encodeURIComponent(interacts[0].innerText));
@@ -162,7 +276,7 @@
 		e.preventDefault();
 		let text = e.clipboardData.getData("text/plain");
 		let temp = document.createElement("div");
-		temp.value = text.replace(/(<([^>]+)>)/ig, "");
+		temp.value = text.replace(/(<([^>]+)>)/ig, "").replace(/\t/g, "    ");
 		document.execCommand("insertText", false, temp.value);
 		temp.remove();
 		const selection = window.getSelection();
@@ -198,8 +312,8 @@
 			inputOutput[0][0].removeAttribute("title");
 			inputOutput[0][0].classList.remove("disabled");
 		} else {
-			inputOutput[0][1].placeholder = "   Input is currently disabled!";
-			inputOutput[0][0].title = "   Input is currently disabled!";
+			inputOutput[0][1].placeholder = "Input is currently disabled!";
+			inputOutput[0][0].title = "Input is currently disabled!";
 			inputOutput[0][0].classList.add("disabled");
 		}
 	};

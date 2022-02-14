@@ -2,6 +2,8 @@ html, body {
 	margin: 0;
 	font-family: Arial, Helvetica, sans-serif;
 	height: calc(100vh - 3px);
+}
+body {
 	background-color: #ec4646;
 }
 
@@ -40,7 +42,8 @@ div#loading {
 	will-change: background-position;
 	position: absolute;
 	top: 0;
-	left: -1px;
+	left: 0;
+	right: 0;
 	text-align: center;
 	color: #ffffff;
 	text-shadow: 0 0 10px #ffffff;
@@ -173,6 +176,8 @@ div.interactive#editor span.line {
 
 div.interactive#editor span.line:before {
 	flex: 0 0 5ch;
+	position: relative;
+	left: -1px;
 	counter-increment: line;
 	content: counter(line);
 	display: inline-block;
@@ -222,6 +227,128 @@ div#interactsContainer.editorSizing100>div.interactive#runner {
 	display: none !important;
 }
 
+div#alertOverlay {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100vw;
+	height: 100vh;
+	background-color: rgba(128, 128, 128, 0.8);
+}
+
+div#alertContainer {
+	position: absolute;
+	top: 40%;
+	left: 50%;
+	-ms-transform: translate(-50%, -40%);
+	transform: translate(-50%, -40%);
+	background-color: #ec4646;
+	height: 400px;
+	max-height: 90vh;
+	width: 60vw;
+	border-radius: 10px;
+	display: flex;
+}
+
+div#alertContainer > div#authorAlertPicture {
+	flex: 0 0 80px;
+	height: 80px;
+	width: 80px;
+	background-repeat: no-repeat;
+	background-size: cover;
+	margin: 310px 10px 10px;
+	border-radius: 100%;
+}
+
+div#alertContainer > div#authorAlertPicture.authorAlertPictureLeft {
+	-moz-transform: scaleX(-1);
+	-o-transform: scaleX(-1);
+	-webkit-transform: scaleX(-1);
+	transform: scaleX(-1);
+	filter: FlipH;
+	-ms-filter: "FlipH";
+}
+
+div#alertContainer > div#alertContents::before {
+	content: "";
+	position: relative;
+	left: -19px;
+	bottom: -320px;
+	display: block;
+	width: 0;
+	border-top: 20px solid transparent;
+	border-right: 20px solid #ffffff;
+	border-bottom: 20px solid transparent;
+}
+
+div#alertContainer > div#alertContents {
+	flex: 0 0 calc(100% - 130px);
+	position: relative;
+	left: 20px;
+	background-color: #ffffff;
+	height: 380px;
+	width: calc(100% - 130px);
+	margin: 10px 10px 10px 0;
+	border-radius: 10px;
+}
+
+div#alertContainer > div#alertContents > div {
+	position: relative;
+	top: -40px;
+	height: calc(100% - 20px);
+	overflow-y: auto;
+	margin: 10px;
+	display: flex;
+	flex-flow: column;
+}
+
+div#alertContainer > div#alertContents > div > div#alertContentsMain {
+	flex-grow: 1;
+}
+
+div#alertContainer > div#alertContents > div > div#alertContentsMain > h2 {
+	margin: 0 0 10px;
+	font-size: 30px;
+}
+
+div#alertContainer > div#alertContents > div > div#alertButtons {
+	display: flex;
+	margin-bottom: 5px;
+}
+
+div#alertContainer > div#alertContents > div > div#alertButtons > div {
+	flex: 1 1 auto;
+	background-color: #4686ec;
+	color: #ffffff;
+	font-weight: bold;
+	margin: 2.5px;
+	padding: 10px;
+	text-align: center;
+	cursor: pointer;
+	-webkit-touch-callout: none;
+	-webkit-user-select: none;
+	-khtml-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+}
+
+div#alertContainer > div#alertContents > div > div#alertButtons > div:active {
+	background-color: #2b65c1;
+}
+
+div#alertContainer > div#alertContents > div > div#alertButtons > div:first-of-type {
+	margin-left: 0;
+	border-top-left-radius: 10px;
+	border-bottom-left-radius: 10px;
+}
+
+div#alertContainer > div#alertContents > div > div#alertButtons > div:last-of-type {
+	margin-right: 0;
+	border-top-right-radius: 10px;
+	border-bottom-right-radius: 10px;
+}
+
 @media screen and (max-width: 600px) {
 	div.operationButton#resize {
 		display: none;
@@ -251,5 +378,30 @@ div#interactsContainer.editorSizing100>div.interactive#runner {
 
 	div#interactsContainer.executing>div.interactive#editor {
 		display: none !important;
+	}
+	
+	div#alertContainer {
+		position: unset;
+		top: 0;
+		left: 0;
+		transform: unset;
+		height: 100%;
+		width: 100%;
+		max-height: unset;
+		border-radius: 0;
+	}
+
+	div#alertContainer > div#authorAlertPicture {
+		position: fixed;
+		bottom: 0;
+	}
+	
+	div#alertContainer > div#alertContents {
+		height: calc(100% - 20px);
+		left: 120px;
+	}
+
+	div#alertContainer > div#alertContents::before {
+		bottom: calc(-100% + 60px);
 	}
 }

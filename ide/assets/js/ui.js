@@ -3,6 +3,7 @@
 	const interactsContainer = document.createElement("div");
 	const loading = document.createElement("div");
 	const interacts = [document.createElement("div"), document.createElement("div")];
+	const buttons = [document.createElement("div"), document.createElement("div"), document.createElement("div"), document.createElement("div")];
 	loading.id = "loading";
 	const authorPicture = await fetch("https://api.github.com/users/bradley499").then(response => response.json()).then(async data => {
 		return await fetch(data["avatar_url"]).then(image => image.blob()).catch(error => {
@@ -22,7 +23,7 @@
 		}
 	})();
 	(async () => {
-		if (typeof gazeDetection === "undefined"){
+		if (typeof gazeDetection === "undefined") {
 			return;
 		}
 		authorPictureDirection = await new Promise((resolve, reject) => {
@@ -134,10 +135,11 @@
 	}
 	loadingState(null, false);
 	const changeExecutionState = (button) => {
-		let state = parseInt(button.target.getAttribute("state"));
-		tooltipIter(button.target, 2);
+		let state = buttonData[2]["state"];
+		tooltipIter(buttons[2], 2);
 		if (state == 0) {
-			button.target.classList.add("executing");
+			inputOutput[1].innerHTML = "";
+			buttons[2].classList.add("executing");
 			interactsContainer.classList.add("executing");
 			executing = true;
 			if (buttonData[3]["state"] == 3) {
@@ -147,13 +149,14 @@
 			loadingState("Tokenising source code", true);
 			return;
 		}
-		button.target.classList.remove("executing");
+		buttons[2].classList.remove("executing");
 		interactsContainer.classList.remove("executing");
 		executing = false;
+		loadingState(null, false);
 	};
 	const load = async (button) => {
 		if (interacts[0].innerText.trim().length > 0) {
-			if (await alertBuilder("You have unsaved work","Are you sure you want to load a new file, whilst you're still working on something?\nAll progress of your current project will be lost.",["Load a file", "Cancel"]) == 1) {
+			if (await alertBuilder("You have unsaved work", "Are you sure you want to load a new file, whilst you're still working on something?\nAll progress of your current project will be lost.", ["Load a file", "Cancel"]) == 1) {
 				return;
 			}
 		}
@@ -232,7 +235,7 @@
 		} else {
 			button.title = buttonData[rel]["tooltip"][++iter];
 		}
-		button.setAttribute("state", iter);
+		buttonData[rel]["state"] = iter;
 	};
 	const updateEditor = (e) => {
 		if (interacts[0].innerHTML.trim().length == 0) {
@@ -245,7 +248,6 @@
 			interacts[0].appendChild(line);
 		}
 	};
-	const buttons = [document.createElement("div"), document.createElement("div"), document.createElement("div"), document.createElement("div")];
 	const buttonContainer = document.createElement("div");
 	buttonContainer.id = "buttonContainer";
 	const buttonData = [{ "id": "load", "tooltip": ["Load source code from file"], "function": load, "state": 0 }, { "id": "save", "tooltip": ["Download source code", "Downloading source code"], "function": save, "state": 0 }, { "id": "start_stop", "tooltip": ["Run program", "Stop program"], "function": changeExecutionState, "state": 0 }, { "id": "resize", "tooltip": ["Resize editor"], "function": resizeEditor, "state": 0 }]
@@ -315,6 +317,21 @@
 			inputOutput[0][1].placeholder = "Input is currently disabled!";
 			inputOutput[0][0].title = "Input is currently disabled!";
 			inputOutput[0][0].classList.add("disabled");
+		}
+	};
+	const newOutput = (type, message) => {
+		let output = document.createElement("p");
+		output.classList.add("output");
+		if (type != null) {
+			output.classList.add(type);
+			output.classList.add("systemic")
+		}
+		output.innerText = message;
+		inputEnabler(false);
+		inputOutput[1].appendChild(output);
+		inputOutput[1].scrollTop = inputOutput[1].scrollHeight;
+		if (type == "error") {
+			changeExecutionState(null);
 		}
 	};
 	inputOutput[0][2].type = "button";

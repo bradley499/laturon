@@ -92,7 +92,7 @@ array_value_t *string_new(char *str)
 	array_value_t *array_root = array_new();
 	array_root->result_type = SCOPE_TYPE_STRING;
 	for (unsigned int i = 0; i < strlen(str); i++)
-		array_insert(array_root, i, SCOPE_TYPE_INT, 0, (signed long long int)str[i]);
+		array_insert(array_root, i, SCOPE_TYPE_STRING_CONTINUED, 0, (signed long long int)str[i]);
 	return array_root;
 }
 

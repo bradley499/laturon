@@ -29,6 +29,8 @@ typedef enum scope_types
 	SCOPE_TYPE_PARAMETER_END,							  // Scope is a declarting the end of a parameter chain
 	SCOPE_TYPE_ARRAY,									  // Scope is a array declaration
 	SCOPE_TYPE_ARRAY_AT,								  // Scope is a array value at position declaration
+	SCOPE_TYPE_RETURN,									  // Scope is a return value initialiser
+	SCOPE_TYPE_BREAK,									  // Scope is a loop break point
 	SCOPE_TYPE_CONSTANT_INT,							  // Scope is a constant declaration of a double
 	SCOPE_TYPE_CONSTANT_DOUBLE,							  // Scope is a constant declaration of a double
 	SCOPE_TYPE_CONSTANT_BOOL,							  // Scope is a constant declaration of a boolean

@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "misc.h"
+#include "array.h"
 #include "run.h"
 #include "scope.h"
 
@@ -86,20 +87,19 @@ void bool_to_string(double n, char *res)
 		strcpy(res, "False\0");
 }
 
-char *new_string() {
-	return malloc((sizeof(char) * STRING_MEMORY_MAX_LENGTH));
+array_value_t *string_new(char *str)
+{
+	array_value_t *array_root = array_new();
+	array_root->result_type = SCOPE_TYPE_STRING;
+	for (unsigned int i = 0; i < strlen(str); i++)
+		array_insert(array_root, i, SCOPE_TYPE_INT, 0, (signed long long int)str[i]);
+	return array_root;
 }
 
 void fatal_error(error_codes code)
 {
 	// TODO: Implement cleanup routine
 	exit((int)code); // Terminate program
-}
-
-char *new_string_size(unsigned short size) {
-	if (size == 0 || size > STRING_MEMORY_MAX_LENGTH)
-		return NULL;
-	return malloc((sizeof(char) * size));
 }
 
 #endif

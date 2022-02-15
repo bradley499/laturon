@@ -109,13 +109,18 @@ div#interactsContainer {
 	height: calc(100% - 115px);
 }
 
-div#interactsContainer>div.interactive {
+div#interactsContainer>div.interactive, div#interactsContainer>textarea.interactive {
 	border: 7px solid #f39090;
 	padding: 0;
 	margin: 3px;
 	display: inline-block;
 	width: calc(100vw - 24px);
 	background-color: #ffffff;
+}
+
+div#interactsContainer>textarea.interactive {
+	padding: 10px;
+	resize: none;
 }
 
 div.interactive#runner {
@@ -233,10 +238,18 @@ div.interactive#runner>div#input.disabled>input[type=button] {
 	display: none;
 }
 
+textarea.interactive#editor {
+	font-family: "Space+Mono", monospace;
+}
+
 div.interactive#editor {
 	counter-reset: line;
 	overflow-y: auto;
 	background: -webkit-linear-gradient(left, #808080, #808080 calc(5ch + 5px), #ffffff calc(5ch + 5px), #ffffff);
+	font-family: "Space+Mono", monospace;
+}
+
+div#interactsContainer>textarea.interactive {
 	font-family: "Space+Mono", monospace;
 }
 
@@ -262,7 +275,7 @@ div.interactive#editor span.line:before {
 	margin-right: 5px;
 }
 
-div#interactsContainer.editorSizing3070>div.interactive#editor {
+div#interactsContainer.editorSizing3070>div.interactive#editor, div#interactsContainer.editorSizing3070>textarea.interactive#editor  {
 	width: 30%;
 	margin-right: 1.5px;
 }
@@ -272,7 +285,7 @@ div#interactsContainer.editorSizing3070>div.interactive#runner {
 	margin-left: 1.5px;
 }
 
-div#interactsContainer.editorSizing7030>div.interactive#editor {
+div#interactsContainer.editorSizing7030>div.interactive#editor, div#interactsContainer.editorSizing7030>textarea.interactive#editor {
 	width: 70%;
 	margin-right: 1.5px;
 }
@@ -282,7 +295,7 @@ div#interactsContainer.editorSizing7030>div.interactive#runner {
 	margin-left: 1.5px;
 }
 
-div#interactsContainer.editorSizing5050>div.interactive#editor {
+div#interactsContainer.editorSizing5050>div.interactive#editor, div#interactsContainer.editorSizing5050>textarea.interactive#editor {
 	width: 50%;
 	margin-right: 1.5px;
 }
@@ -292,7 +305,7 @@ div#interactsContainer.editorSizing5050>div.interactive#runner {
 	margin-left: 1.5px;
 }
 
-div#interactsContainer.editorSizing100>div.interactive#editor {
+div#interactsContainer.editorSizing100>div.interactive#editor, div#interactsContainer.editorSizing100>textarea.interactive#editor {
 	width: 100%;
 }
 
@@ -449,7 +462,7 @@ div#alertContainer>div#alertContents>div>div#alertButtons>div:last-of-type {
 		width: 33%;
 	}
 
-	div#interactsContainer>div.interactive#editor {
+	div#interactsContainer>div.interactive#editor, div#interactsContainer>textarea.interactive#editor  {
 		width: 100% !important;
 		display: block !important;
 	}

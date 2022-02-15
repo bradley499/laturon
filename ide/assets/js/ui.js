@@ -1,8 +1,16 @@
 (async () => {
+	const chromium = (() => {
+		if (navigator.userAgent.match(/Chrome\/\d+/) !== null) {
+			const raw = navigator.userAgent.match(/Chrom(e|ium)\/([0-9]+)\./);
+			return raw ? (parseInt(raw[2], 10) > 85) : false;
+		} else {
+			return false;
+		}
+	})();
 	let executing = false;
 	const interactsContainer = document.createElement("div");
 	const loading = document.createElement("div");
-	const interacts = [document.createElement("div"), document.createElement("div")];
+	const interacts = [document.createElement({ true: "div", false: "textarea" }[chromium]), document.createElement("div")];
 	const buttons = [document.createElement("div"), document.createElement("div"), document.createElement("div"), document.createElement("div")];
 	loading.id = "loading";
 	const authorPicture = await fetch("https://api.github.com/users/bradley499").then(response => response.json()).then(async data => {
@@ -50,7 +58,11 @@
 	})();
 	delete authorPictureImg;
 	const alertBuilder = async (title, message, buttons, input) => {
-		interacts[0].removeAttribute("contenteditable");
+		if (chromium) {
+			interacts[0].removeAttribute("contenteditable");
+		} else {
+			interacts[0].setAttribute("disabled", "disabled");
+		}
 		const overlay = document.createElement("div");
 		let response = await new Promise((resolve, reject) => {
 			overlay.id = "alertOverlay";
@@ -136,7 +148,11 @@
 			overlay.remove();
 			return number;
 		});
-		interacts[0].setAttribute("contenteditable", "true");
+		if (chromium) {
+			interacts[0].setAttribute("contenteditable", "true");
+		} else {
+			interacts[0].removeAttribute("disabled");
+		}
 		return response;
 	}
 	const loadingState = (message, active) => {
@@ -171,7 +187,13 @@
 		loadingState(null, false);
 	};
 	const load = async (button) => {
-		if (interacts[0].innerText.trim().length > 0) {
+		let empty = false;
+		if (chromium) {
+			empty = (interacts[0].innerText.trim().length == 0);
+		} else {
+			empty = (interacts[0].value.trim().length == 0);
+		}
+		if (!empty) {
 			if (await alertBuilder("You have unsaved work", "Are you sure you want to load a new file, whilst you're still working on something?\nAll progress of your current project will be lost.", ["Load a file", "Cancel"], null) == 1) {
 				return;
 			}
@@ -189,10 +211,19 @@
 			let reader = new FileReader();
 			reader.addEventListener("load", function (event) {
 				let text = event.target.result.replace(/\t/g, "    ");
-				interacts[0].innerHTML = "";
+				if (chromium) {
+					interacts[0].innerHTML = "";
+				} else {
+					interacts[0].value = "";
+				}
 				updateEditor(null);
-				interacts[0].focus();
-				document.execCommand("insertText", false, text);
+				if (chromium) {
+					interacts[0].focus();
+					document.execCommand("insertText", false, text);
+				} else {
+					interacts[0].value = text;
+					interacts[0].focus();
+				}
 			});
 			reader.readAsText(file);
 		});
@@ -200,14 +231,24 @@
 	};
 	const save = async (button) => {
 		tooltipIter(button.target, 1);
-		if (interacts[0].innerText.trim().length == 0) {
+		let empty = false;
+		if (chromium) {
+			empty = (interacts[0].innerText.trim().length == 0);
+		} else {
+			empty = (interacts[0].value.trim().length == 0);
+		}
+		if (empty) {
 			return alertBuilder("Unable to download", "Sorry, but you're unable to download an empty file.", "Continue coding", null);
 		}
 		let element = document.createElement("a");
-		element.setAttribute("href", "data:text/plain;charset=utf-8," + encodeURIComponent(interacts[0].innerText));
+		if (chromium) {
+			element.setAttribute("href", "data:text/plain;charset=utf-8," + encodeURIComponent(interacts[0].innerText));
+		} else {
+			element.setAttribute("href", "data:text/plain;charset=utf-8," + encodeURIComponent(interacts[0].value));
+		}
 		let name = " ";
 		while (name.trim().length == 0) {
-			name = await alertBuilder("Download file", {true:"Your file name cannot be blank.\n",false:""}[name == ""] + "What would you like to name your file?", null, "Download name");
+			name = await alertBuilder("Download file", { true: "Your file name cannot be blank.\n", false: "" }[name == ""] + "What would you like to name your file?", null, "Download name");
 			if (name == null) {
 				return;
 			}
@@ -254,6 +295,9 @@
 		buttonData[rel]["state"] = iter;
 	};
 	const updateEditor = (e) => {
+		if (!chromium) {
+			return;
+		}
 		if (interacts[0].innerHTML.trim().length == 0) {
 			if (e != null && e.keyCode == 8) {
 				e.preventDefault();
@@ -282,15 +326,20 @@
 	interacts[0].id = "editor";
 	interacts[0].classList = "interactive";
 	interacts[0].setAttribute("contenteditable", "true");
-	interacts[0].addEventListener("keypress", updateEditor);
-	interacts[0].addEventListener("keyup", updateEditor);
-	interacts[0].addEventListener("keydown", (e) => {
-		if (e.keyCode == 9) {
-			e.preventDefault();
-			document.execCommand("insertText", false, "    ");
-		}
-	});
+	if (chromium) {
+		interacts[0].addEventListener("keypress", updateEditor);
+		interacts[0].addEventListener("keyup", updateEditor);
+		interacts[0].addEventListener("keydown", (e) => {
+			if (e.keyCode == 9) {
+				e.preventDefault();
+				document.execCommand("insertText", false, "    ");
+			}
+		});
+	}
 	interacts[0].addEventListener("paste", (e) => {
+		if (!chromium) {
+			return;
+		}
 		e.preventDefault();
 		let text = e.clipboardData.getData("text/plain");
 		let temp = document.createElement("div");
@@ -311,6 +360,7 @@
 			block: "end",
 		});
 		tempAnchorEl.remove();
+		interacts[0].focus();
 	});
 	interacts[1].id = "runner";
 	interacts[1].classList = "interactive";

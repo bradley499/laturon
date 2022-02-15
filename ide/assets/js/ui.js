@@ -49,7 +49,7 @@
 		});
 	})();
 	delete authorPictureImg;
-	const alertBuilder = async (title, message, buttons) => {
+	const alertBuilder = async (title, message, buttons, input) => {
 		interacts[0].removeAttribute("contenteditable");
 		const overlay = document.createElement("div");
 		let response = await new Promise((resolve, reject) => {
@@ -77,6 +77,15 @@
 					containerContentsDynamic.push(paragraphElement);
 				});
 			}
+			let inputElement = null;
+			if (input != null && input.trim().length > 0) {
+				input = input.trim("\n");
+				inputElement = document.createElement("input");
+				inputElement.placeholder = input;
+				inputElement.classList.add("alertContentsInput");
+				containerContentsDynamic.push(inputElement);
+				buttons = ["Confirm", "Cancel"];
+			}
 			let containerContentsDynamicButtons = [];
 			if (buttons == null || buttons.length == 0) {
 				buttons = ["Close"];
@@ -92,6 +101,13 @@
 					let number = parseInt(e.target.getAttribute("rel"));
 					if (isNaN(number)) {
 						number = 0;
+					}
+					if (inputElement != null) {
+						if (number == 0) {
+							resolve(inputElement.value.trim());
+						} else {
+							resolve(null);
+						}
 					}
 					resolve(number);
 				});
@@ -156,7 +172,7 @@
 	};
 	const load = async (button) => {
 		if (interacts[0].innerText.trim().length > 0) {
-			if (await alertBuilder("You have unsaved work", "Are you sure you want to load a new file, whilst you're still working on something?\nAll progress of your current project will be lost.", ["Load a file", "Cancel"]) == 1) {
+			if (await alertBuilder("You have unsaved work", "Are you sure you want to load a new file, whilst you're still working on something?\nAll progress of your current project will be lost.", ["Load a file", "Cancel"], null) == 1) {
 				return;
 			}
 		}
@@ -168,7 +184,7 @@
 			}
 			let file = element.files[0];
 			if (file.type.slice(0, 4) != "text") {
-				return await alertBuilder("Unable to read that file", "Sorry, but that sort of file is not able to be read.", null);
+				return await alertBuilder("Unable to read that file", "Sorry, but that sort of file is not able to be read.", null, null);
 			}
 			let reader = new FileReader();
 			reader.addEventListener("load", function (event) {
@@ -185,13 +201,13 @@
 	const save = async (button) => {
 		tooltipIter(button.target, 1);
 		if (interacts[0].innerText.trim().length == 0) {
-			return alertBuilder("Unable to download", "Sorry, but you're unable to download an empty file.", "Continue coding");
+			return alertBuilder("Unable to download", "Sorry, but you're unable to download an empty file.", "Continue coding", null);
 		}
 		let element = document.createElement("a");
 		element.setAttribute("href", "data:text/plain;charset=utf-8," + encodeURIComponent(interacts[0].innerText));
-		let name = "";
+		let name = " ";
 		while (name.trim().length == 0) {
-			name = prompt("What would you like to name your file?")
+			name = await alertBuilder("Download file", {true:"Your file name cannot be blank.\n",false:""}[name == ""] + "What would you like to name your file?", null, "Download name");
 			if (name == null) {
 				return;
 			}

@@ -386,6 +386,18 @@ div#alertContainer>div#alertContents>div>div#alertContentsMain>h2 {
 	font-size: 30px;
 }
 
+div#alertContainer>div#alertContents>div>div#alertContentsMain>input.alertContentsInput {
+	display: block;
+	width: calc(100% - 30px);
+	margin: auto;
+	padding: 10px;
+	border-radius: 10px;
+	border-width: 1px;
+    -moz-box-sizing: content-box;
+    -webkit-box-sizing: content-box;
+    box-sizing: content-box;
+}
+
 div#alertContainer>div#alertContents>div>div#alertButtons {
 	display: flex;
 	margin-bottom: 5px;

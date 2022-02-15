@@ -64,15 +64,18 @@ void array_delete(array_value_t *array)
 	}
 }
 
-int array_remove(array_value_t *array, int at)
+array_value_t *array_remove(array_value_t *array, int at)
 {
 	array_value_t *current = array;
 	if (current == NULL)
 		fatal_error(ARRAY_TYPE_EXPECTED_ERROR);
 	if (current->next == NULL)
 	{
+		if (at != 0) {
+			fatal_error(ARRAY_LOCATION_ERROR);
+		}
 		array_delete(current);
-		return SCOPE_BOOLEAN_TRUE;
+		return NULL;
 	}
 	array_value_t *previous = NULL;
 	unsigned int size = 0;
@@ -93,13 +96,14 @@ int array_remove(array_value_t *array, int at)
 				previous->next = current->next;
 				free(current);
 			}
-			return SCOPE_BOOLEAN_TRUE;
+			return array;
 		}
 		size++;
 		previous = current;
 		current = current->next;
 	} while (size <= at && current != NULL);
-	return SCOPE_BOOLEAN_FALSE;
+	fatal_error(ARRAY_LOCATION_ERROR);
+	return NULL;
 }
 
 int array_update(array_value_t *array, int at, unsigned char value_type, double value_double, signed long long int value_int)
@@ -128,6 +132,7 @@ int array_update(array_value_t *array, int at, unsigned char value_type, double 
 int array_insert(array_value_t *array, int at, unsigned char value_type, double value_double, signed long long int value_int)
 {
 	array_value_t *current = array;
+	array_value_t *previous = NULL;
 	if (current == NULL)
 		fatal_error(ARRAY_TYPE_EXPECTED_ERROR);
 	unsigned int size = 0;
@@ -155,10 +160,26 @@ int array_insert(array_value_t *array, int at, unsigned char value_type, double 
 				current->next = array_insert;
 			}
 			else
+			{
 				array_insert->next = current;
+				previous->next = array_insert;
+			}
 			return SCOPE_BOOLEAN_TRUE;
 		}
 		size++;
+		if (current->next == NULL && size == at)
+		{
+			array_value_t *array_insert = (array_value_t *)array_new();
+			array_insert->result_type = value_type;
+			if (array_insert->result_type == SCOPE_TYPE_DOUBLE)
+				array_insert->result.result_double = value_double;
+			else
+				array_insert->result.result_int = value_int;
+			array_insert->next = current->next;
+			current->next = array_insert;
+			return SCOPE_BOOLEAN_TRUE;
+		}
+		previous = current;
 		current = current->next;
 	} while (size <= at && current != NULL);
 	return SCOPE_BOOLEAN_FALSE;
@@ -176,7 +197,7 @@ array_value_t *array_get(array_value_t *array, int at)
 			return current;
 		size++;
 		current = current->next;
-	} while (size <= at);
+	} while (size <= at && current != NULL);
 	return NULL;
 }
 

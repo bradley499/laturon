@@ -3,7 +3,7 @@ CC?=gcc
 DEBUG=false
 ifeq ($(filter $(shell whereis emcc),$(CC)),$(CC))
 EMCC=$(CC)
-ARGS=-Wall -O3 -std=c99 -fno-exceptions -fno-rtti -s ENVIRONMENT=web -s MALLOC=emmalloc -s DISABLE_EXCEPTION_CATCHING=1 -s FORCE_FILESYSTEM=1 -s WASM=1 -s ALLOW_MEMORY_GROWTH=1 -s MAXIMUM_MEMORY=4GB -s WASM_BIGINT -s ASYNCIFY --pre-js src/js/interact.js
+ARGS=-Wall -O3 -std=c99 -fno-exceptions -fno-rtti -s ENVIRONMENT=worker -s BUILD_AS_WORKER -s MALLOC=emmalloc -s DISABLE_EXCEPTION_CATCHING=1 -s FORCE_FILESYSTEM=1 -s WASM=1 -s ALLOW_MEMORY_GROWTH=1 -s MAXIMUM_MEMORY=4GB -s WASM_BIGINT -s ASYNCIFY --pre-js src/js/interact.js
 OBJ_ARGS=-Wall -std=c99 -fno-exceptions -fno-rtti
 else
 ARGS=-O2 -lm -Wall
@@ -20,8 +20,12 @@ EXEC=program
 else
 EXEC=program.html
 endif
+VERSION_FILE = "./VERSION"
+VERSION=$(shell head -n 1 $(VERSION_FILE))
+PREVIOUS_BUILDNUMBER=$(shell tail -n 1 $(VERSION_FILE))
+BUILDNUMBER=$(shell echo $$(( $${c:-$(PREVIOUS_BUILDNUMBER)}+1 )))
 
-all: default $(OBJS) $(EXEC)
+all: default build_num $(OBJS) $(EXEC)
 
 default: clean_objs setup
 
@@ -32,6 +36,9 @@ debug: ARGS += -g -fdebug-compilation-dir='..'
 endif
 debug: all
 
+build_num:
+	echo "$(VERSION)\n$(BUILDNUMBER)" > $(VERSION_FILE)
+
 setup: $(OBJDIR)
 	@mkdir -pv $(BUILD)
 
@@ -39,7 +46,7 @@ $(EXEC):
 	$(CC) $(wildcard $(OBJDIR)/*.o) $(ARGS) -o $(BUILD)/$(EXEC)
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.c $(OBJDIR)
-	$(CC) $(OBJ_ARGS) $(INC) -c $< -o $@
+	$(CC) $(OBJ_ARGS) $(INC) -DVERSION=$(VERSION) -DBUILDNUMBER=$(BUILDNUMBER) -Dtesting=123 -c $< -o $@
 
 $(OBJDIR):
 	@mkdir -pv $@

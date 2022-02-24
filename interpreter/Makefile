@@ -20,7 +20,7 @@ EXECEXTENSION=
 ifeq ($(EMCC),$(CC))
 EXECEXTENSION=.html
 endif
-VERSION_FILE = "./VERSION"
+VERSION_FILE=VERSION
 VERSION=$(shell head -n 1 $(VERSION_FILE))
 PREVIOUS_BUILDNUMBER=$(shell tail -n 1 $(VERSION_FILE))
 BUILDNUMBER=$(shell echo $$(( $${c:-$(PREVIOUS_BUILDNUMBER)}+1 )))
@@ -39,20 +39,6 @@ debug: all
 build_num:
 	@echo "$(VERSION)\n$(BUILDNUMBER)" > $(VERSION_FILE)
 	$(eval EXECNAME = $(EXECNAME)-$(VERSION).$(BUILDNUMBER))
-ifeq ($(EMCC),$(CC))
-	@echo "{\n\
-		\"author\": [\n\
-			{\n\
-				\"name\": \"Bradley Marshall\",\n\
-				\"handle\": \"bradley499\"\n\
-			}\n\
-		],\n\
-		\"version\": $(VERSION),\n\
-		\"build\": $(BUILDNUMBER),\n\
-		\"location\": \"$(EXECNAME).wasm\"\n\
-	}" > $(BUILD)/interpreter.json
-	echo $(EXECNAME)
-endif
 
 setup: $(OBJDIR)
 	@mkdir -pv $(BUILD)

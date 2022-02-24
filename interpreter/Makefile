@@ -18,9 +18,9 @@ BUILD=build
 EXECNAME=program
 EXECEXTENSION=
 ifeq ($(EMCC),$(CC))
-EXECEXTENSION=.html
+EXECEXTENSION=.js
 endif
-VERSION_FILE = "./VERSION"
+VERSION_FILE=VERSION
 VERSION=$(shell head -n 1 $(VERSION_FILE))
 PREVIOUS_BUILDNUMBER=$(shell tail -n 1 $(VERSION_FILE))
 BUILDNUMBER=$(shell echo $$(( $${c:-$(PREVIOUS_BUILDNUMBER)}+1 )))
@@ -38,7 +38,12 @@ debug: all
 
 build_num:
 	@echo "$(VERSION)\n$(BUILDNUMBER)" > $(VERSION_FILE)
-	$(eval EXECNAME = $(EXECNAME)-$(VERSION).$(BUILDNUMBER))
+
+setup: $(OBJDIR)
+	@mkdir -pv $(BUILD)
+
+$(EXECNAME):
+	$(CC) $(wildcard $(OBJDIR)/*.o) $(ARGS) -o $(BUILD)/$(EXECNAME)-$(VERSION).$(BUILDNUMBER)$(EXECEXTENSION)
 ifeq ($(EMCC),$(CC))
 	@echo "{\n\
 		\"author\": [\n\
@@ -48,23 +53,26 @@ ifeq ($(EMCC),$(CC))
 			}\n\
 		],\n\
 		\"version\": $(VERSION),\n\
-		\"build\": $(BUILDNUMBER),\n\
-		\"location\": \"$(EXECNAME).wasm\"\n\
+		\"build\": $$(echo $(BUILDNUMBER)),\n\
+		\"worker\": \"$(EXECNAME)-$(VERSION).$(BUILDNUMBER)$(EXECEXTENSION)\",\n\
+		\"wasm\": \"$(EXECNAME)-$(VERSION).$(BUILDNUMBER).wasm\"\n\
 	}" > $(BUILD)/interpreter.json
-	echo $(EXECNAME)
 endif
-
-setup: $(OBJDIR)
-	@mkdir -pv $(BUILD)
-
-$(EXECNAME):
-	$(CC) $(wildcard $(OBJDIR)/*.o) $(ARGS) -o $(BUILD)/$(EXECNAME)$(EXECEXTENSION)
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.c $(OBJDIR)
 	$(CC) $(OBJ_ARGS) $(INC) -DVERSION=$(VERSION) -DBUILDNUMBER=$(BUILDNUMBER) -c $< -o $@
 
 $(OBJDIR):
 	@mkdir -pv $@
+
+wasm_linkage:
+	sed -i 's/wasmBinaryFile="$(shell cat CURRENT_BUILD)"/wasmBinaryFile="..\/wasm\/$(shell cat CURRENT_BUILD)"/' $(BUILD)/*.js
+
+current_build:
+	@echo "$(EXECNAME)-$(VERSION).$(BUILDNUMBER).wasm" > CURRENT_BUILD
+
+clean_current_build:
+	@rm -vf CURRENT_BUILD
 
 run:
 ifneq ($(EMCC),$(CC))
@@ -81,7 +89,7 @@ else
 	@failure
 endif
 
-clean:
+clean: clean_current_build
 	@rm -rvf $(BUILD) $(OBJDIR)
 
 clean_objs: 

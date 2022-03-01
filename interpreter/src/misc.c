@@ -7,6 +7,7 @@
 #include "array.h"
 #include "run.h"
 #include "scope.h"
+#include "interact.h"
 
 void *xmalloc(unsigned int size)
 {
@@ -99,7 +100,7 @@ array_value_t *string_new(char *str)
 void fatal_error(error_codes code)
 {
 	// TODO: Implement cleanup routine
-	exit((int)code); // Terminate program
+	error_code((int)code);
 }
 
 #endif

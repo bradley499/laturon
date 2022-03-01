@@ -3,7 +3,7 @@ CC?=gcc
 DEBUG=false
 ifeq ($(filter $(shell whereis emcc),$(CC)),$(CC))
 EMCC=$(CC)
-ARGS=-Wall -O3 -std=c99 -fno-exceptions -fno-rtti -s ENVIRONMENT=worker -s BUILD_AS_WORKER -s MALLOC=emmalloc -s DISABLE_EXCEPTION_CATCHING=1 -s FORCE_FILESYSTEM=1 -s WASM=1 -s ALLOW_MEMORY_GROWTH=1 -s MAXIMUM_MEMORY=4GB -s WASM_BIGINT -s ASYNCIFY --pre-js src/js/interact.js
+ARGS=-Wall -O3 -std=c99 -fno-exceptions -fno-rtti -s ENVIRONMENT=worker -s MALLOC=emmalloc -s DISABLE_EXCEPTION_CATCHING=1 -s FORCE_FILESYSTEM=1 -s WASM=1 -s ALLOW_MEMORY_GROWTH=1 -s MAXIMUM_MEMORY=4GB -s WASM_BIGINT -s ASYNCIFY --pre-js src/js/interact.js --post-js src/js/files.js
 OBJ_ARGS=-Wall -std=c99 -fno-exceptions -fno-rtti
 else
 ARGS=-O2 -lm -Wall

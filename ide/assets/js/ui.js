@@ -1,3 +1,5 @@
+"use strict";
+
 (async () => {
 	const chromium = (() => {
 		if (navigator.userAgent.match(/Chrome\/\d+/) !== null) {
@@ -7,7 +9,9 @@
 			return false;
 		}
 	})();
+	let worker = false;
 	let executing = false;
+	let interpreterReady = false;
 	const interactsContainer = document.createElement("div");
 	const loading = document.createElement("div");
 	const interacts = [document.createElement({ true: "div", false: "textarea" }[chromium]), document.createElement("div")];
@@ -56,7 +60,7 @@
 			return gazeDetection.default;
 		});
 	})();
-	delete authorPictureImg;
+	authorPictureImg = null;
 	const alertBuilder = async (title, message, buttons, input) => {
 		if (chromium) {
 			interacts[0].removeAttribute("contenteditable");
@@ -167,9 +171,10 @@
 	}
 	loadingState(null, false);
 	const changeExecutionState = (button) => {
+		if (!interpreterReady) return;
 		let state = buttonData[2]["state"];
 		tooltipIter(buttons[2], 2);
-		if (state == 0) {
+		if (state == 0 && button != null) {
 			inputOutput[1].innerHTML = "";
 			buttons[2].classList.add("executing");
 			interactsContainer.classList.add("executing");
@@ -177,8 +182,9 @@
 			if (buttonData[3]["state"] == 3) {
 				resizeEditor();
 			}
-			loadingState("Parsing source code", true);
+			worker.postMessage({ "type": "sourceCode", "data": interacts[0].innerText });
 			loadingState("Tokenising source code", true);
+			loadingState("Parsing source code", true);
 			return;
 		}
 		buttons[2].classList.remove("executing");
@@ -415,6 +421,27 @@
 	document.body.innerHTML = "";
 	document.body.appendChild(buttonContainer);
 	document.body.appendChild(interactsContainer);
-	loadingState("Loading interpreter...", true);
+	loadingState("Loading...", true);
 	updateEditor();
+	// Web worker data transition
+	(async () => {
+		const interpreterData = await fetch("./assets/js/interpreter.json").then(response => response.json()).then(response => {
+			return response;
+		});
+		worker = new Worker("./assets/js/" + interpreterData["worker"]);
+		worker.onmessage = (e) => {
+			e = e.data;
+			switch (e["type"]) {
+				case "loading":
+					loadingState(["Loading interpreter...", null][e["state"]], (e["state"] != 1));
+					if (e["state"] == 1 && !interpreterReady) {
+						interpreterReady = true;
+					}
+					break;
+				case "output":
+					newOutput(["info", "warning", "error", "generic"][e["state"]], e["message"]);
+					break;
+			}
+		};
+	})();
 })();

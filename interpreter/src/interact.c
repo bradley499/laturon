@@ -80,13 +80,20 @@ FILE* EMSCRIPTEN_KEEPALIVE cleanExecutionSourceFile() {
 	return fp;
 }
 
-FILE* startUpGetFile()
+FILE* getExecutionSourceFile()
 {
-	FILE* fp = cleanExecutionSourceFile();
-	if (fp == NULL)
-		fatal_error(IO_ERROR);
+	if (access(INTERACT_WASM_SOURCE_FILE, F_OK) == 0) {
+		FILE* fp = fopen(INTERACT_WASM_SOURCE_FILE, "r");
+		if (fp != NULL)
+			return fp;
+	}
+	fatal_error(IO_ERROR);
+	return NULL;
+}
+
+void ready()
+{
 	js_started();
-	return fp;
 }
 
 #else
@@ -120,7 +127,7 @@ void error_code(unsigned int code)
 	exit((code + 1));
 }
 
-FILE* startUpGetFile(char* filename)
+FILE* getExecutionSourceFile(char* filename)
 {
 	if (access(filename, F_OK) == 0) {
 		FILE* fp = fopen(filename, "r");
@@ -128,6 +135,7 @@ FILE* startUpGetFile(char* filename)
 			return fp;
 	}
 	fatal_error(IO_ERROR);
+	return NULL;
 }
 #endif
 

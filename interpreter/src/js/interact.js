@@ -1,7 +1,8 @@
 /**
- * Boiler plate code to use for asynchronous communication between WASM and JavaScript,
- * DO NOT: change the function names as they are linked to `src/interact.c` by eternal
- * function calls, done via `EM_JS`; allowing for asynchronous inputs and outputs.
+ * Boiler plate code to use for asynchronous communication between WASM and
+ * JavaScript. DO NOT: change the function names as they are linked to
+ * `src/interact.c` by external function calls, done via `EM_JS`; allowing for
+ *  asynchronous inputs and outputs.
  */
 
 self.postMessage({
@@ -31,13 +32,11 @@ self.addEventListener("message", function(e) {
             updateSourceFile(e["data"]);
         }
     } catch {
-        console.log(e);
         outputMessage("An unexpected value was wrongly received.", 2);
     }
 }, false);
 
-function getUserInput()
-{
+function getUserInput() {
     return userInputString; // Return user input value!
 }
 
@@ -59,8 +58,7 @@ function getUserInputState() {
     return (userInputState == 1);
 }
 
-function outputMessage(message, type)
-{
+function outputMessage(message, type) {
     self.postMessage({
         "type": "output",
         "state": type,
@@ -76,7 +74,7 @@ function initialLoadComplete() {
 }
 
 function error(code) {
-    const errors = ["An unknown error occurred", "Failed to allocate memory", "Logical operation failed", "Failed to convert to another type", "Failed to cleanup variables outside of current scope", "Failed to execute operation", "An invalid reference to a call stack scope occurred", "Failed to correctly read in user input string", "A reference to a compound literal does not exist", "An array routine was not given an array to operate on", "A reference to an item within an array that is out of range", "Failed to perform an operation on source file"];
+    const errors = ["An unknown error occurred.", "Failed to allocate memory.", "Logical operation failed.", "Failed to convert to another type.", "Failed to cleanup variables outside of current scope.", "Failed to execute operation.", "An invalid reference to a call stack scope occurred.", "Failed to correctly read in user input string.", "A reference to a compound literal does not exist.", "An array routine was not given an array to operate on.", "A reference to an item within an array that is out of range.", "Failed to perform an operation on source file."];
     try {
         outputMessage(errors[code], 2);
     } catch {
@@ -84,8 +82,7 @@ function error(code) {
     }
 }
 
-function operationState(state)
-{
+function operationState(state) {
     self.postMessage({
         "type": "operating",
         "state": state

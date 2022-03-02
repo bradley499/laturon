@@ -16,10 +16,13 @@ char * input(char *message);
 void output(char *message, output_types type);
 // Exit error code
 void error_code(unsigned int code);
-// Signifies start up, and return the pointer of source code
 #ifdef EMSCRIPTEN
-FILE* startUpGetFile();
+// Return the file pointer of source code
+FILE* getExecutionSourceFile();
+// Execution has begun
+void ready();
 #else
-FILE* startUpGetFile(char* filename);
+// Return the file pointer of source code
+FILE* getExecutionSourceFile(char* filename);
 #endif
 #endif

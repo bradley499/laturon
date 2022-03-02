@@ -3,11 +3,7 @@
 
 #include <stdio.h>
 
-#ifndef EMSCRIPTEN_KEEPALIVE
-#define EMSCRIPTEN_KEEPALIVE
-#endif
-
-int EMSCRIPTEN_KEEPALIVE executeFile(FILE* fp) {
+int executeFile(FILE* fp) {
 	return 0;
 }
 

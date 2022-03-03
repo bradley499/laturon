@@ -109,7 +109,21 @@ char *input(char *message)
 
 void output(char *message, output_types type)
 {
-	printf("%s\n", message);
+	switch (type)
+	{
+	case OUTPUT_ERROR:
+		printf("\033[0;31m[ERROR] %s\033[0m\n", message);
+		break;
+	case OUTPUT_WARNING:
+		printf("\033[0;33m[WARNING] %s\033[0m\n", message);
+		break;
+	case OUTPUT_INFO:
+		printf("\033[0;36m[INFO] %s\033[0m\n", message);
+		break;
+	default:
+		printf("%s\n", message);
+		break;
+	}
 }
 
 void error_code(unsigned int code)

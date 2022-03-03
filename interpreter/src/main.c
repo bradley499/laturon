@@ -20,7 +20,7 @@
 #define EMSCRIPTEN_KEEPALIVE
 #endif
 
-int runFile();
+int run_file();
 
 FILE* fp = NULL;
 
@@ -36,12 +36,12 @@ int main(int argc, char **argv) {
 		return 1;
 	}
 	fp = getExecutionSourceFile(argv[0]);
-	runFile();
+	run_file();
 #endif
 	return 0;
 }
 
-int EMSCRIPTEN_KEEPALIVE runFile() {
+int EMSCRIPTEN_KEEPALIVE run_file() {
 	if (fp == NULL) {
 #ifdef EMSCRIPTEN
 		fp = getExecutionSourceFile();
@@ -53,7 +53,7 @@ int EMSCRIPTEN_KEEPALIVE runFile() {
 		}
 #endif
 	}
-	executeFile(fp);
+	execute_file(fp);
 	fclose(fp);
 	fp = NULL;
 	return 0;

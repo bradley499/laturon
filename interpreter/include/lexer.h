@@ -3,6 +3,6 @@
 
 #include <stdio.h>
 
-int executeFile(FILE* fp);
+int execute_file(FILE* fp);
 
 #endif

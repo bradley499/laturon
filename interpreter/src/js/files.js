@@ -8,5 +8,5 @@ try {
 function updateSourceFile(sourceCode){
 	FS.truncate(sourceFile, 0);
 	FS.writeFile(sourceFile, sourceCode);
-	Module.ccall("runFile", "number", [], [])
+	Module.ccall("run_file", "number", [], [])
 }

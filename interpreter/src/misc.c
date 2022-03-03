@@ -11,7 +11,7 @@
 
 void *xmalloc(unsigned int size)
 {
-	void *result = malloc(size);
+	void *result = calloc(size, sizeof(void));
 	if (result == NULL)
 		fatal_error(MEMORY_ALLOCATION_ERROR);
 	return result;

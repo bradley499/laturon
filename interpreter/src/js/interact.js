@@ -31,7 +31,8 @@ self.addEventListener("message", function(e) {
         } else if (e["type"] == "sourceCode") {
             updateSourceFile(e["data"]);
         }
-    } catch {
+    } catch (err) {
+        if (err["name"] == "ExitStatus") return;
         outputMessage("An unexpected value was wrongly received.", 2);
     }
 }, false);
@@ -74,7 +75,7 @@ function initialLoadComplete() {
 }
 
 function error(code) {
-    const errors = ["An unknown error occurred.", "Failed to allocate memory.", "Logical operation failed.", "Failed to convert to another type.", "Failed to cleanup variables outside of current scope.", "Failed to execute operation.", "An invalid reference to a call stack scope occurred.", "Failed to correctly read in user input string.", "A reference to a compound literal does not exist.", "An array routine was not given an array to operate on.", "A reference to an item within an array that is out of range.", "Failed to perform an operation on source file."];
+    const errors = ["An unknown error occurred.", "Failed to allocate memory.", "Logical operation failed.", "Failed to convert to another type.", "Failed to cleanup variables outside of current scope.", "Failed to execute operation.", "An invalid reference to a call stack scope occurred.", "Failed to correctly read in user input string.", "A reference to a compound literal does not exist.", "An array routine was not given an array to operate on.", "A reference to an item within an array that is out of range.", "Failed to perform an operation on source file.", "The source provided has invalid syntax."];
     try {
         outputMessage(errors[code], 2);
     } catch {

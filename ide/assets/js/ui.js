@@ -171,7 +171,10 @@
 	}
 	loadingState(null, false);
 	const changeExecutionState = (button) => {
-		if (!interpreterReady) return;
+		if (!interpreterReady) {
+			alertBuilder("Unable to run", "Sorry, but the interpreter is still being loaded... Until the interpreter has loaded, you'll have to wait before you can run your program.",null,null);
+			return;
+		}
 		let state = buttonData[2]["state"];
 		tooltipIter(buttons[2], 2);
 		if (state == 0 && button != null) {

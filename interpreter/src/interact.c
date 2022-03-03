@@ -67,7 +67,7 @@ void output(char *message, output_types type)
 void error_code(unsigned int code)
 {
 	js_error(code);
-	exit(EXIT_SUCCESS);
+	exit(EXIT_FAILURE);
 }
 
 FILE* getExecutionSourceFile()
@@ -103,7 +103,6 @@ char *input(char *message)
 	}
 	else
 		input_string[(line_size - 1)] = '\0';
-	FILE *tes;
 	return input_string;
 }
 

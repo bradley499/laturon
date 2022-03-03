@@ -35,7 +35,7 @@ int main(int argc, char **argv) {
 		output("Please give a location of your source code.", OUTPUT_ERROR);
 		return 1;
 	}
-	fp = getExecutionSourceFile(argv[0]);
+	fp = getExecutionSourceFile(argv[1]);
 	run_file();
 #endif
 	return 0;

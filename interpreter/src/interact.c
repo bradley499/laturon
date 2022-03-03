@@ -67,17 +67,7 @@ void output(char *message, output_types type)
 void error_code(unsigned int code)
 {
 	js_error(code);
-	exit((code + 1));
-}
-
-FILE* EMSCRIPTEN_KEEPALIVE cleanExecutionSourceFile() {
-	if (access(INTERACT_WASM_SOURCE_FILE, F_OK) == 0) {
-		if (remove(INTERACT_WASM_SOURCE_FILE) != 0) {
-			fatal_error(IO_ERROR);
-		}
-	}
-	FILE* fp = fopen(INTERACT_WASM_SOURCE_FILE, "w+");
-	return fp;
+	exit(EXIT_SUCCESS);
 }
 
 FILE* getExecutionSourceFile()

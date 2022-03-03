@@ -31,7 +31,7 @@ int EMSCRIPTEN_KEEPALIVE main() {
 	output("Build:   "NUM_WRAPPER(BUILDNUMBER), OUTPUT_INFO);
 #else
 int main(int argc, char **argv) {
-	if (argc != 1) {
+	if (argc != 2) {
 		output("Please give a location of your source code.", OUTPUT_ERROR);
 		return 1;
 	}

@@ -13,13 +13,14 @@
 
 enum syntax_errors
 {
-	NO_FUNCTION_DEFINITION,		  // No function definition or reference was given
-	NO_FUNCTION_REFERENCE,		  // Unable to call a function that has no reference
-	SCOPE_OPEN_WITHIN_EXPRESSION, // Attempting to open a scope within an expression
-	SCOPE_CLOSE_UNABLE,			  // Closing a scope that has not been opened
-	PARENTHESES_CLOSE_UNABLE,	  // Closing a parentheses that has not been opened
-	BRACKET_CLOSE_UNABLE,		  // Closing a bracket that has not been opened
-	INVALID_FUNCTION_DEFINITION,  // Invalid function definition
+	NO_FUNCTION_DEFINITION,		   // No function definition or reference was given
+	NO_FUNCTION_REFERENCE,		   // Unable to call a function that has no reference
+	SCOPE_OPEN_WITHIN_EXPRESSION,  // Attempting to open a scope within an expression
+	SCOPE_CLOSE_UNABLE,			   // Closing a scope that has not been opened
+	PARENTHESES_CLOSE_UNABLE,	   // Closing a parentheses that has not been opened
+	BRACKET_CLOSE_UNABLE,		   // Closing a bracket that has not been opened
+	INVALID_FUNCTION_DEFINITION,   // Invalid function definition
+	FUNCTION_DEFINITION_RECURSIVE, // Unable to define a function with a recursive function definition
 };
 
 enum token_types
@@ -34,6 +35,10 @@ enum token_types
 	SCOPE_OPEN,
 	SCOPE_CLOSE,
 	OPERATOR,
+	LITERAL,
+	EQUALITY,
+	LESS_OR_EQUALITY,
+	MORE_OR_EQUALITY,
 };
 
 typedef struct token_t
@@ -115,7 +120,8 @@ int execute_file(FILE *fp)
 	token_t *tokens = NULL;
 	token_t *current_token = NULL;
 	enum token_types special_state = NOT_DEFINED;
-	for (; position != -1;)
+	char character = EOF;
+	for (;;)
 	{
 		if (special_state > 0)
 		{
@@ -133,12 +139,13 @@ int execute_file(FILE *fp)
 			current_token->next = token;
 			current_token = token;
 		}
+		if (character == EOF)
+			break;
 		token_t *token = xmalloc(sizeof(token_t));
 		token->contents = NULL;
 		token->type = NOT_DEFINED;
 		char *identifier = xmalloc(sizeof(char) * IDENTIFIER_MAX_LENGTH);
 		unsigned char identifier_current_length = 0;
-		char character = EOF;
 		for (; (character = getc(fp)) != EOF;)
 		{
 			if (is_whitespace(character))
@@ -154,6 +161,8 @@ int execute_file(FILE *fp)
 					{
 						if (strncmp(identifier, IDENTIFIER_TYPE_FUNCTION, IDENTIFIER_FUNCTION_MAX_LENGTH) == 0)
 						{
+							if (token->type == FUNCTION_DECLARATION)
+								syntax_error(FUNCTION_DEFINITION_RECURSIVE, line);
 							token->type = FUNCTION_DECLARATION;
 							position += identifier_current_length;
 							for (unsigned int i = 0; i < identifier_current_length; i++)
@@ -231,8 +240,6 @@ int execute_file(FILE *fp)
 		current_token = token;
 		position += identifier_current_length;
 		free(identifier);
-		if (character == EOF)
-			position = -1;
 	}
 	return 0;
 }
@@ -244,37 +251,33 @@ void syntax_error(enum syntax_errors error, unsigned int line)
 	{
 	case NO_FUNCTION_DEFINITION:
 		snprintf(buffer, 100, "No function definition or reference was given. On line: %d", line);
-		output(buffer, OUTPUT_ERROR);
 		break;
 	case NO_FUNCTION_REFERENCE:
 		snprintf(buffer, 100, "Unable to call a function that has no reference. On line: %d", line);
-		output(buffer, OUTPUT_ERROR);
 		break;
 	case SCOPE_OPEN_WITHIN_EXPRESSION:
 		snprintf(buffer, 100, "Attempting to open a scope within an expression. On line: %d", line);
-		output(buffer, OUTPUT_ERROR);
 		break;
 	case SCOPE_CLOSE_UNABLE:
 		snprintf(buffer, 100, "Closing a scope that has not been opened. On line: %d", line);
-		output(buffer, OUTPUT_ERROR);
 		break;
 	case PARENTHESES_CLOSE_UNABLE:
 		snprintf(buffer, 100, "Closing a parentheses that has not been opened. On line: %d", line);
-		output(buffer, OUTPUT_ERROR);
 		break;
 	case BRACKET_CLOSE_UNABLE:
 		snprintf(buffer, 100, "Closing a bracket that has not been opened. On line: %d", line);
-		output(buffer, OUTPUT_ERROR);
 		break;
 	case INVALID_FUNCTION_DEFINITION:
 		snprintf(buffer, 100, "Invalid function definition. On line: %d", line);
-		output(buffer, OUTPUT_ERROR);
+		break;
+	case FUNCTION_DEFINITION_RECURSIVE:
+		snprintf(buffer, 100, "Unable to define a function with a recursive function definition. On line: %d", line);
 		break;
 	default:
 		snprintf(buffer, 100, "Invalid syntax. On line: %d", line);
-		output("Invalid syntax. On line: ", OUTPUT_ERROR);
 		break;
 	}
+	output(buffer, OUTPUT_ERROR);
 	exit(EXIT_FAILURE);
 }
 

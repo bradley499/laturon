@@ -21,7 +21,7 @@ typedef enum error_codes
 	ARRAY_TYPE_EXPECTED_ERROR, // An array routine was not given an array to operate on
 	ARRAY_LOCATION_ERROR,	   // A reference to an item within an array that is out of range
 	IO_ERROR,				   // Failed to perform an operation on source file
-	INVALID_SYNTAX,			   // The source provided has invalid syntax
+	INVALID_SYNTAX_GENERIC,	   // The source provided has invalid syntax
 } error_codes;
 
 // Blocking malloc which will exit program execution on failure

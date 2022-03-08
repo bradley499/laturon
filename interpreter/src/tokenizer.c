@@ -1,5 +1,5 @@
-#ifndef lexer_c
-#define lexer_c
+#ifndef tokenizer_c
+#define tokenizer_c
 
 #include <stdio.h>
 #include <string.h>
@@ -136,7 +136,7 @@ int is_comment(char c)
 	return (c == '#');
 }
 
-int execute_file(FILE *fp)
+int tokenize_file(FILE *fp)
 {
 	int line = 1;
 	long long int position = 0;

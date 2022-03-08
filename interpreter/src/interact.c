@@ -70,7 +70,7 @@ void error_code(unsigned int code)
 	exit(EXIT_FAILURE);
 }
 
-FILE* getExecutionSourceFile()
+FILE* get_execution_source_file()
 {
 	if (access(INTERACT_WASM_SOURCE_FILE, F_OK) == 0) {
 		FILE* fp = fopen(INTERACT_WASM_SOURCE_FILE, "r");
@@ -130,7 +130,7 @@ void error_code(unsigned int code)
 	exit((code + 1));
 }
 
-FILE* getExecutionSourceFile(char* filename)
+FILE* get_execution_source_file(char* filename)
 {
 	if (access(filename, F_OK) == 0) {
 		FILE* fp = fopen(filename, "r");

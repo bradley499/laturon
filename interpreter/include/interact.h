@@ -18,11 +18,11 @@ void output(char *message, output_types type);
 void error_code(unsigned int code);
 #ifdef EMSCRIPTEN
 // Return the file pointer of source code
-FILE* getExecutionSourceFile();
+FILE* get_execution_source_file();
 // Execution has begun
 void ready();
 #else
 // Return the file pointer of source code
-FILE* getExecutionSourceFile(char* filename);
+FILE* get_execution_source_file(char* filename);
 #endif
 #endif

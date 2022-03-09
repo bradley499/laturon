@@ -135,6 +135,14 @@ int is_comment(char c)
 	return (c == '#');
 }
 
+token_t *token_generate()
+{
+	token_t *token = xmalloc(sizeof(token_t));
+	token->contents = NULL;
+	token->type = NOT_DEFINED;
+	return token;
+}
+
 int tokenize_file(FILE *fp)
 {
 	int line = 1;
@@ -167,8 +175,7 @@ int tokenize_file(FILE *fp)
 				else if (!((current_token->type != BRACKETS_OPEN && current_token->type != BRACKETS_CLOSE && current_token->type != PARENTHESES_CLOSE && current_token->type != VARIABLE) || (current_token->type == OPERATOR && (current_token->contents == (char *)'=' || current_token->contents == (char *)','))))
 					syntax_error(NO_VARIABLE_DEFINITION, line);
 			}
-			token_t *token = xmalloc(sizeof(token_t));
-			token->contents = NULL;
+			token_t *token = token_generate();
 			token->type = special_state;
 			token->position = position;
 			special_state = NOT_DEFINED;
@@ -178,9 +185,7 @@ int tokenize_file(FILE *fp)
 		if (character == EOF)
 			break;
 		current_comment = 0;
-		token_t *token = xmalloc(sizeof(token_t));
-		token->contents = NULL;
-		token->type = NOT_DEFINED;
+		token_t *token = token_generate();
 		char *identifier = xmalloc(sizeof(char) * IDENTIFIER_MAX_LENGTH);
 		unsigned char identifier_current_length = 0;
 		unsigned long long current_identifier_max_length = IDENTIFIER_MAX_LENGTH;

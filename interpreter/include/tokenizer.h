@@ -3,6 +3,17 @@
 
 #include <stdio.h>
 
-int tokenize_file(FILE* fp);
+typedef struct token_t
+{
+	unsigned char type;
+	char *contents;
+	unsigned long long int position;
+	struct token_t *next;
+} token_t;
+
+// Reads the file provided and splits the syntax into tokens
+int tokenize_file(FILE *fp);
+// Restructures tokens
+int token_optimisation(token_t *tokens);
 
 #endif

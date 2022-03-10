@@ -2,12 +2,23 @@
 
 (async () => {
 	const chromium = (() => {
-		if (navigator.userAgent.match(/Chrome\/\d+/) !== null) {
-			const raw = navigator.userAgent.match(/Chrom(e|ium)\/([0-9]+)\./);
-			return raw ? (parseInt(raw[2], 10) > 85) : false;
-		} else {
-			return false;
-		}
+		try {
+			if (typeof navigator.userAgentData !== "undefined") {
+				for (let i = 0; i < navigator.userAgentData.brands.length; i++) {
+					if (["Chromium", "Google Chrome"].indexOf(navigator.userAgentData.brands[i].brand) >= 0) {
+						if (navigator.userAgentData.brands[i].version > 85) {
+							return true;
+						}
+					}
+				}
+				return false;
+			}
+			if (navigator.userAgent.match(/Chrome\/\d+/) !== null) {
+				const raw = navigator.userAgent.match(/Chrom(e|ium)\/([0-9]+)\./);
+				return raw ? (parseInt(raw[2], 10) > 85) : false;
+			}
+		} catch { }
+		return false;
 	})();
 	let worker = false;
 	let executing = false;
@@ -60,7 +71,6 @@
 			return gazeDetection.default;
 		});
 	})();
-	authorPictureImg = null;
 	const alertBuilder = async (title, message, buttons, input) => {
 		if (chromium) {
 			interacts[0].removeAttribute("contenteditable");
@@ -172,7 +182,7 @@
 	loadingState(null, false);
 	const changeExecutionState = (button) => {
 		if (!interpreterReady) {
-			alertBuilder("Unable to run", "Sorry, but the interpreter is still being loaded... Until the interpreter has loaded, you'll have to wait before you can run your program.",null,null);
+			alertBuilder("Unable to run", "Sorry, but the interpreter is still being loaded... Until the interpreter has loaded, you'll have to wait before you can run your program.", null, null);
 			return;
 		}
 		let state = buttonData[2]["state"];

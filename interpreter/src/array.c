@@ -71,9 +71,8 @@ array_value_t *array_remove(array_value_t *array, int at)
 		fatal_error(ARRAY_TYPE_EXPECTED_ERROR);
 	if (current->next == NULL)
 	{
-		if (at != 0) {
+		if (at != 0)
 			fatal_error(ARRAY_LOCATION_ERROR);
-		}
 		array_delete(current);
 		return NULL;
 	}

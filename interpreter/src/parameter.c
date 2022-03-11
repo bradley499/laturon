@@ -39,7 +39,7 @@ unsigned int parameter_stack_parent_push(unsigned short scope_level, scope_t *pa
 {
 	if (current_parameter_stack_size == PARAMETER_STACK_MAX_SIZE)							// Size of parameter stack is too big
 		return PARAMETER_PUSH_FAILURE;														// Do not push to parameter stack
-	scope_t *parameter_scope_rel = scope_new();										// Create a new scope
+	scope_t *parameter_scope_rel = scope_new();												// Create a new scope
 	if (parameter_scope_rel == NULL)														// No new scope was created
 		return PARAMETER_PUSH_FAILURE;														// Do not push to parameter stack because no relative parameter scope was created
 	scope_set_type(parameter_scope_rel, scope_get_type(parameter));							// Copy parameter type to relative parameter

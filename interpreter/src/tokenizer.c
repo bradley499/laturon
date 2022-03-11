@@ -182,9 +182,12 @@ int tokenize_file(FILE *fp)
 			current_token->next = token;
 			current_token = token;
 		}
+		if (current_literal < 0)
+			current_literal = 0;
+		current_numeric = 0;
+		current_comment = 0;
 		if (character == EOF)
 			break;
-		current_comment = 0;
 		token_t *token = token_generate();
 		char *identifier = xmalloc(sizeof(char) * IDENTIFIER_MAX_LENGTH);
 		unsigned char identifier_current_length = 0;
@@ -306,9 +309,9 @@ int tokenize_file(FILE *fp)
 					strncpy(new_token->contents, identifier, identifier_current_length);
 					new_token->contents[identifier_current_length] = '\0';
 					new_token->type = VARIABLE;
-					new_token->position = (position + identifier_current_length - 1);
+					new_token->position = (position - identifier_current_length + 1);
 					current_token->next = new_token;
-					current_token = new_token;
+					current_token = current_token->next;
 				}
 				break;
 			}
@@ -351,7 +354,7 @@ int tokenize_file(FILE *fp)
 						line++;
 					break;
 				}
-				else if (!is_numeric(character) && (current_numeric != 0) && character != '.')
+				else if (!is_numeric(character) && current_numeric != 0 && character != '.')
 				{
 					current_numeric = -1;
 					current_literal = -1;
@@ -414,8 +417,11 @@ int tokenize_file(FILE *fp)
 					else
 					{
 						token->type = OPERATOR;
-						*token->contents = character;
-						token->position = position;
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wint-conversion"
+						token->contents = character;
+#pragma GCC diagnostic pop
+						token->position = (position + identifier_current_length);
 					}
 				}
 				else if (identifier_current_length > 0)
@@ -454,8 +460,6 @@ int tokenize_file(FILE *fp)
 		}
 		if (token->type == VARIABLE && current_literal == -1 && current_numeric == -1)
 			token->type = LITERAL;
-		if (current_literal == -1)
-			current_literal = 0;
 		if (tokens == NULL)
 			tokens = token;
 		else

@@ -15,5 +15,6 @@ typedef struct token_t
 int tokenize_file(FILE *fp);
 // Restructures tokens
 int token_optimisation(token_t *tokens);
-
+// Destroy a token and free it's memory;
+void token_destroy(token_t *token);
 #endif

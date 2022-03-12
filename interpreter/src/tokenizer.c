@@ -5,6 +5,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include "misc.h"
+#include "variable.h"
 #include "interact.h"
 #include "tokenizer.h"
 
@@ -34,7 +35,10 @@ enum syntax_errors
 	VARIABLE_DEFINITION_RECURSIVE, // Unable to define a variable with a recursive variable definition
 	LINE_ENDED_INCORRECTLY,		   // The line ended abruptly
 	UNUSED_VARIABLE,			   // A variable is referenced but not utilised
+	INVALID_VARIABLE_NAME,		   // A variable has a name that is not supported
+	INVALID_FUNCTION_NAME,		   // A function has a name that is not supported
 	INVALID_OPERATION,			   // An invalid operation was defined within the syntax
+	INVALID_NUMERIC,			   // An invalid numerical value was given
 };
 
 enum token_types
@@ -51,6 +55,7 @@ enum token_types
 	SCOPE_CLOSE,
 	OPERATOR,
 	LITERAL,
+	NUMERIC,
 	EQUALITY,
 	NOT_EQUALITY,
 	LESS_OR_EQUALITY,
@@ -312,6 +317,9 @@ int tokenize_file(FILE *fp)
 						syntax_error(UNUSED_VARIABLE, (line - line_up[0] + line_up[1]));
 					if (line_up[0] > 0)
 						syntax_error(LINE_ENDED_INCORRECTLY, (line - line_up[0]));
+					identifier[identifier_current_length - 1] = '\0';
+					if (!variable_name_valid(identifier))
+						syntax_error(INVALID_VARIABLE_NAME, (line - line_up[0]));
 					token_t *new_token = xmalloc(sizeof(token_t));
 					new_token->contents = NULL;
 					new_token->contents = xmalloc(sizeof(char) * (identifier_current_length + 1));
@@ -355,7 +363,7 @@ int tokenize_file(FILE *fp)
 						}
 					}
 				}
-				else if (is_numeric(character))
+				else if (is_numeric(character) && identifier_current_length == 0)
 					current_numeric = 1;
 				else if (is_comment(character))
 				{
@@ -366,11 +374,20 @@ int tokenize_file(FILE *fp)
 						line++;
 					break;
 				}
-				else if (!is_numeric(character) && current_numeric != 0 && character != '.')
+				else if (!is_numeric(character) && current_numeric != 0)
 				{
-					current_numeric = -1;
-					current_literal = -1;
-					break;
+					if (character == '.')
+					{
+						if (current_numeric == 2)
+							syntax_error(INVALID_NUMERIC, line);
+						current_numeric++;
+					}
+					else
+					{
+						current_numeric = -1;
+						current_literal = -1;
+						break;
+					}
 				}
 			}
 			identifier[identifier_current_length++] = character;
@@ -383,8 +400,12 @@ int tokenize_file(FILE *fp)
 				identifier = new_identifier;
 			}
 		}
+		if (current_numeric > 0)
+			current_numeric = -1;
 		if (token->type == FUNCTION_DECLARATION)
 		{
+			if (!variable_name_valid(identifier))
+				syntax_error(INVALID_FUNCTION_NAME, line);
 			if (special_state != PARENTHESES_OPEN)
 				syntax_error(INVALID_FUNCTION_DEFINITION, line);
 			token->contents = xmalloc(sizeof(char) * (identifier_current_length + 1));
@@ -446,9 +467,17 @@ int tokenize_file(FILE *fp)
 					else if (strncmp(identifier, IDENTIFIER_TYPE_WHILE, IDENTIFIER_WHILE_MAX_LENGTH) == 0 && (identifier[IDENTIFIER_WHILE_MAX_LENGTH] == ' ' || identifier[IDENTIFIER_WHILE_MAX_LENGTH] == '\0'))
 						token->type = WHILE;
 					else if (special_state == PARENTHESES_OPEN)
+					{
+						if (!variable_name_valid(identifier))
+							syntax_error(INVALID_VARIABLE_NAME, line);
 						token->type = FUNCTION_CALL;
+					}
 					else
+					{
+						if (current_literal == 0 && current_numeric == 0 && !variable_name_valid(identifier))
+							syntax_error(INVALID_FUNCTION_NAME, line);
 						token->type = VARIABLE;
+					}
 					if (token->type != IF && token->type != ELSE && token->type != WHILE)
 					{
 						token->contents = xmalloc(sizeof(char) * (identifier_current_length + 1));
@@ -482,8 +511,13 @@ int tokenize_file(FILE *fp)
 			else
 				syntax_error(INVALID_SYNTAX, line);
 		}
-		if (token->type == VARIABLE && current_literal == -1 && current_numeric == -1)
-			token->type = LITERAL;
+		if (token->type == VARIABLE)
+		{
+			if (current_literal == -1)
+				token->type = LITERAL;
+			else if (current_numeric == -1)
+				token->type = NUMERIC;
+		}
 		if (token->type != NOT_DEFINED)
 		{
 			if (tokens == NULL)
@@ -494,9 +528,7 @@ int tokenize_file(FILE *fp)
 		}
 		else
 		{
-			if (token->contents != NULL)
-				free(token->contents);
-			free(token);	
+			token_destroy(token);
 		}
 		position += identifier_current_length;
 		free(identifier);
@@ -513,20 +545,26 @@ int token_optimisation(token_t *tokens)
 	token_t *previous_token = NULL;
 	for (; current_token != NULL;)
 	{
+		printf("token: %d\t\"%s\"\n", current_token->type, current_token->contents);
 		if (current_token->type == NOT_DEFINED)
 		{
 			if (previous_token == NULL)
 				tokens = current_token->next;
 			else
 				previous_token->next = current_token->next;
-			if (current_token->contents != NULL)
-				free(current_token->contents);
-			free(current_token);
+			token_destroy(current_token);
 		}
 		previous_token = current_token;
 		current_token = current_token->next;
 	}
 	return 0;
+}
+
+void token_destroy(token_t *token)
+{
+	if (token->contents != NULL)
+		free(token->contents);
+	free(token);
 }
 
 void syntax_error(enum syntax_errors error, unsigned int line)
@@ -572,6 +610,15 @@ void syntax_error(enum syntax_errors error, unsigned int line)
 		break;
 	case UNUSED_VARIABLE:
 		snprintf(buffer, 100, "A variable is referenced but not utilised. On line: %d", line);
+		break;
+	case INVALID_VARIABLE_NAME:
+		snprintf(buffer, 100, "A variable has a name that is not supported. On line: %d", line);
+		break;
+	case INVALID_FUNCTION_NAME:
+		snprintf(buffer, 100, "A function has a name that is not supported. On line: %d", line);
+		break;
+	case INVALID_NUMERIC:
+		snprintf(buffer, 100, "An invalid numerical value was given. On line: %d", line);
 		break;
 	case LINE_ENDED_INCORRECTLY:
 		snprintf(buffer, 100, "The line ended abruptly. On line: %d", line);

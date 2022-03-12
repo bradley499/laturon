@@ -51,6 +51,8 @@ enum token_types
 	NOT_EQUALITY,
 	LESS_OR_EQUALITY,
 	MORE_OR_EQUALITY,
+	IF,
+	ELSE,
 };
 
 void syntax_error(enum syntax_errors error, unsigned int line);
@@ -201,6 +203,8 @@ int tokenize_file(FILE *fp)
 					if (current_literal != 0 || current_parentheses != 0 || current_brackets != 0)
 						syntax_error(LINE_ENDED_INCORRECTLY, line);
 					line++;
+					if (identifier_current_length > 0)
+						break;
 				}
 				if (current_literal == 0)
 				{
@@ -310,8 +314,11 @@ int tokenize_file(FILE *fp)
 					new_token->contents[identifier_current_length] = '\0';
 					new_token->type = VARIABLE;
 					new_token->position = (position - identifier_current_length + 1);
-					current_token->next = new_token;
-					current_token = current_token->next;
+					if (tokens == NULL)
+						tokens = new_token;
+					else
+						current_token->next = new_token;
+					current_token = new_token;
 				}
 				break;
 			}
@@ -460,11 +467,20 @@ int tokenize_file(FILE *fp)
 		}
 		if (token->type == VARIABLE && current_literal == -1 && current_numeric == -1)
 			token->type = LITERAL;
-		if (tokens == NULL)
-			tokens = token;
+		if (token->type != NOT_DEFINED)
+		{
+			if (tokens == NULL)
+				tokens = token;
+			else
+				current_token->next = token;
+			current_token = token;
+		}
 		else
-			current_token->next = token;
-		current_token = token;
+		{
+			if (token->contents != NULL)
+				free(token->contents);
+			free(token);	
+		}
 		position += identifier_current_length;
 		free(identifier);
 	}
@@ -480,7 +496,7 @@ int token_optimisation(token_t *tokens)
 	token_t *previous_token = NULL;
 	for (; current_token != NULL;)
 	{
-		if (current_token->type == 0)
+		if (current_token->type == NOT_DEFINED)
 		{
 			if (previous_token == NULL)
 				tokens = current_token->next;

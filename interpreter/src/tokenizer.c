@@ -8,10 +8,14 @@
 #include "interact.h"
 #include "tokenizer.h"
 
-#define IDENTIFIER_FUNCTION_MAX_LENGTH 8
 #define IDENTIFIER_TYPE_FUNCTION "function "
-#define IDENTIFIER_VARIABLE_MAX_LENGTH 3
-#define IDENTIFIER_TYPE_VARIABLE "var "
+#define IDENTIFIER_FUNCTION_MAX_LENGTH (sizeof(IDENTIFIER_TYPE_FUNCTION) - 2)
+#define IDENTIFIER_TYPE_IF "if "
+#define IDENTIFIER_IF_MAX_LENGTH (sizeof(IDENTIFIER_TYPE_IF) - 2)
+#define IDENTIFIER_TYPE_ELSE "else "
+#define IDENTIFIER_ELSE_MAX_LENGTH (sizeof(IDENTIFIER_TYPE_ELSE) - 2)
+#define IDENTIFIER_TYPE_WHILE "while "
+#define IDENTIFIER_WHILE_MAX_LENGTH (sizeof(IDENTIFIER_TYPE_WHILE) - 2)
 #define IDENTIFIER_MAX_LENGTH 1024
 
 enum syntax_errors
@@ -53,6 +57,7 @@ enum token_types
 	MORE_OR_EQUALITY,
 	IF,
 	ELSE,
+	WHILE,
 };
 
 void syntax_error(enum syntax_errors error, unsigned int line);
@@ -167,7 +172,7 @@ int tokenize_file(FILE *fp)
 			{
 				if (current_token == NULL)
 					syntax_error(NO_FUNCTION_DEFINITION, line);
-				else if (!(current_token->type == FUNCTION_DECLARATION || current_token->type == FUNCTION_CALL))
+				else if (!(current_token->type == FUNCTION_DECLARATION || current_token->type == FUNCTION_CALL || current_token->type == IF || current_token->type == WHILE))
 					syntax_error(NO_FUNCTION_REFERENCE, line);
 			}
 			else if (special_state == BRACKETS_OPEN)
@@ -434,10 +439,22 @@ int tokenize_file(FILE *fp)
 				else if (identifier_current_length > 0)
 				{
 					identifier[identifier_current_length] = '\0';
-					token->contents = xmalloc(sizeof(char) * (identifier_current_length + 1));
-					strncpy(token->contents, identifier, identifier_current_length);
-					token->contents[identifier_current_length] = '\0';
-					token->type = (special_state == PARENTHESES_OPEN ? FUNCTION_CALL : VARIABLE);
+					if (strncmp(identifier, IDENTIFIER_TYPE_IF, IDENTIFIER_IF_MAX_LENGTH) == 0 && (identifier[IDENTIFIER_IF_MAX_LENGTH] == ' ' || identifier[IDENTIFIER_IF_MAX_LENGTH] == '\0'))
+						token->type = IF;
+					else if (strncmp(identifier, IDENTIFIER_TYPE_ELSE, IDENTIFIER_ELSE_MAX_LENGTH) == 0 && (identifier[IDENTIFIER_ELSE_MAX_LENGTH] == ' ' || identifier[IDENTIFIER_ELSE_MAX_LENGTH] == '\0'))
+						token->type = ELSE;
+					else if (strncmp(identifier, IDENTIFIER_TYPE_WHILE, IDENTIFIER_WHILE_MAX_LENGTH) == 0 && (identifier[IDENTIFIER_WHILE_MAX_LENGTH] == ' ' || identifier[IDENTIFIER_WHILE_MAX_LENGTH] == '\0'))
+						token->type = WHILE;
+					else if (special_state == PARENTHESES_OPEN)
+						token->type = FUNCTION_CALL;
+					else
+						token->type = VARIABLE;
+					if (token->type != IF && token->type != ELSE && token->type != WHILE)
+					{
+						token->contents = xmalloc(sizeof(char) * (identifier_current_length + 1));
+						strncpy(token->contents, identifier, identifier_current_length);
+						token->contents[identifier_current_length] = '\0';
+					}
 					token->position = position;
 				}
 				else if (special_state == 0 && character != EOF && !is_scope(character) && current_comment == 0)

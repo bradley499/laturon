@@ -219,7 +219,7 @@ int step()
 			}
 			case SCOPE_TYPE_CONTAINER:
 			{
-				cleanup(execution_scope);
+				variable_cleanup(execution_scope);
 				break;
 			}
 			default:
@@ -228,7 +228,7 @@ int step()
 			if (function_scope_parameter == RUN_PARAMETER_STACK_OPEN)
 			{
 				if (parameter_stack_parent_push(function_scope, scope) == PARAMETER_PUSH_FAILURE) // Add current parameter to the parameter stack
-					return RUN_MEMORY_EXHAUSTION_ERROR;									   // No more space exists on parameter stack
+					return RUN_MEMORY_EXHAUSTION_ERROR;											  // No more space exists on parameter stack
 			}
 			scope = stack_parent_pop(scope); // Scope now points to scopes stack parent
 		}
@@ -236,7 +236,7 @@ int step()
 			return RUN_FAILURE;
 	}
 	else
-	{							  // Does not have traversable children
+	{									 // Does not have traversable children
 		scope = stack_parent_pop(scope); // Scope now points to scopes stack parent
 		return RUN_SWITCH_NODE;
 	}

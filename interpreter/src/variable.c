@@ -11,7 +11,7 @@ static unsigned short total_variables = 0;
 
 void variable_initialisation()
 {
-	cleanup(0);			 // Remove all existing variables and prepare for new initialisation
+	variable_cleanup(0); // Remove all existing variables and prepare for new initialisation
 	total_variables = 0; // Set total variables in use to 0
 }
 
@@ -37,7 +37,7 @@ unsigned int new_variable(unsigned int execution_scope, unsigned int function_sc
 	return VARIABLE_ASSIGNED;
 }
 
-void refresh_variable_scope(unsigned int variable_hash, unsigned int function_scope, unsigned int execution_scope)
+void variable_refresh_scope(unsigned int variable_hash, unsigned int function_scope, unsigned int execution_scope)
 {
 	for (unsigned short i = 0; i < VARIABLE_MAX_TOTAL; i++)
 		if (variables[i].function_scope == function_scope)
@@ -48,7 +48,7 @@ void refresh_variable_scope(unsigned int variable_hash, unsigned int function_sc
 			}
 }
 
-void delete_variable(variable_id id)
+void variable_delete(variable_id id)
 {
 	variables[id].function_scope = VARIABLE_UNASSIGNED;	 // Unassign variable function scope
 	variables[id].execution_scope = VARIABLE_UNASSIGNED; // Unassign the execution scope
@@ -68,11 +68,22 @@ scope_t *variable_get_scope(unsigned int variable_hash, unsigned int function_sc
 	return NULL;
 }
 
-void cleanup(unsigned int execution_scope)
+void variable_cleanup(unsigned int execution_scope)
 {
 	for (unsigned short i = 0; i < VARIABLE_MAX_TOTAL; i++)
 		if (((execution_scope == VARIABLE_SCOPE_GLOBAL) ? 1 : variables[i].execution_scope > execution_scope)) // If variable scope is destroyed
-			delete_variable(i);																				   // Delete variable
+			variable_delete(i);																				   // Delete variable
+}
+
+int variable_name_valid(char *name)
+{
+	char character = '\0';
+	for (int i = 0; (character = name[i]) != '\0'; i++)
+	{
+		if (!((character >= 'A' && character <= 'Z') || (character >= 'a' && character <= 'z') || (character >= '0' && character <= '9') || character == '_'))
+			return 0;
+	}
+	return 1;
 }
 
 #endif

@@ -78,7 +78,9 @@ void variable_cleanup(unsigned int execution_scope)
 int variable_name_valid(char *name)
 {
 	char character = '\0';
-	for (int i = 0; (character = name[i]) != '\0'; i++)
+	if (!((name[0] >= 'A' && name[0] <= 'Z') || (name[0] >= 'a' && name[0] <= 'z')))
+		return 0;
+	for (int i = 1; (character = name[i]) != '\0'; i++)
 	{
 		if (!((character >= 'A' && character <= 'Z') || (character >= 'a' && character <= 'z') || (character >= '0' && character <= '9') || character == '_'))
 			return 0;

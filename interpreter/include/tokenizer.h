@@ -12,9 +12,7 @@ typedef struct token_t
 } token_t;
 
 // Reads the file provided and splits the syntax into tokens
-int tokenize_file(FILE *fp);
-// Restructures tokens
-int token_optimisation(token_t *tokens);
+void tokenize_file(FILE *fp);
 // Destroy a token and free it's memory;
 void token_destroy(token_t *token);
 #endif

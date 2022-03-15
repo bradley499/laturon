@@ -163,6 +163,8 @@ token_t *token_generate()
 	return token;
 }
 
+token_t *tokens = NULL;
+
 int token_is_statement(char *identifier, unsigned long long identifier_current_length, int no_whitespace)
 {
 	if (identifier_current_length == (IDENTIFIER_RETURN_MAX_LENGTH - no_whitespace))
@@ -201,7 +203,6 @@ void tokenize_file(FILE *fp)
 	int current_numeric = 0;
 	int current_comment = 0;
 	int current_broken = -1;
-	token_t *tokens = NULL;
 	token_t *current_token = NULL;
 	enum token_types special_state = NOT_DEFINED;
 	char character = 0;
@@ -232,6 +233,7 @@ void tokenize_file(FILE *fp)
 			token_t *token = token_generate();
 			token->type = special_state;
 			token->position = position;
+			token->line = line;
 			special_state = NOT_DEFINED;
 			current_token->next = token;
 			current_token = token;
@@ -271,6 +273,7 @@ void tokenize_file(FILE *fp)
 								syntax_error(FUNCTION_DEFINITION_RECURSIVE, line);
 							token->type = FUNCTION_DECLARATION;
 							token->position = (position - identifier_current_length);
+							token->line = line;
 							position += identifier_current_length;
 							for (unsigned int i = 0; i < identifier_current_length; i++)
 								identifier[i] = 0;
@@ -288,6 +291,7 @@ void tokenize_file(FILE *fp)
 								syntax_error(SCOPE_OPEN_WITHIN_EXPRESSION, line);
 							token->type = token_type;
 							token->position = (position - identifier_current_length);
+							token->line = line;
 							position += identifier_current_length;
 							for (unsigned int i = 0; i < identifier_current_length; i++)
 								identifier[i] = 0;
@@ -400,6 +404,7 @@ void tokenize_file(FILE *fp)
 							new_token->type = VARIABLE;
 					}
 					new_token->position = (position - identifier_current_length + 1);
+					new_token->line = line;
 					if (tokens == NULL)
 						tokens = new_token;
 					else
@@ -417,6 +422,7 @@ void tokenize_file(FILE *fp)
 					{
 						token->type = LITERAL;
 						token->position = position;
+						token->line = line;
 						current_literal = literal;
 						continue;
 					}
@@ -529,6 +535,7 @@ void tokenize_file(FILE *fp)
 								token->contents = character;
 								token->type = OPERATOR;
 								token->position = position;
+								token->line = line;
 							}
 							else
 							{
@@ -541,6 +548,7 @@ void tokenize_file(FILE *fp)
 							token->type = OPERATOR;
 							token->contents = character;
 							token->position = (position + identifier_current_length);
+							token->line = line;
 						}
 					}
 					else if ((current_token->type == PARENTHESES_OPEN || current_token->type == BRACKETS_OPEN || current_token->type == SCOPE_OPEN) && !(character == '!' || character == '+' || character == '-'))
@@ -550,6 +558,7 @@ void tokenize_file(FILE *fp)
 						token->type = OPERATOR;
 						token->contents = character;
 						token->position = (position + identifier_current_length);
+						token->line = line;
 						if (current_token == NULL)
 							syntax_error(INVALID_OPERATION, line);
 					}
@@ -585,6 +594,7 @@ void tokenize_file(FILE *fp)
 						token->contents[identifier_current_length] = '\0';
 					}
 					token->position = position;
+					token->line = line;
 				}
 				else if (special_state == 0 && character != EOF && !is_scope(character) && current_comment == 0)
 					syntax_error(INVALID_SYNTAX, line);
@@ -606,6 +616,7 @@ void tokenize_file(FILE *fp)
 				else
 					token->contents = NULL;
 				token->position = position;
+				token->line = line;
 				token->type = LITERAL;
 			}
 			else if (token->type == RETURN)
@@ -625,6 +636,7 @@ void tokenize_file(FILE *fp)
 						strncpy(new_token->contents, identifier, identifier_current_length);
 						new_token->contents[identifier_current_length] = '\0';
 						new_token->type = VARIABLE;
+						new_token->line = line;
 						token = new_token;
 					}
 					else
@@ -672,8 +684,24 @@ void token_destroy(token_t *token)
 	free(token);
 }
 
+void token_cleanup()
+{
+	for (; tokens != NULL;)
+	{
+		token_t *next = tokens->next;
+		token_destroy(tokens);
+		tokens = next;
+	}
+}
+
+token_t *token_get_head()
+{
+	return tokens;
+}
+
 void syntax_error(enum syntax_errors error, unsigned int line)
 {
+	token_cleanup();
 	char buffer[100];
 	switch (error)
 	{

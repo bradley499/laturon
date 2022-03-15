@@ -5,6 +5,7 @@
 #include "interact.h"
 #include "tokenizer.h"
 #include "misc.h"
+#include "parse.h"
 
 #ifndef VERSION
 #error "No version was defined during compilation"
@@ -25,6 +26,8 @@ int run_file();
 FILE* fp = NULL;
 
 #ifdef EMSCRIPTEN
+char run_state = 0;
+
 int EMSCRIPTEN_KEEPALIVE main() {
 	ready();
 	output("Version: "NUM_WRAPPER(VERSION), OUTPUT_INFO);
@@ -42,6 +45,13 @@ int main(int argc, char **argv) {
 }
 
 int EMSCRIPTEN_KEEPALIVE run_file() {
+#ifdef EMSCRIPTEN
+	if (run_state == 1)
+	{
+		fclose(fp);
+		fp = NULL;
+	}
+#endif
 	if (fp == NULL) {
 #ifdef EMSCRIPTEN
 		fp = get_execution_source_file();
@@ -53,8 +63,15 @@ int EMSCRIPTEN_KEEPALIVE run_file() {
 		}
 #endif
 	}
+#ifdef EMSCRIPTEN
+	run_state = 1;
+#endif
 	tokenize_file(fp);
+#ifdef EMSCRIPTEN
+	run_state = 2;
+#endif
 	fclose(fp);
 	fp = NULL;
+	parse_tokens();
 	return 0;
 }

@@ -44,8 +44,8 @@ EM_JS(void, js_error, (unsigned int code), {
 	error(code);
 });
 
-EM_JS(void, js_started, (), {
-	initialLoadComplete();
+EM_JS(void, js_set_load_state, (unsigned int state), {
+	setLoadState(state);
 });
 
 char *input(char *message)
@@ -83,8 +83,14 @@ FILE* get_execution_source_file()
 
 void ready()
 {
-	js_started();
+	js_set_load_state(1);
 }
+
+void set_load_state(unsigned int state)
+{
+	js_set_load_state(state);
+}
+
 
 #else
 

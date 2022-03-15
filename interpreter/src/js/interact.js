@@ -74,6 +74,13 @@ function initialLoadComplete() {
     });
 }
 
+function setLoadState(state) {
+    self.postMessage({
+        "type": "loading",
+        "state": state
+    });
+}
+
 function error(code) {
     const errors = ["An unknown error occurred.", "Failed to allocate memory.", "Logical operation failed.", "Failed to convert to another type.", "Failed to cleanup variables outside of current scope.", "Failed to execute operation.", "An invalid reference to a call stack scope occurred.", "Failed to correctly read in user input string.", "A reference to a compound literal does not exist.", "An array routine was not given an array to operate on.", "A reference to an item within an array that is out of range.", "Failed to perform an operation on source file.", "The source provided has invalid syntax."];
     try {

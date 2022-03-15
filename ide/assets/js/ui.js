@@ -197,7 +197,6 @@
 			}
 			worker.postMessage({ "type": "sourceCode", "data": interacts[0].innerText });
 			loadingState("Tokenising source code", true);
-			loadingState("Parsing source code", true);
 			return;
 		}
 		buttons[2].classList.remove("executing");
@@ -446,7 +445,7 @@
 			e = e.data;
 			switch (e["type"]) {
 				case "loading":
-					loadingState(["Loading interpreter...", null][e["state"]], (e["state"] != 1));
+					loadingState(["Loading interpreter...", null, "Parsing source code", null][e["state"]], (e["state"] != 1 && e["state"] != 3));
 					if (e["state"] == 1 && !interpreterReady) {
 						interpreterReady = true;
 					}

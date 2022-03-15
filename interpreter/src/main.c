@@ -68,10 +68,14 @@ int EMSCRIPTEN_KEEPALIVE run_file() {
 #endif
 	tokenize_file(fp);
 #ifdef EMSCRIPTEN
+	set_load_state(TOKENIZING_DONE);
 	run_state = 2;
 #endif
 	fclose(fp);
 	fp = NULL;
 	parse_tokens();
+#ifdef EMSCRIPTEN
+	set_load_state(PARSING_DONE);
+#endif
 	return 0;
 }

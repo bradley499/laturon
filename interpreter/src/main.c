@@ -66,6 +66,8 @@ int EMSCRIPTEN_KEEPALIVE run_file() {
 #ifdef EMSCRIPTEN
 	run_state = 1;
 #endif
+	parse_cleanup();
+	parse_init();
 	tokenize_file(fp);
 #ifdef EMSCRIPTEN
 	set_load_state(TOKENIZING_DONE);

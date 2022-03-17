@@ -19,6 +19,8 @@
 #define IDENTIFIER_WHILE_MAX_LENGTH (sizeof(IDENTIFIER_TYPE_WHILE) - 2)
 #define IDENTIFIER_TYPE_RETURN "return "
 #define IDENTIFIER_RETURN_MAX_LENGTH (sizeof(IDENTIFIER_TYPE_RETURN) - 2)
+#define IDENTIFIER_TYPE_REMOVE "remove "
+#define IDENTIFIER_REMOVE_MAX_LENGTH (sizeof(IDENTIFIER_TYPE_REMOVE) - 2)
 #define IDENTIFIER_TYPE_BREAK "break "
 #define IDENTIFIER_BREAK_MAX_LENGTH (sizeof(IDENTIFIER_TYPE_BREAK) - 2)
 #define IDENTIFIER_MAX_LENGTH 1024
@@ -44,6 +46,7 @@ enum syntax_errors
 	INVALID_OPERATION,			   // An invalid operation was defined within the syntax
 	INVALID_NUMERIC,			   // An invalid numerical value was given
 	EMPTY_RETURN,				   // Attempting to return where there is nothing given
+	INVALID_REMOVE,				   // Attempting to remove list element where list is not present
 	INVALID_BREAK,				   // A break statement has been invalidly given additional parameters
 };
 
@@ -67,6 +70,7 @@ enum token_types
 	LESS_OR_EQUALITY,
 	MORE_OR_EQUALITY,
 	INSERT,
+	REMOVE,
 	IF,
 	ELSE,
 	WHILE,
@@ -168,10 +172,12 @@ token_t *tokens = NULL;
 
 int token_is_statement(char *identifier, unsigned long long identifier_current_length, int no_whitespace)
 {
-	if (identifier_current_length == (IDENTIFIER_RETURN_MAX_LENGTH - no_whitespace))
+	if (identifier_current_length == (IDENTIFIER_RETURN_MAX_LENGTH - no_whitespace)) // Same length as IDENTIFIER_TYPE_RETURN_MAX_LENGTH
 	{
 		if (strncmp(identifier, IDENTIFIER_TYPE_RETURN, (IDENTIFIER_RETURN_MAX_LENGTH - no_whitespace)) == 0)
 			return RETURN;
+		else if (strncmp(identifier, IDENTIFIER_TYPE_REMOVE, (IDENTIFIER_REMOVE_MAX_LENGTH - no_whitespace)) == 0)
+			return REMOVE;
 	}
 	else if (identifier_current_length == (IDENTIFIER_WHILE_MAX_LENGTH - no_whitespace)) // Same length as IDENTIFIER_BREAK_MAX_LENGTH
 	{
@@ -629,7 +635,7 @@ void tokenize_file(FILE *fp)
 				token->line = line;
 				token->type = LITERAL;
 			}
-			else if (token->type == RETURN)
+			else if (token->type == RETURN || token->type == REMOVE)
 			{
 				if (identifier_current_length > 0)
 				{
@@ -652,8 +658,10 @@ void tokenize_file(FILE *fp)
 					else
 						syntax_error(INVALID_SYNTAX, line);
 				}
-				else
+				else if (token->type == RETURN)
 					syntax_error(EMPTY_RETURN, line);
+				else
+					syntax_error(INVALID_REMOVE, line);
 			}
 			else if (token->type != IF && token->type != ELSE && token->type != WHILE && token->type != BREAK)
 				syntax_error(INVALID_SYNTAX, line);
@@ -765,6 +773,9 @@ void syntax_error(enum syntax_errors error, unsigned int line)
 		break;
 	case EMPTY_RETURN:
 		snprintf(buffer, 100, "Attempting to return where there is nothing given. On line: %d", line);
+		break;
+	case INVALID_REMOVE:
+		snprintf(buffer, 100, "Attempting to remove list element where list is not present. On line: %d", line);
 		break;
 	case INVALID_BREAK:
 		snprintf(buffer, 100, "A break statement has been invalidly given additional parameters. On line: %d", line);

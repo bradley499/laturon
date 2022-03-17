@@ -66,6 +66,7 @@ enum token_types
 	NOT_EQUALITY,
 	LESS_OR_EQUALITY,
 	MORE_OR_EQUALITY,
+	INSERT,
 	IF,
 	ELSE,
 	WHILE,
@@ -511,7 +512,7 @@ void tokenize_file(FILE *fp)
 #pragma GCC diagnostic ignored "-Wint-conversion"
 					if (token->type != VARIABLE && current_token->type == OPERATOR)
 					{
-						if (character != '=' && character != '!' && character != '-' && character != '+')
+						if (character != '=' && character != '!' && character != '-' && character != '+' && character != '<')
 							syntax_error(INVALID_OPERATION, line);
 						else if (!(character == '!' && (current_token->contents == (char *)',' || current_token->contents == (char *)'!') && (current_parentheses > 0 || current_brackets > 0)))
 						{
@@ -525,8 +526,15 @@ void tokenize_file(FILE *fp)
 							else if (current_token->contents == (char *)'>')
 								current_token->type = MORE_OR_EQUALITY;
 							else if (current_token->contents == (char *)'<')
-								current_token->type = LESS_OR_EQUALITY;
-							else if (current_token->contents == (char *)'-' || current_token->contents == (char *)'+')
+							{
+								if (character == '<')
+									current_token->type = INSERT;
+								else if (character == '=')
+									current_token->type = LESS_OR_EQUALITY;
+								else
+									syntax_error(INVALID_OPERATION, line);
+							}
+							else if ((current_token->contents == (char *)'-' || current_token->contents == (char *)'+') && !(character == '=' || character == '!' || character == ',' || character == '<'))
 								is_signed = 1;
 							else
 								syntax_error(INVALID_OPERATION, line);
@@ -552,6 +560,8 @@ void tokenize_file(FILE *fp)
 						}
 					}
 					else if ((current_token->type == PARENTHESES_OPEN || current_token->type == BRACKETS_OPEN || current_token->type == SCOPE_OPEN) && !(character == '!' || character == '+' || character == '-'))
+						syntax_error(INVALID_OPERATION, line);
+					else if (current_token->type == EQUALITY || current_token->type == NOT_EQUALITY || current_token->type == LESS_OR_EQUALITY || current_token->type == MORE_OR_EQUALITY || current_token->type == INSERT)
 						syntax_error(INVALID_OPERATION, line);
 					else
 					{

@@ -2,7 +2,6 @@
 #define parse_c
 
 #include <stdlib.h>
-#include <stdbool.h>
 #include <string.h>
 #include "tokenizer.h"
 #include "scope.h"
@@ -11,7 +10,7 @@
 typedef struct parsed_object_type_t
 {
 	char *name;
-	bool is_function;
+	int is_function;
 	unsigned long long int numeric_reference;
 	struct parsed_object_type_t *next;
 } parsed_object_type_t;
@@ -20,12 +19,12 @@ parsed_object_type_t *objects_root = NULL;
 parsed_object_type_t *objects_current = NULL;
 scope_t *scope_tree = NULL;
 
-scope_t *parse_create_scope(char *name, bool is_function, int scope_type);
+scope_t *parse_create_scope(char *name, int is_function, int scope_type);
 
 int parse_init()
 {
-	scope_tree = parse_create_scope("print", true, SCOPE_TYPE_FUNCTION);
-	scope_tree->left = parse_create_scope("input", true, SCOPE_TYPE_FUNCTION);
+	scope_tree = parse_create_scope("print", BOOLEAN_TRUE, SCOPE_TYPE_FUNCTION);
+	scope_tree->left = parse_create_scope("input", BOOLEAN_TRUE, SCOPE_TYPE_FUNCTION);
 	objects_root->numeric_reference = 1;
 	objects_root->next->numeric_reference = 2;
 	return 1;
@@ -39,7 +38,7 @@ parsed_object_type_t *parse_object_type_new()
 	return object;
 }
 
-scope_t *parse_create_scope(char *name, bool is_function, int scope_type)
+scope_t *parse_create_scope(char *name, int is_function, int scope_type)
 {
 	scope_t *scope = scope_new();
 	scope->type = scope_type;
@@ -65,7 +64,7 @@ int parse_tokens()
 	return 1;
 }
 
-void parse_cleanup()
+void parse_cleanup(int destroy_scopes)
 {
 	parsed_object_type_t *object = objects_root;
 	for (;object != NULL;)
@@ -77,7 +76,8 @@ void parse_cleanup()
 		free(object_current);
 		object = object_next;
 	}
-	scope_destroy(scope_tree);
+	if (destroy_scopes)
+		scope_destroy(scope_tree);
 }
 
 #endif

@@ -2,6 +2,7 @@
 #define scope_h
 
 #include "stack.h"
+#include "misc.h"
 
 #define SCOPE_SUCCESS 0				// Successful operation
 #define SCOPE_FAILURE 1				// Failed operation
@@ -59,8 +60,8 @@ typedef enum scope_math
 	SCOPE_MATH_DIVIDE,						// Scope math: divide
 	SCOPE_MATH_MODULO,						// Scope math: divide
 } scope_math;
-#define SCOPE_BOOLEAN_TRUE 1.0	// Scope boolean true
-#define SCOPE_BOOLEAN_FALSE 0.0 // Scope boolean false
+#define SCOPE_BOOLEAN_TRUE BOOLEAN_TRUE	  // Scope boolean true
+#define SCOPE_BOOLEAN_FALSE BOOLEAN_FALSE // Scope boolean false
 #define SCOPE_DEFAULT_VALUE SCOPE_BOOLEAN_FALSE
 
 // Scope structure

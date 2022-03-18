@@ -2,7 +2,6 @@
 #define scope_c
 
 #include <stdlib.h>
-#include <stdbool.h>
 
 #include "scope.h"
 #include "misc.h"
@@ -16,7 +15,7 @@ scope_t *scope_new()
 	scope->right = NULL;								  // Set scope right branch as undefined
 	scope->type = SCOPE_UNDEFINED;						  // Set scope type as undefined
 	scope->result = NULL;								  // Set scope result as undefined
-	scope->await = SCOPE_BOOLEAN_FALSE;					  // Set scope await to false
+	scope->await = BOOLEAN_FALSE;						  // Set scope await to false
 	return scope;
 }
 
@@ -35,12 +34,12 @@ int scope_get_type(scope_t *scope)
 
 void scope_set_result(scope_t *scope, double set_result)
 {
-	stack_result_push(scope, set_result, scope_current_result_type, (int)SCOPE_BOOLEAN_FALSE); // Set scope result
+	stack_result_push(scope, set_result, scope_current_result_type, (int)BOOLEAN_FALSE); // Set scope result
 }
 
 void scope_set_result_constant(scope_t *scope, double set_result)
 {
-	stack_result_push(scope, set_result, scope_current_result_type, (int)SCOPE_BOOLEAN_TRUE); // Set scope result
+	stack_result_push(scope, set_result, scope_current_result_type, (int)BOOLEAN_TRUE); // Set scope result
 }
 
 void scope_set_result_type(unsigned char set_result_type)
@@ -110,10 +109,10 @@ int scope_array_append(scope_t *scope_destination, scope_t *scope_source)
 {
 	scope_t *current_scope = scope_destination;
 	scope_t *current_source_scope = scope_source;
-	unsigned char appending_array = SCOPE_BOOLEAN_FALSE;
+	unsigned char appending_array = BOOLEAN_FALSE;
 	if (scope_get_result_type(current_source_scope) == SCOPE_TYPE_ARRAY) // If appending an array
 	{
-		appending_array = SCOPE_BOOLEAN_TRUE;
+		appending_array = BOOLEAN_TRUE;
 		current_source_scope = current_source_scope->left; // Get first element within array
 	}
 	while (current_scope->left != NULL) // Repeat until the end of the array has been reached
@@ -127,7 +126,7 @@ int scope_array_append(scope_t *scope_destination, scope_t *scope_source)
 		double value = stack_result_value(current_source_scope);
 		scope_set_result(new_scope, value);
 		scope_set_left(current_scope, new_scope);
-		if (appending_array == SCOPE_BOOLEAN_FALSE)
+		if (appending_array == BOOLEAN_FALSE)
 			break;
 		current_source_scope = current_source_scope->left;
 		current_scope = new_scope;

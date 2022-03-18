@@ -120,12 +120,12 @@ int array_update(array_value_t *array, int at, unsigned char value_type, double 
 				current->result.result_double = value_double;
 			else
 				current->result.result_int = value_int;
-			return SCOPE_BOOLEAN_TRUE;
+			return BOOLEAN_TRUE;
 		}
 		size++;
 		current = current->next;
 	} while (size <= at && current != NULL);
-	return SCOPE_BOOLEAN_FALSE;
+	return BOOLEAN_FALSE;
 }
 
 int array_insert(array_value_t *array, int at, unsigned char value_type, double value_double, signed long long int value_int)
@@ -163,7 +163,7 @@ int array_insert(array_value_t *array, int at, unsigned char value_type, double 
 				array_insert->next = current;
 				previous->next = array_insert;
 			}
-			return SCOPE_BOOLEAN_TRUE;
+			return BOOLEAN_TRUE;
 		}
 		size++;
 		if (current->next == NULL && size == at)
@@ -176,12 +176,12 @@ int array_insert(array_value_t *array, int at, unsigned char value_type, double 
 				array_insert->result.result_int = value_int;
 			array_insert->next = current->next;
 			current->next = array_insert;
-			return SCOPE_BOOLEAN_TRUE;
+			return BOOLEAN_TRUE;
 		}
 		previous = current;
 		current = current->next;
 	} while (size <= at && current != NULL);
-	return SCOPE_BOOLEAN_FALSE;
+	return BOOLEAN_FALSE;
 }
 
 array_value_t *array_get(array_value_t *array, int at)
@@ -232,7 +232,7 @@ array_value_t *array_duplicate(array_value_t *array)
 	for (; arrays != NULL;)
 	{
 		array_references *current = arrays;
-		int is_nested = SCOPE_BOOLEAN_FALSE;
+		int is_nested = BOOLEAN_FALSE;
 		for (;;)
 		{
 			struct array_value_t *new_value = xmalloc(sizeof(struct array_value_t));
@@ -264,7 +264,7 @@ array_value_t *array_duplicate(array_value_t *array)
 				else
 				{
 					array_current->result.result_int = (long long int)&new_value;
-					is_nested = SCOPE_BOOLEAN_TRUE;
+					is_nested = BOOLEAN_TRUE;
 				}
 			}
 			if (new_value->result_type == SCOPE_TYPE_ARRAY)

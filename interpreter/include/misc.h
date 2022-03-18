@@ -7,6 +7,9 @@
 #define FLOAT_PRECISION_COMPENSATE_EXPONENT 1e-7 // Used to offset precision in floating point values to a more precise readable format
 #define STRING_MEMORY_MAX_LENGTH 4096			 // Maximum length of a string
 
+#define BOOLEAN_TRUE 1.0
+#define BOOLEAN_FALSE 0.0
+
 typedef enum error_codes
 {
 	UNKNOWN_ERROR,			   // An unknown error

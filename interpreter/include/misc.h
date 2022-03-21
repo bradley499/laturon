@@ -38,6 +38,6 @@ void bool_to_string(double n, char *res);
 // Exit program with error code
 void fatal_error(error_codes code);
 // Allocate a new string
-array_value_t *string_new(char *str);
+struct array_value_t *string_new(char *str);
 
 #endif

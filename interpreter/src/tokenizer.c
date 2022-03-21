@@ -468,6 +468,8 @@ void tokenize_file(FILE *fp)
 							syntax_error(INVALID_NUMERIC, line);
 						current_numeric++;
 					}
+					else if (!is_whitespace(character))
+						syntax_error(INVALID_VARIABLE_NAME, line);
 					else if (identifier_current_length > 0 || current_literal != 0)
 					{
 						current_numeric = -1;

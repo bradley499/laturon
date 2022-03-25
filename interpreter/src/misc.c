@@ -103,4 +103,84 @@ void fatal_error(error_codes code)
 	error_code((int)code);
 }
 
+void syntax_error(enum syntax_errors error, unsigned int line)
+{
+	char buffer[100];
+	switch (error)
+	{
+	case NO_FUNCTION_DEFINITION:
+		snprintf(buffer, 100, "No function definition or reference was given. On line: %d", line);
+		break;
+	case NO_FUNCTION_REFERENCE:
+		snprintf(buffer, 100, "Unable to call a function that has no reference. On line: %d", line);
+		break;
+	case NO_VARIABLE_DEFINITION:
+		snprintf(buffer, 100, "No variable definition or reference was given. On line: %d", line);
+		break;
+	case SCOPE_OPEN_WITHIN_EXPRESSION:
+		snprintf(buffer, 100, "Attempting to open a scope within an expression. On line: %d", line);
+		break;
+	case SCOPE_CLOSE_UNABLE:
+		snprintf(buffer, 100, "Closing a scope that has not been opened. On line: %d", line);
+		break;
+	case PARENTHESES_CLOSE_UNABLE:
+		snprintf(buffer, 100, "Closing a parentheses that has not been opened. On line: %d", line);
+		break;
+	case BRACKET_CLOSE_UNABLE:
+		snprintf(buffer, 100, "Closing a bracket that has not been opened. On line: %d", line);
+		break;
+	case INVALID_FUNCTION_DEFINITION:
+		snprintf(buffer, 100, "Invalid function definition. On line: %d", line);
+		break;
+	case INVALID_VARIABLE_DEFINITION:
+		snprintf(buffer, 100, "Invalid variable definition. On line: %d", line);
+		break;
+	case FUNCTION_DEFINITION_RECURSIVE:
+		snprintf(buffer, 100, "Unable to define a function with a recursive function definition. On line: %d", line);
+		break;
+	case VARIABLE_DEFINITION_RECURSIVE:
+		snprintf(buffer, 100, "Unable to define a variable with a recursive variable definition. On line: %d", line);
+		break;
+	case INVALID_OPERATION:
+		snprintf(buffer, 100, "An invalid operation was defined within the syntax. On line: %d", line);
+		break;
+	case UNUSED_VARIABLE:
+		snprintf(buffer, 100, "A variable is referenced but not utilised. On line: %d", line);
+		break;
+	case INVALID_VARIABLE_NAME:
+		snprintf(buffer, 100, "A variable has a name that is not supported. On line: %d", line);
+		break;
+	case INVALID_FUNCTION_NAME:
+		snprintf(buffer, 100, "A function has a name that is not supported. On line: %d", line);
+		break;
+	case INVALID_NUMERIC:
+		snprintf(buffer, 100, "An invalid numerical value was given. On line: %d", line);
+		break;
+	case EMPTY_RETURN:
+		snprintf(buffer, 100, "Attempting to return where there is nothing given. On line: %d", line);
+		break;
+	case INVALID_REMOVE:
+		snprintf(buffer, 100, "Attempting to remove list element where list is not present. On line: %d", line);
+		break;
+	case INVALID_BREAK:
+		snprintf(buffer, 100, "A break statement has been invalidly given additional parameters. On line: %d", line);
+		break;
+	case LINE_ENDED_INCORRECTLY:
+		snprintf(buffer, 100, "The line ended abruptly. On line: %d", line);
+		break;
+	case DUPLICATE_FUNCTION_DEFINITION:
+		snprintf(buffer, 100, "A function was defined that already exists. On line: %d", line);
+		break;
+	case INVALID_VARIABLE_REFERENCE:
+		snprintf(buffer, 100, "A reference to a variable could not be established due to an invalid format. On line: %d", line);
+		break;
+	case INVALID_SYNTAX:
+	default:
+		snprintf(buffer, 100, "Invalid syntax. On line: %d", line);
+		break;
+	}
+	output(buffer, OUTPUT_ERROR);
+	exit(EXIT_FAILURE);
+}
+
 #endif

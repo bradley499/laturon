@@ -101,7 +101,7 @@ int scope_await(scope_t *scope)
 	}
 	}
 	if (scope->await == SCOPE_AWAITING_CONCLUSION && (scope->type == SCOPE_TYPE_FUNCTION_CALL || scope->type == SCOPE_TYPE_CONTAINER || scope->type == SCOPE_VARIABLE_UPDATE)) // Is a function call or a new container or variable update
-		scope->await = SCOPE_AWAIT_FINISHED;																																   // Cancel scope value retension and call function instead
+		scope->await = SCOPE_AWAIT_FINISHED;																																   // Cancel scope value retention and call function instead
 	return scope->await;
 }
 

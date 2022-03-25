@@ -25,64 +25,11 @@
 #define IDENTIFIER_BREAK_MAX_LENGTH (sizeof(IDENTIFIER_TYPE_BREAK) - 2)
 #define IDENTIFIER_MAX_LENGTH 1024
 
-enum syntax_errors
-{
-	INVALID_SYNTAX,				   // Invalid syntax
-	NO_FUNCTION_DEFINITION,		   // No function definition or reference was given
-	NO_FUNCTION_REFERENCE,		   // Unable to call a function that has no reference
-	NO_VARIABLE_DEFINITION,		   // No variable definition or reference was given
-	SCOPE_OPEN_WITHIN_EXPRESSION,  // Attempting to open a scope within an expression
-	SCOPE_CLOSE_UNABLE,			   // Closing a scope that has not been opened
-	PARENTHESES_CLOSE_UNABLE,	   // Closing a parentheses that has not been opened
-	BRACKET_CLOSE_UNABLE,		   // Closing a bracket that has not been opened
-	INVALID_FUNCTION_DEFINITION,   // Invalid function definition
-	INVALID_VARIABLE_DEFINITION,   // Invalid variable definition
-	FUNCTION_DEFINITION_RECURSIVE, // Unable to define a function with a recursive function definition
-	VARIABLE_DEFINITION_RECURSIVE, // Unable to define a variable with a recursive variable definition
-	LINE_ENDED_INCORRECTLY,		   // The line ended abruptly
-	UNUSED_VARIABLE,			   // A variable is referenced but not utilised
-	INVALID_VARIABLE_NAME,		   // A variable has a name that is not supported
-	INVALID_FUNCTION_NAME,		   // A function has a name that is not supported
-	INVALID_OPERATION,			   // An invalid operation was defined within the syntax
-	INVALID_NUMERIC,			   // An invalid numerical value was given
-	EMPTY_RETURN,				   // Attempting to return where there is nothing given
-	INVALID_REMOVE,				   // Attempting to remove list element where list is not present
-	INVALID_BREAK,				   // A break statement has been invalidly given additional parameters
-};
-
-enum token_types
-{
-	NOT_DEFINED,
-	FUNCTION_DECLARATION,
-	FUNCTION_CALL,
-	VARIABLE,
-	PARENTHESES_OPEN,
-	PARENTHESES_CLOSE,
-	BRACKETS_OPEN,
-	BRACKETS_CLOSE,
-	SCOPE_OPEN,
-	SCOPE_CLOSE,
-	OPERATOR,
-	LITERAL,
-	NUMERIC,
-	EQUALITY,
-	NOT_EQUALITY,
-	LESS_OR_EQUALITY,
-	MORE_OR_EQUALITY,
-	INSERT,
-	REMOVE,
-	IF,
-	ELSE,
-	WHILE,
-	RETURN,
-	BREAK,
-};
-
 void syntax_error(enum syntax_errors error, unsigned int line);
 
 int is_operator(char c)
 {
-	return (c == '+' || c == '-' || c == '*' || c == '/' || c == '=' || c == '<' || c == '>' || c == '%' || c == '!' || c == ',');
+	return (c == '+' || c == '-' || c == '*' || c == '/' || c == '=' || c == '<' || c == '>' || c == '%' || c == '!' || c == ',' || c == '&' || c == '|');
 }
 
 int is_scope_open(char c)
@@ -520,20 +467,18 @@ void tokenize_file(FILE *fp)
 #pragma GCC diagnostic ignored "-Wint-conversion"
 					if (token->type != VARIABLE && current_token->type == OPERATOR)
 					{
-						if (character != '=' && character != '!' && character != '-' && character != '+' && character != '<')
+						if (character != '=' && character != '!' && character != '-' && character != '+' && character != '<' && character != '&' && character != '|')
 							syntax_error(INVALID_OPERATION, line);
 						else if (!(character == '!' && (current_token->contents == (char *)',' || current_token->contents == (char *)'!') && (current_parentheses > 0 || current_brackets > 0)))
 						{
 							int is_signed = 0;
-							if (current_token->position != position)
-								syntax_error(INVALID_OPERATION, line);
-							if (current_token->contents == (char *)'=')
+							if (current_token->position == position && character == '=' && current_token->contents == (char *)'=')
 								current_token->type = EQUALITY;
-							else if (current_token->contents == (char *)'!')
+							else if (current_token->position == position && character == '=' && current_token->contents == (char *)'!')
 								current_token->type = NOT_EQUALITY;
-							else if (current_token->contents == (char *)'>')
+							else if (current_token->position == position && character == '=' && current_token->contents == (char *)'>')
 								current_token->type = MORE_OR_EQUALITY;
-							else if (current_token->contents == (char *)'<')
+							else if (current_token->position == position && (character == '=' || character == '<') && current_token->contents == (char *)'<')
 							{
 								if (character == '<')
 									current_token->type = INSERT;
@@ -542,7 +487,11 @@ void tokenize_file(FILE *fp)
 								else
 									syntax_error(INVALID_OPERATION, line);
 							}
-							else if ((current_token->contents == (char *)'-' || current_token->contents == (char *)'+') && !(character == '=' || character == '!' || character == ',' || character == '<'))
+							else if (current_token->position == position && character == '&' && current_token->contents == (char *)'&')
+								current_token->type = AND;
+							else if (current_token->position == position && character == '|' && current_token->contents == (char *)'|')
+								current_token->type = OR;
+							else if ((current_token->contents == (char *)'-' || current_token->contents == (char *)'+' || current_token->contents == (char *)'*' || current_token->contents == (char *)'/' || current_token->contents == (char *)'%' || current_token->contents == (char *)'=') && !(character == '=' || character == '!' || character == ',' || character == '<'))
 								is_signed = 1;
 							else
 								syntax_error(INVALID_OPERATION, line);
@@ -717,81 +666,6 @@ void token_cleanup()
 token_t *token_get_head()
 {
 	return tokens;
-}
-
-void syntax_error(enum syntax_errors error, unsigned int line)
-{
-	token_cleanup();
-	char buffer[100];
-	switch (error)
-	{
-	case NO_FUNCTION_DEFINITION:
-		snprintf(buffer, 100, "No function definition or reference was given. On line: %d", line);
-		break;
-	case NO_FUNCTION_REFERENCE:
-		snprintf(buffer, 100, "Unable to call a function that has no reference. On line: %d", line);
-		break;
-	case NO_VARIABLE_DEFINITION:
-		snprintf(buffer, 100, "No variable definition or reference was given. On line: %d", line);
-		break;
-	case SCOPE_OPEN_WITHIN_EXPRESSION:
-		snprintf(buffer, 100, "Attempting to open a scope within an expression. On line: %d", line);
-		break;
-	case SCOPE_CLOSE_UNABLE:
-		snprintf(buffer, 100, "Closing a scope that has not been opened. On line: %d", line);
-		break;
-	case PARENTHESES_CLOSE_UNABLE:
-		snprintf(buffer, 100, "Closing a parentheses that has not been opened. On line: %d", line);
-		break;
-	case BRACKET_CLOSE_UNABLE:
-		snprintf(buffer, 100, "Closing a bracket that has not been opened. On line: %d", line);
-		break;
-	case INVALID_FUNCTION_DEFINITION:
-		snprintf(buffer, 100, "Invalid function definition. On line: %d", line);
-		break;
-	case INVALID_VARIABLE_DEFINITION:
-		snprintf(buffer, 100, "Invalid variable definition. On line: %d", line);
-		break;
-	case FUNCTION_DEFINITION_RECURSIVE:
-		snprintf(buffer, 100, "Unable to define a function with a recursive function definition. On line: %d", line);
-		break;
-	case VARIABLE_DEFINITION_RECURSIVE:
-		snprintf(buffer, 100, "Unable to define a variable with a recursive variable definition. On line: %d", line);
-		break;
-	case INVALID_OPERATION:
-		snprintf(buffer, 100, "An invalid operation was defined within the syntax. On line: %d", line);
-		break;
-	case UNUSED_VARIABLE:
-		snprintf(buffer, 100, "A variable is referenced but not utilised. On line: %d", line);
-		break;
-	case INVALID_VARIABLE_NAME:
-		snprintf(buffer, 100, "A variable has a name that is not supported. On line: %d", line);
-		break;
-	case INVALID_FUNCTION_NAME:
-		snprintf(buffer, 100, "A function has a name that is not supported. On line: %d", line);
-		break;
-	case INVALID_NUMERIC:
-		snprintf(buffer, 100, "An invalid numerical value was given. On line: %d", line);
-		break;
-	case EMPTY_RETURN:
-		snprintf(buffer, 100, "Attempting to return where there is nothing given. On line: %d", line);
-		break;
-	case INVALID_REMOVE:
-		snprintf(buffer, 100, "Attempting to remove list element where list is not present. On line: %d", line);
-		break;
-	case INVALID_BREAK:
-		snprintf(buffer, 100, "A break statement has been invalidly given additional parameters. On line: %d", line);
-		break;
-	case LINE_ENDED_INCORRECTLY:
-		snprintf(buffer, 100, "The line ended abruptly. On line: %d", line);
-		break;
-	case INVALID_SYNTAX:
-	default:
-		snprintf(buffer, 100, "Invalid syntax. On line: %d", line);
-		break;
-	}
-	output(buffer, OUTPUT_ERROR);
-	exit(EXIT_FAILURE);
 }
 
 #endif

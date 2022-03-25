@@ -27,6 +27,33 @@ typedef enum error_codes
 	INVALID_SYNTAX_GENERIC,	   // The source provided has invalid syntax
 } error_codes;
 
+typedef enum syntax_errors
+{
+	INVALID_SYNTAX,				   // Invalid syntax
+	NO_FUNCTION_DEFINITION,		   // No function definition or reference was given
+	NO_FUNCTION_REFERENCE,		   // Unable to call a function that has no reference
+	NO_VARIABLE_DEFINITION,		   // No variable definition or reference was given
+	SCOPE_OPEN_WITHIN_EXPRESSION,  // Attempting to open a scope within an expression
+	SCOPE_CLOSE_UNABLE,			   // Closing a scope that has not been opened
+	PARENTHESES_CLOSE_UNABLE,	   // Closing a parentheses that has not been opened
+	BRACKET_CLOSE_UNABLE,		   // Closing a bracket that has not been opened
+	INVALID_FUNCTION_DEFINITION,   // Invalid function definition
+	INVALID_VARIABLE_DEFINITION,   // Invalid variable definition
+	FUNCTION_DEFINITION_RECURSIVE, // Unable to define a function with a recursive function definition
+	VARIABLE_DEFINITION_RECURSIVE, // Unable to define a variable with a recursive variable definition
+	LINE_ENDED_INCORRECTLY,		   // The line ended abruptly
+	UNUSED_VARIABLE,			   // A variable is referenced but not utilised
+	INVALID_VARIABLE_NAME,		   // A variable has a name that is not supported
+	INVALID_FUNCTION_NAME,		   // A function has a name that is not supported
+	INVALID_OPERATION,			   // An invalid operation was defined within the syntax
+	INVALID_NUMERIC,			   // An invalid numerical value was given
+	EMPTY_RETURN,				   // Attempting to return where there is nothing given
+	INVALID_REMOVE,				   // Attempting to remove list element where list is not present
+	INVALID_BREAK,				   // A break statement has been invalidly given additional parameters
+	DUPLICATE_FUNCTION_DEFINITION, // A function was defined that already exists
+	INVALID_VARIABLE_REFERENCE,	   // A reference to a variable could not be established due to an invalid format
+} syntax_errors;
+
 // Blocking malloc which will exit program execution on failure
 void *xmalloc(unsigned int size);
 // Convert integer to string
@@ -37,6 +64,8 @@ void float_to_string(double n, char *res);
 void bool_to_string(double n, char *res);
 // Exit program with error code
 void fatal_error(error_codes code);
+// Output a syntax error with its associative line number then exits the program
+void syntax_error(enum syntax_errors error, unsigned int line);
 // Allocate a new string
 struct array_value_t *string_new(char *str);
 

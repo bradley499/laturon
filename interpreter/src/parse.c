@@ -90,11 +90,8 @@ int parse_tokens(parsed_function_scope_t **functions)
 	parsed_function_scope_t *function_scopes = NULL;
 	for (; current_token != NULL;)
 	{
-		if (function_scope_unable != 0)
-		{
-			if (current_token->type != VARIABLE && !(current_token->type == OPERATOR && current_token->contents.string == (char *)',') && current_token->type != PARENTHESES_CLOSE && !(current_token->type == PARENTHESES_OPEN && previous_token[0]->type == FUNCTION_DECLARATION))
-				syntax_error(INVALID_PARAMETERS, current_token->line);
-		}
+		if (function_scope_unable == 1 && !((current_token->type == SCOPE_OPEN && previous_token[0]->type == PARENTHESES_CLOSE) || current_token->type == SCOPE_CLOSE) && current_token->type != VARIABLE && !(current_token->type == OPERATOR && current_token->contents.string == (char *)',') && current_token->type != PARENTHESES_CLOSE && !(current_token->type == PARENTHESES_OPEN && previous_token[0]->type == FUNCTION_DECLARATION))
+			syntax_error(INVALID_PARAMETERS, current_token->line);
 		switch (current_token->type)
 		{
 		case NOT_DEFINED:
@@ -128,10 +125,12 @@ int parse_tokens(parsed_function_scope_t **functions)
 		}
 		case SCOPE_CLOSE:
 		{
-			if (function_scope_unable > 1)
+			if (function_scope_unable > 2)
 				function_scope_unable--;
 			else if (function_scope_unable == 0)
 				previous_token[1] = current_token;
+			else if (function_scope_unable <= 2)
+				function_scope_unable = 0;
 			else
 			{
 				token_t *terminating_token = current_token;

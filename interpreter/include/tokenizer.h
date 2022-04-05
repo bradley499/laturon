@@ -8,6 +8,7 @@ typedef enum token_types
 	NOT_DEFINED,
 	FUNCTION_DECLARATION,
 	FUNCTION_CALL,
+	FUNCTION_CALL_PARAMETERS,
 	VARIABLE,
 	PARENTHESES_OPEN,
 	PARENTHESES_CLOSE,
@@ -18,6 +19,8 @@ typedef enum token_types
 	OPERATOR,
 	LITERAL,
 	NUMERIC,
+	DOUBLE,
+	ASSIGN,
 	EQUALITY,
 	NOT_EQUALITY,
 	LESS_OR_EQUALITY,
@@ -31,15 +34,22 @@ typedef enum token_types
 	WHILE,
 	RETURN,
 	BREAK,
+	ARRAY_LOCATION,
 } token_types;
 
 typedef struct token_t
 {
 	token_types type;
-	char *contents;
+	union
+	{
+		char *string;
+		signed long long int numeric;
+		long double floating;
+	} contents;
 	unsigned long long int position;
 	unsigned long long int line;
 	struct token_t *next;
+	struct token_t *supporting_reference;
 } token_t;
 
 // Reads the file provided and splits the syntax into tokens

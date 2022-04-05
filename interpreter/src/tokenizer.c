@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <errno.h>
 #include "misc.h"
 #include "variable.h"
 #include "interact.h"
@@ -110,8 +111,10 @@ int is_comment(char c)
 token_t *token_generate()
 {
 	token_t *token = xmalloc(sizeof(token_t));
-	token->contents = NULL;
+	token->contents.string = NULL;
 	token->type = NOT_DEFINED;
+	token->next = NULL;
+	token->supporting_reference = NULL;
 	return token;
 }
 
@@ -170,14 +173,12 @@ void tokenize_file(FILE *fp)
 					syntax_error(NO_FUNCTION_DEFINITION, line);
 				else if (current_token->type == VARIABLE)
 					current_token->type = FUNCTION_CALL;
-				else if (!(current_token->type == FUNCTION_DECLARATION || current_token->type == FUNCTION_CALL || current_token->type == IF || current_token->type == WHILE))
-					syntax_error(NO_FUNCTION_REFERENCE, line);
 			}
 			else if (special_state == BRACKETS_OPEN)
 			{
 				if (current_token == NULL)
 					syntax_error(NO_VARIABLE_DEFINITION, line);
-				else if (current_token->type != BRACKETS_OPEN && current_token->type != BRACKETS_CLOSE && current_token->type != PARENTHESES_CLOSE & current_token->type != VARIABLE && current_token->type != RETURN && !(current_token->type == OPERATOR && (current_token->contents == (char *)'=' || current_token->contents == (char *)',')))
+				else if (current_token->type != BRACKETS_OPEN && current_token->type != BRACKETS_CLOSE && current_token->type != PARENTHESES_CLOSE & current_token->type != VARIABLE && current_token->type != RETURN && !(current_token->type == OPERATOR && (current_token->contents.string == (char *)'=' || current_token->contents.string == (char *)',')))
 					syntax_error(NO_VARIABLE_DEFINITION, line);
 			}
 			else if (current_token->type == RETURN)
@@ -226,7 +227,7 @@ void tokenize_file(FILE *fp)
 							if (token->type == FUNCTION_DECLARATION)
 								syntax_error(FUNCTION_DEFINITION_RECURSIVE, line);
 							token->type = FUNCTION_DECLARATION;
-							token->position = (position - identifier_current_length);
+							token->position = (position - 1);
 							token->line = line;
 							position += identifier_current_length;
 							for (unsigned int i = 0; i < identifier_current_length; i++)
@@ -349,13 +350,10 @@ void tokenize_file(FILE *fp)
 						new_token->type = token_type;
 					else
 					{
-						new_token->contents = xmalloc(sizeof(char) * (identifier_current_length + 1));
-						strncpy(new_token->contents, identifier, identifier_current_length);
-						new_token->contents[identifier_current_length] = '\0';
-						if (token_type == NUMERIC)
-							new_token->type = NUMERIC;
-						else
-							new_token->type = VARIABLE;
+						new_token->contents.string = xmalloc(sizeof(char) * (identifier_current_length + 1));
+						strncpy(new_token->contents.string, identifier, identifier_current_length);
+						new_token->contents.string[identifier_current_length] = '\0';
+						new_token->type = VARIABLE;
 					}
 					new_token->position = (position - identifier_current_length + 1);
 					new_token->line = line;
@@ -419,7 +417,7 @@ void tokenize_file(FILE *fp)
 						syntax_error(INVALID_VARIABLE_NAME, line);
 					else if (identifier_current_length > 0 || current_literal != 0)
 					{
-						current_numeric = -1;
+						current_numeric = -current_numeric;
 						current_literal = -1;
 						break;
 					}
@@ -436,16 +434,16 @@ void tokenize_file(FILE *fp)
 			}
 		}
 		if (current_numeric > 0)
-			current_numeric = -1;
+			current_numeric = -current_numeric;
 		if (token->type == FUNCTION_DECLARATION)
 		{
 			if (!variable_name_valid(identifier))
 				syntax_error(INVALID_FUNCTION_NAME, line);
 			if (special_state != PARENTHESES_OPEN)
 				syntax_error(INVALID_FUNCTION_DEFINITION, line);
-			token->contents = xmalloc(sizeof(char) * (identifier_current_length + 1));
-			strncpy(token->contents, identifier, identifier_current_length);
-			token->contents[identifier_current_length] = '\0';
+			token->contents.string = xmalloc(sizeof(char) * (identifier_current_length + 1));
+			strncpy(token->contents.string, identifier, identifier_current_length);
+			token->contents.string[identifier_current_length] = '\0';
 		}
 		else
 		{
@@ -453,9 +451,9 @@ void tokenize_file(FILE *fp)
 			{
 				if (special_state != NOT_DEFINED)
 					syntax_error(INVALID_VARIABLE_DEFINITION, line);
-				token->contents = xmalloc(sizeof(char) * (identifier_current_length + 1));
-				strncpy(token->contents, identifier, identifier_current_length);
-				token->contents[identifier_current_length] = '\0';
+				token->contents.string = xmalloc(sizeof(char) * (identifier_current_length + 1));
+				strncpy(token->contents.string, identifier, identifier_current_length);
+				token->contents.string[identifier_current_length] = '\0';
 			}
 			if (token->type == NOT_DEFINED || token->type == VARIABLE)
 			{
@@ -469,16 +467,16 @@ void tokenize_file(FILE *fp)
 					{
 						if (character != '=' && character != '!' && character != '-' && character != '+' && character != '<' && character != '&' && character != '|')
 							syntax_error(INVALID_OPERATION, line);
-						else if (!(character == '!' && (current_token->contents == (char *)',' || current_token->contents == (char *)'!') && (current_parentheses > 0 || current_brackets > 0)))
+						else if (!(character == '!' && (current_token->contents.string == (char *)',' || current_token->contents.string == (char *)'!') && (current_parentheses > 0 || current_brackets > 0)))
 						{
 							int is_signed = 0;
-							if (current_token->position == position && character == '=' && current_token->contents == (char *)'=')
+							if (current_token->position == position && character == '=' && current_token->contents.string == (char *)'=')
 								current_token->type = EQUALITY;
-							else if (current_token->position == position && character == '=' && current_token->contents == (char *)'!')
+							else if (current_token->position == position && character == '=' && current_token->contents.string == (char *)'!')
 								current_token->type = NOT_EQUALITY;
-							else if (current_token->position == position && character == '=' && current_token->contents == (char *)'>')
+							else if (current_token->position == position && character == '=' && current_token->contents.string == (char *)'>')
 								current_token->type = MORE_OR_EQUALITY;
-							else if (current_token->position == position && (character == '=' || character == '<') && current_token->contents == (char *)'<')
+							else if (current_token->position == position && (character == '=' || character == '<') && current_token->contents.string == (char *)'<')
 							{
 								if (character == '<')
 									current_token->type = INSERT;
@@ -487,31 +485,31 @@ void tokenize_file(FILE *fp)
 								else
 									syntax_error(INVALID_OPERATION, line);
 							}
-							else if (current_token->position == position && character == '&' && current_token->contents == (char *)'&')
+							else if (current_token->position == position && character == '&' && current_token->contents.string == (char *)'&')
 								current_token->type = AND;
-							else if (current_token->position == position && character == '|' && current_token->contents == (char *)'|')
+							else if (current_token->position == position && character == '|' && current_token->contents.string == (char *)'|')
 								current_token->type = OR;
-							else if ((current_token->contents == (char *)'-' || current_token->contents == (char *)'+' || current_token->contents == (char *)'*' || current_token->contents == (char *)'/' || current_token->contents == (char *)'%' || current_token->contents == (char *)'=') && !(character == '=' || character == '!' || character == ',' || character == '<'))
+							else if ((current_token->contents.string == (char *)'-' || current_token->contents.string == (char *)'+' || current_token->contents.string == (char *)'*' || current_token->contents.string == (char *)'/' || current_token->contents.string == (char *)'%' || current_token->contents.string == (char *)'=') && !(character == '=' || character == '!' || character == ',' || character == '<'))
 								is_signed = 1;
 							else
 								syntax_error(INVALID_OPERATION, line);
 							if (is_signed)
 							{
-								token->contents = character;
+								token->contents.string = character;
 								token->type = OPERATOR;
 								token->position = position;
 								token->line = line;
 							}
 							else
 							{
-								current_token->contents = NULL;
-								token->contents = NULL;
+								current_token->contents.string = NULL;
+								token->contents.string = NULL;
 							}
 						}
 						else
 						{
 							token->type = OPERATOR;
-							token->contents = character;
+							token->contents.string = character;
 							token->position = (position + identifier_current_length);
 							token->line = line;
 						}
@@ -523,7 +521,7 @@ void tokenize_file(FILE *fp)
 					else
 					{
 						token->type = OPERATOR;
-						token->contents = character;
+						token->contents.string = character;
 						token->position = (position + identifier_current_length);
 						token->line = line;
 						if (current_token == NULL)
@@ -556,9 +554,9 @@ void tokenize_file(FILE *fp)
 					}
 					if (token->type == FUNCTION_CALL || token->type == VARIABLE)
 					{
-						token->contents = xmalloc(sizeof(char) * (identifier_current_length + 1));
-						strncpy(token->contents, identifier, identifier_current_length);
-						token->contents[identifier_current_length] = '\0';
+						token->contents.string = xmalloc(sizeof(char) * (identifier_current_length + 1));
+						strncpy(token->contents.string, identifier, identifier_current_length);
+						token->contents.string[identifier_current_length] = '\0';
 					}
 					token->position = position;
 					token->line = line;
@@ -576,12 +574,12 @@ void tokenize_file(FILE *fp)
 				if (identifier_current_length > 0)
 				{
 					identifier[identifier_current_length] = '\0';
-					token->contents = xmalloc(sizeof(char) * (identifier_current_length + 1));
-					strncpy(token->contents, identifier, identifier_current_length);
-					token->contents[identifier_current_length] = '\0';
+					token->contents.string = xmalloc(sizeof(char) * (identifier_current_length + 1));
+					strncpy(token->contents.string, identifier, identifier_current_length);
+					token->contents.string[identifier_current_length] = '\0';
 				}
 				else
-					token->contents = NULL;
+					token->contents.string = NULL;
 				token->position = position;
 				token->line = line;
 				token->type = LITERAL;
@@ -599,9 +597,9 @@ void tokenize_file(FILE *fp)
 						current_token = token;
 						token_t *new_token = token_generate();
 						new_token->type = token_type;
-						new_token->contents = xmalloc(sizeof(char) * (identifier_current_length + 1));
-						strncpy(new_token->contents, identifier, identifier_current_length);
-						new_token->contents[identifier_current_length] = '\0';
+						new_token->contents.string = xmalloc(sizeof(char) * (identifier_current_length + 1));
+						strncpy(new_token->contents.string, identifier, identifier_current_length);
+						new_token->contents.string[identifier_current_length] = '\0';
 						new_token->type = VARIABLE;
 						new_token->line = line;
 						token = new_token;
@@ -621,8 +619,22 @@ void tokenize_file(FILE *fp)
 		{
 			if (current_literal == -1)
 				token->type = LITERAL;
-			else if (current_numeric == -1)
-				token->type = NUMERIC;
+			else if (current_numeric < 0)
+			{
+				errno = 0;
+				if (current_numeric == -2)
+				{
+					token->contents.floating = (long double)strtold(identifier, NULL);
+					token->type = DOUBLE;
+				}
+				else
+				{
+					token->contents.numeric = strtoll(identifier, NULL, 10);
+					token->type = NUMERIC;
+				}
+				if (errno != 0)
+					syntax_error(NUMERIC_CONVERSION_FAILED, token->type);
+			}
 		}
 		if (token->type != NOT_DEFINED)
 		{
@@ -648,8 +660,8 @@ void tokenize_file(FILE *fp)
 
 void token_destroy(token_t *token)
 {
-	if (token->contents != NULL)
-		free(token->contents);
+	if (token->contents.string != NULL)
+		free(token->contents.string);
 	free(token);
 }
 

@@ -1,12 +1,12 @@
 #ifndef variable_c
 #define variable_c
 
-#include <stddef.h>
+#include <stdlib.h>
 
 #include "variable.h"
-#include "scope.h"
+#include "misc.h"
 
-variable variables[VARIABLE_MAX_TOTAL];
+variable_t variables[VARIABLE_MAX_TOTAL];
 static unsigned short total_variables = 0;
 
 void variable_initialisation()
@@ -15,33 +15,31 @@ void variable_initialisation()
 	total_variables = 0; // Set total variables in use to 0
 }
 
-unsigned int new_variable(unsigned int execution_scope, unsigned int function_scope, unsigned int variable_hash)
+unsigned int new_variable(unsigned int execution_scope, unsigned int function_scope, unsigned int variable_id)
 {
-	if (total_variables >= VARIABLE_MAX_TOTAL_UNRESERVED)								  // Too many variables have been declared in memory
-		if (variable_hash != VARIABLE_TEMPORARY || total_variables == VARIABLE_MAX_TOTAL) // Is not temporary variable or all variable space is used up
-			return VARIABLE_UNASSIGNED;													  // No variable is avaliable to be set
+	if (total_variables >= VARIABLE_MAX_TOTAL_UNRESERVED)								// Too many variables have been declared in memory
+		if (variable_id != VARIABLE_TEMPORARY || total_variables == VARIABLE_MAX_TOTAL) // Is not temporary variable or all variable space is used up
+			return VARIABLE_UNASSIGNED;													// No variable is avaliable to be set
 	short new_variable_position = 0;
 	for (; new_variable_position < VARIABLE_MAX_TOTAL; new_variable_position++)
 		if (variables[new_variable_position].function_scope == VARIABLE_UNASSIGNED)
 			break;
-	if (new_variable_position >= VARIABLE_MAX_TOTAL_UNRESERVED)							  // No variable spaces avaliable
-		if (variable_hash != VARIABLE_TEMPORARY || total_variables == VARIABLE_MAX_TOTAL) // Is not temporary variable or all variable space is used up
+	if (new_variable_position >= VARIABLE_MAX_TOTAL_UNRESERVED)							// No variable spaces avaliable
+		if (variable_id != VARIABLE_TEMPORARY || total_variables == VARIABLE_MAX_TOTAL) // Is not temporary variable or all variable space is used up
 			return VARIABLE_UNASSIGNED;
-	variables[new_variable_position].scope = scope_new();
-	if (variables[new_variable_position].scope == NULL)
-		return VARIABLE_UNASSIGNED;
+	variables[new_variable_position].value.type = VARIABLE_IS_UNASSIGNED;
 	total_variables += 1;												// Increase total variables count
 	variables[new_variable_position].execution_scope = execution_scope; // Set scope size
 	variables[new_variable_position].function_scope = function_scope;	// Set function scope size
-	variables[new_variable_position].variable_hash = variable_hash;		// Set variable hash value
+	variables[new_variable_position].variable_id = variable_id;			// Set variable hash value
 	return VARIABLE_ASSIGNED;
 }
 
-void variable_refresh_scope(unsigned int variable_hash, unsigned int function_scope, unsigned int execution_scope)
+void variable_refresh_scope(unsigned int variable_id, unsigned int function_scope, unsigned int execution_scope)
 {
 	for (unsigned short i = 0; i < VARIABLE_MAX_TOTAL; i++)
 		if (variables[i].function_scope == function_scope)
-			if (variables[i].variable_hash == variable_hash)
+			if (variables[i].variable_id == variable_id)
 			{
 				variables[i].execution_scope = execution_scope; // Refresh scope size
 				return;
@@ -52,20 +50,19 @@ void variable_delete(variable_id id)
 {
 	variables[id].function_scope = VARIABLE_UNASSIGNED;	 // Unassign variable function scope
 	variables[id].execution_scope = VARIABLE_UNASSIGNED; // Unassign the execution scope
-	variables[id].variable_hash = VARIABLE_UNASSIGNED;	 // Unassign the variable hash scope
-	if (variables[id].scope != NULL)					 // If points to a scope
-		scope_destroy(variables[id].scope);				 // Remove scope pointer
-	variables[id].scope = NULL;							 // Declare an unassigned scope
+	variables[id].variable_id = VARIABLE_UNASSIGNED;	 // Unassign the variable hash scope
+	if (variables[id].value.type == VARIABLE_STRING)	 // If has allocated value
+		free(variables[id].value.contents.string);		 // Remove allocated value
 	total_variables -= 1;								 // Decrease total variable count
 }
 
-scope_t *variable_get_scope(unsigned int variable_hash, unsigned int function_scope)
+variable_value_t variable_get_value(unsigned int variable_id, unsigned int function_scope)
 {
 	for (unsigned short i = 0; i < VARIABLE_MAX_TOTAL; i++)
 		if (variables[i].function_scope == function_scope || variables[i].function_scope == VARIABLE_SCOPE_GLOBAL)
-			if (variables[i].variable_hash == variable_hash)
-				return variables[i].scope;
-	return NULL;
+			if (variables[i].variable_id == variable_id)
+				return variables[i].value;
+	fatal_error(INVALID_SYNTAX_GENERIC);
 }
 
 void variable_cleanup(unsigned int execution_scope)

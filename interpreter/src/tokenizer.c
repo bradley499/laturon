@@ -178,7 +178,7 @@ void tokenize_file(FILE *fp)
 			{
 				if (current_token == NULL)
 					syntax_error(NO_VARIABLE_DEFINITION, line);
-				else if (current_token->type != BRACKETS_OPEN && current_token->type != BRACKETS_CLOSE && current_token->type != PARENTHESES_CLOSE & current_token->type != VARIABLE && current_token->type != RETURN && !(current_token->type == OPERATOR && (current_token->contents.string == (char *)'=' || current_token->contents.string == (char *)',')))
+				else if (current_token->type != BRACKETS_OPEN && current_token->type != BRACKETS_CLOSE && current_token->type != PARENTHESES_CLOSE & current_token->type != VARIABLE && current_token->type != RETURN && !(current_token->type == OPERATOR && (current_token->contents.numeric == (int)'=' || current_token->contents.numeric == (int)',')))
 					syntax_error(NO_VARIABLE_DEFINITION, line);
 			}
 			else if (current_token->type == RETURN)
@@ -461,22 +461,20 @@ void tokenize_file(FILE *fp)
 				{
 					if (current_token == NULL && token->type != VARIABLE)
 						syntax_error(INVALID_SYNTAX, line);
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wint-conversion"
 					if (token->type != VARIABLE && current_token->type == OPERATOR)
 					{
 						if (character != '=' && character != '!' && character != '-' && character != '+' && character != '<' && character != '&' && character != '|')
 							syntax_error(INVALID_OPERATION, line);
-						else if (!(character == '!' && (current_token->contents.string == (char *)',' || current_token->contents.string == (char *)'!') && (current_parentheses > 0 || current_brackets > 0)))
+						else if (!(character == '!' && (current_token->contents.numeric == (int)',' || current_token->contents.numeric == (int)'!') && (current_parentheses > 0 || current_brackets > 0)))
 						{
 							int is_signed = 0;
-							if (current_token->position == position && character == '=' && current_token->contents.string == (char *)'=')
+							if (current_token->position == position && character == '=' && current_token->contents.numeric == (int)'=')
 								current_token->type = EQUALITY;
-							else if (current_token->position == position && character == '=' && current_token->contents.string == (char *)'!')
+							else if (current_token->position == position && character == '=' && current_token->contents.numeric == (int)'!')
 								current_token->type = NOT_EQUALITY;
-							else if (current_token->position == position && character == '=' && current_token->contents.string == (char *)'>')
+							else if (current_token->position == position && character == '=' && current_token->contents.numeric == (int)'>')
 								current_token->type = MORE_OR_EQUALITY;
-							else if (current_token->position == position && (character == '=' || character == '<') && current_token->contents.string == (char *)'<')
+							else if (current_token->position == position && (character == '=' || character == '<') && current_token->contents.numeric == (int)'<')
 							{
 								if (character == '<')
 									current_token->type = INSERT;
@@ -485,17 +483,17 @@ void tokenize_file(FILE *fp)
 								else
 									syntax_error(INVALID_OPERATION, line);
 							}
-							else if (current_token->position == position && character == '&' && current_token->contents.string == (char *)'&')
+							else if (current_token->position == position && character == '&' && current_token->contents.numeric == (int)'&')
 								current_token->type = AND;
-							else if (current_token->position == position && character == '|' && current_token->contents.string == (char *)'|')
+							else if (current_token->position == position && character == '|' && current_token->contents.numeric == (int)'|')
 								current_token->type = OR;
-							else if ((current_token->contents.string == (char *)'-' || current_token->contents.string == (char *)'+' || current_token->contents.string == (char *)'*' || current_token->contents.string == (char *)'/' || current_token->contents.string == (char *)'%' || current_token->contents.string == (char *)'=') && !(character == '=' || character == '!' || character == ',' || character == '<'))
+							else if ((current_token->contents.numeric == (int)'-' || current_token->contents.numeric == (int)'+' || current_token->contents.numeric == (int)'*' || current_token->contents.numeric == (int)'/' || current_token->contents.numeric == (int)'%' || current_token->contents.numeric == (int)'=') && !(character == '=' || character == '!' || character == ',' || character == '<'))
 								is_signed = 1;
 							else
 								syntax_error(INVALID_OPERATION, line);
 							if (is_signed)
 							{
-								token->contents.string = character;
+								token->contents.numeric = (int)character;
 								token->type = OPERATOR;
 								token->position = position;
 								token->line = line;
@@ -509,7 +507,7 @@ void tokenize_file(FILE *fp)
 						else
 						{
 							token->type = OPERATOR;
-							token->contents.string = character;
+							token->contents.numeric = (int)character;
 							token->position = (position + identifier_current_length);
 							token->line = line;
 						}
@@ -521,13 +519,12 @@ void tokenize_file(FILE *fp)
 					else
 					{
 						token->type = OPERATOR;
-						token->contents.string = character;
+						token->contents.numeric = (int)character;
 						token->position = (position + identifier_current_length);
 						token->line = line;
 						if (current_token == NULL)
 							syntax_error(INVALID_OPERATION, line);
 					}
-#pragma GCC diagnostic pop
 				}
 				else if (identifier_current_length > 0)
 				{
@@ -608,7 +605,10 @@ void tokenize_file(FILE *fp)
 						syntax_error(INVALID_SYNTAX, line);
 				}
 				else if (token->type == RETURN)
-					syntax_error(EMPTY_RETURN, line);
+				{
+					if (special_state == NOT_DEFINED)
+						syntax_error(EMPTY_RETURN, line);
+				}
 				else
 					syntax_error(INVALID_REMOVE, line);
 			}

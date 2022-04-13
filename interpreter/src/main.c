@@ -6,6 +6,7 @@
 #include "tokenizer.h"
 #include "misc.h"
 #include "parse.h"
+#include "run.h"
 
 #ifndef VERSION
 #error "No version was defined during compilation"
@@ -31,7 +32,7 @@ char run_state = 0;
 int EMSCRIPTEN_KEEPALIVE main() {
 	ready();
 	output("Version: "NUM_WRAPPER(VERSION), OUTPUT_INFO);
-	output("Build:   "NUM_WRAPPER(BUILDNUMBER), OUTPUT_INFO);
+	output("Build: "NUM_WRAPPER(BUILDNUMBER), OUTPUT_INFO);
 #else
 int main(int argc, char **argv) {
 	if (argc != 2) {
@@ -66,7 +67,7 @@ int EMSCRIPTEN_KEEPALIVE run_file() {
 #ifdef EMSCRIPTEN
 	run_state = 1;
 #endif
-	parse_cleanup(1);
+	parse_cleanup();
 	parse_init();
 	tokenize_file(fp);
 #ifdef EMSCRIPTEN
@@ -75,7 +76,10 @@ int EMSCRIPTEN_KEEPALIVE run_file() {
 #endif
 	fclose(fp);
 	fp = NULL;
-	parse_tokens();
+	parsed_function_scope_t *functions = NULL;
+	if (parse_tokens(&functions) == 0)
+		return 0; // Nothing to execute
+	run(&functions);
 #ifdef EMSCRIPTEN
 	set_load_state(PARSING_DONE);
 #endif

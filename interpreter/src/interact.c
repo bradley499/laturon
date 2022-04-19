@@ -15,9 +15,9 @@
 #define INTERACT_WASM_SOURCE_FILE "./user_source_file"
 #define JAVASCRIPT_INPUT_MAX_SIZE (5 * 1024)
 
-EM_JS(void, js_request_user_input, (const char *message), {
+EM_JS(void, js_request_user_input, (), {
 	resetUserInputState();
-	requestUserInput(UTF8ToString(message));
+	requestUserInput();
 });
 
 EM_JS(void, js_reset_user_input, (), {
@@ -48,9 +48,9 @@ EM_JS(void, js_set_load_state, (unsigned int state), {
 	setLoadState(state);
 });
 
-char *input(char *message)
+char *input()
 {
-	js_request_user_input(message);
+	js_request_user_input();
 	do
 	{
 		emscripten_sleep(100);
@@ -81,11 +81,6 @@ FILE* get_execution_source_file()
 	return NULL;
 }
 
-void ready()
-{
-	js_set_load_state(1);
-}
-
 void set_load_state(unsigned int state)
 {
 	js_set_load_state(state);
@@ -96,7 +91,6 @@ void set_load_state(unsigned int state)
 
 char *input(char *message)
 {
-	printf("%s", message);
 	char *input_string = NULL;
 	size_t len = 0;
 	long line_size = 0;

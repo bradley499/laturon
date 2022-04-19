@@ -3,8 +3,10 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <limits.h>
 #include "parse.h"
 #include "tokenizer.h"
+#include "variable.h"
 #include "misc.h"
 
 typedef struct parsed_function_type_t
@@ -22,12 +24,6 @@ typedef struct parsed_parent_relative_position
 
 parsed_function_type_t *function_definitions = NULL;
 parsed_parent_relative_position *relative_position_root = NULL;
-
-int parse_init()
-{
-	parse_cleanup();
-	return 1;
-}
 
 // Clean up function references
 void parse_cleanup_function_references()
@@ -53,12 +49,32 @@ parsed_function_type_t *parse_function_type_new()
 }
 
 // Get function scope's numeric reference from `name` and `parameter_count`
-int parse_get_function_scope_numeric(char *name, int parameter_count)
+signed long long parse_get_function_scope_numeric(char *name, int parameter_count)
 {
 	parsed_function_type_t *current_function = function_definitions;
+	if (parameter_count == 0)
+	{
+		if (strcmp(name, "input") == 0)
+			return -3;
+	}
+	else if (parameter_count == 1)
+	{
+		if (strcmp(name, "print") == 0)
+			return -2;
+		else if (strcmp(name, "str") == 0)
+			return -4;
+		else if (strcmp(name, "int") == 0)
+			return -5;
+		else if (strcmp(name, "float") == 0)
+			return -6;
+		else if (strcmp(name, "bool") == 0)
+			return -7;
+		else if (strcmp(name, "len") == 0)
+			return -8;
+	}
 	if (current_function == NULL)
 		fatal_error(STACK_REFERENCE_ERROR);
-	int numeric_reference = 1;
+	signed long long numeric_reference = 1;
 	for (; current_function != NULL; numeric_reference++)
 	{
 		if (strcmp(name, current_function->name) == 0)
@@ -69,16 +85,7 @@ int parse_get_function_scope_numeric(char *name, int parameter_count)
 		}
 		current_function = current_function->next;
 	}
-	if (strcmp(name, "print") == 0)
-		return -2;
-	else if (strcmp(name, "input") == 0)
-		return -3;
-	else if (strcmp(name, "str") == 0)
-		return -4;
-	else if (strcmp(name, "int") == 0)
-		return -5;
-	else
-		return 0;
+	return 0;
 }
 
 // Create a new function scope
@@ -97,8 +104,13 @@ int parse_create_function_scope(char *name)
 		function_definitions = function_definition;
 	else
 	{
-		for (int numeric_reference = 1;; numeric_reference++)
+		for (signed long long numeric_reference = 1;; numeric_reference++)
 		{
+			if (numeric_reference == LLONG_MAX)
+			{
+				free(function_definition);
+				fatal_error(TOO_BIG_NUMERIC);
+			}
 			if (strcmp(name, current_function->name) == 0)
 			{
 				free(function_definition);
@@ -259,7 +271,7 @@ void parse_reformat_tokens(token_t **tokens)
 			else if (current_token->contents.numeric == (int)'=')
 			{
 				current_token->type = ASSIGN;
-				current_token->contents.string = NULL;
+				current_token->contents.numeric = 0;
 			}
 			else if (operator_count != 1)
 			{
@@ -294,18 +306,8 @@ void parse_reformat_tokens(token_t **tokens)
 		else if (current_token->type == WHILE)
 		{
 			int while_structure_valid = 0;
-			if (current_token->next != NULL)
-			{
-				if (current_token->next->type == SCOPE_OPEN)
-				{
-					while_structure_valid = 1;
-					token_t *new_token = xmalloc(sizeof(token_t));
-					new_token->line = current_token->line;
-					new_token->next = current_token->next;
-					new_token->type = IF;
-					current_token->next = new_token;
-				}
-			}
+			if (current_token->next != NULL && current_token->next->type == PARENTHESES_OPEN)
+				while_structure_valid = 1;
 			if (while_structure_valid == 0)
 				syntax_error(INVALID_WHILE, current_token->line);
 		}
@@ -465,14 +467,16 @@ void parse_reformat_tokens(token_t **tokens)
 				function_call++;
 				if (current_token->next->type == PARENTHESES_OPEN)
 					current_token->next->type = FUNCTION_CALL_PARAMETERS;
-				preserve_token = 1;
+				preserve_token = 4;
 				break;
 			}
 			case OPERATOR:
-			{
+			case IF:
 				preserve_token = 1;
 				break;
-			}
+			case WHILE:
+				preserve_token = 5;
+				break;
 			default:
 				break;
 			}
@@ -519,20 +523,59 @@ void parse_reformat_tokens(token_t **tokens)
 			else
 				syntax_error(INVALID_SYNTAX, current_token->line);
 		}
-		if (preserve_token == 1)
+		if (preserve_token == 1 || preserve_token == 4 || preserve_token == 5)
 		{
 			// Storing for later insertion
 			previous_token[0]->next = current_token->next;
-			struct preserved_call_token *preserve_token = xmalloc(sizeof(struct preserved_call_token));
-			preserve_token->token = current_token;
-			preserve_token->counter = 2;
-			preserve_token->parentheses_position = parentheses_position;
-			preserve_token->brackets_position = brackets_position;
-			preserve_token->scope_position = scope_position;
-			preserve_token->previous = preserved_call_tokens;
-			preserved_call_tokens = preserve_token;
-			if (previous_token[0] != NULL)
-				previous_token[0]->next = current_token->next;
+			struct preserved_call_token *preserved_token = xmalloc(sizeof(struct preserved_call_token));
+			preserved_token->token = current_token;
+			preserved_token->counter = 2;
+			preserved_token->parentheses_position = parentheses_position;
+			preserved_token->brackets_position = brackets_position;
+			preserved_token->scope_position = scope_position;
+			preserved_token->previous = preserved_call_tokens;
+			preserved_call_tokens = preserved_token;
+			switch (preserve_token)
+			{
+			case 1:
+			{
+				if (previous_token[0] != NULL)
+					previous_token[0]->next = current_token->next;
+				break;
+			}
+			case 4:
+			{
+				token_t *new_token = xmalloc(sizeof(token_t));
+				memcpy(new_token, current_token, sizeof(token_t));
+				new_token->type = FUNCTION_CALL_HOST; // Declare start of function call
+				if (previous_token[0] != NULL)
+					previous_token[0]->next = new_token;
+				else
+				{
+					new_token->next = current_token->next;
+					previous_token[0] = new_token;
+					root_token = new_token;
+					*tokens = root_token;
+				}
+				break;
+			}
+			case 5:
+			{
+				token_t *new_token = xmalloc(sizeof(token_t));
+				memcpy(new_token, current_token, sizeof(token_t));
+				new_token->type = WHILE_START; // Declare start of while loop
+				if (previous_token[0] != NULL)
+					previous_token[0]->next = new_token;
+				else
+				{
+					new_token->next = current_token->next;
+					previous_token[0] = new_token;
+					root_token = new_token;
+					*tokens = root_token;
+				}
+				break;
+			}
+			}
 			current_token->supporting_reference = previous_token[0];
 			current_token = current_token->next;
 			continue;
@@ -541,7 +584,7 @@ void parse_reformat_tokens(token_t **tokens)
 		{
 			// Reinserting previously stored values
 			int additional_insertion = 0;
-			for (; (preserved_call_tokens != NULL && preserved_call_tokens->parentheses_position == parentheses_position && preserved_call_tokens->brackets_position == brackets_position && preserved_call_tokens->scope_position == scope_position);)
+			do
 			{
 				if (additional_insertion == 1)
 					current_token = current_token->next;
@@ -552,7 +595,7 @@ void parse_reformat_tokens(token_t **tokens)
 				current_token->next = restored_token;
 				free(preserved_token);
 				additional_insertion = 1;
-			}
+			} while (preserved_call_tokens != NULL && preserved_call_tokens->parentheses_position == parentheses_position && preserved_call_tokens->brackets_position == brackets_position && preserved_call_tokens->scope_position == scope_position);
 			preserve_token = 2;
 		}
 		else if (special_operation[2] == 1)
@@ -622,9 +665,8 @@ void parse_reformat_tokens(token_t **tokens)
 
 typedef struct parsed_variable_type_t
 {
-	int is_global;
-	int numeric_reference;
-	int function_numeric_reference;
+	unsigned long long numeric_reference;
+	signed long long function_numeric_reference;
 	char *name;
 	struct parsed_variable_type_t *next;
 } parsed_variable_type_t;
@@ -646,26 +688,30 @@ void parse_cleanup_variable_references()
 }
 
 // Assign a numeric reference to a variable by name and scope
-int parse_get_variable_numeric(char *name, int is_global, int function_numeric_reference)
+variable_id parse_get_variable_numeric(char *name, int function_numeric_reference)
 {
 	parsed_variable_type_t *new_variable = xmalloc(sizeof(parsed_variable_type_t));
-	new_variable->is_global = is_global;
 	new_variable->name = xmalloc(strlen(name) + 1);
 	new_variable->function_numeric_reference = function_numeric_reference;
 	strcpy(new_variable->name, name);
 	if (parse_variable_references == NULL)
 	{
-		new_variable->numeric_reference = 0;
+		new_variable->numeric_reference = VARIABLE_NUMERIC_REFERENCE_START;
 		parse_variable_references = new_variable;
 		return 0;
 	}
 	parsed_variable_type_t *current_variable = parse_variable_references;
-	int numeric_reference = 0;
+	variable_id numeric_reference = VARIABLE_NUMERIC_REFERENCE_START;
 	for (; current_variable != NULL; numeric_reference++)
 	{
+		if (numeric_reference == VARIABLE_UNASSIGNED)
+		{
+			free(new_variable);
+			fatal_error(TOO_BIG_NUMERIC);
+		}
 		if (strcmp(current_variable->name, name) == 0)
 		{
-			if (current_variable->is_global == 1 || current_variable->function_numeric_reference == function_numeric_reference)
+			if (current_variable->function_numeric_reference == 0 || current_variable->function_numeric_reference == function_numeric_reference)
 				return current_variable->numeric_reference;
 		}
 		if (current_variable->next == NULL)
@@ -684,9 +730,10 @@ void parse_numeric_reformat(parsed_function_scope_t **function_scopes)
 {
 	parsed_function_scope_t *root_function = *function_scopes;
 	parsed_function_scope_t *current_function = root_function;
-	for (int function_count = 0; current_function != NULL; function_count++)
+	for (signed long long function_count = 0; current_function != NULL; function_count++)
 	{
-		int is_global_scope = (current_function == root_function);
+		if (function_count == LLONG_MAX)
+			fatal_error(TOO_BIG_NUMERIC);
 		token_t *current_token = current_function->function_token;
 		token_t *previous_token = NULL;
 		int within_array = 0;
@@ -697,6 +744,12 @@ void parse_numeric_reformat(parsed_function_scope_t **function_scopes)
 			struct function_call_parameter *parent;
 		};
 		struct function_call_parameter *parameter_stack = NULL;
+		struct function_parameter_variable
+		{
+			variable_id variable_id;
+			struct function_parameter_variable *previous;
+		};
+		struct function_parameter_variable *parameter_variable_stack = NULL;
 		int is_function_declaration = 0;
 		for (; current_token != NULL;)
 		{
@@ -712,7 +765,7 @@ void parse_numeric_reformat(parsed_function_scope_t **function_scopes)
 			{
 				if (parameter_stack == NULL)
 					syntax_error(INVALID_FUNCTION_PARAMETERS, current_token->line);
-				int function_id = parse_get_function_scope_numeric(current_token->contents.string, parameter_stack->count);
+				signed long long function_id = parse_get_function_scope_numeric(current_token->contents.string, parameter_stack->count);
 				struct function_call_parameter *parameters = parameter_stack;
 				parameter_stack = parameters->parent;
 				free(parameters);
@@ -728,9 +781,16 @@ void parse_numeric_reformat(parsed_function_scope_t **function_scopes)
 			}
 			case VARIABLE:
 			{
-				int variable_id = parse_get_variable_numeric(current_token->contents.string, is_global_scope, function_count);
+				variable_id variable_id = parse_get_variable_numeric(current_token->contents.string, function_count);
 				free(current_token->contents.string);
 				current_token->contents.numeric = variable_id;
+				if (is_function_declaration)
+				{
+					struct function_parameter_variable* parameter = xmalloc(sizeof(struct function_parameter_variable));
+					parameter->variable_id = variable_id;
+					parameter->previous = parameter_variable_stack;
+					parameter_variable_stack = parameter;
+				}
 				break;
 			}
 			case FUNCTION_CALL_PARAMETERS:
@@ -739,7 +799,7 @@ void parse_numeric_reformat(parsed_function_scope_t **function_scopes)
 				if (current_token->next != NULL && current_token->next->type != PARENTHESES_CLOSE)
 					parameters->count = 1;
 				parameters->array_scope = within_array;
-				if (parameter_stack != NULL)
+				if (parameter_stack == NULL)
 					parameter_stack = parameters;
 				else
 				{
@@ -781,12 +841,34 @@ void parse_numeric_reformat(parsed_function_scope_t **function_scopes)
 			case SCOPE_OPEN:
 			{
 				if (is_function_declaration == 1)
+				{
 					is_function_declaration = 0;
+					for (; parameter_variable_stack != NULL;)
+					{
+						token_t *next_token = current_token->next;
+						token_t *parameter_variable_assign = xmalloc(sizeof(token_t));
+						parameter_variable_assign->line = previous_token->line;
+						parameter_variable_assign->type = VARIABLE;
+						struct function_parameter_variable *current_parameter = parameter_variable_stack;
+						parameter_variable_assign->contents.numeric = current_parameter->variable_id;
+						parameter_variable_stack = parameter_variable_stack->previous;
+						free(current_parameter);
+						current_token->next = parameter_variable_assign;
+						current_token = current_token->next;
+						token_t *parameter_assign = xmalloc(sizeof(token_t));
+						parameter_assign->next = next_token;
+						parameter_assign->line = previous_token->line;
+						parameter_assign->type = ASSIGN;
+						parameter_assign->contents.numeric = 1;
+						current_token->next = parameter_assign;
+						current_token = current_token->next;
+					}
+				}
 				break;
 			}
 			case SCOPE_CLOSE:
 			{
-				if (current_token->next == NULL && !is_global_scope)
+				if (current_token->next == NULL && function_count > 0)
 					removable = 1;
 			}
 			case PARENTHESES_CLOSE:

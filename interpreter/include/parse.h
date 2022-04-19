@@ -9,8 +9,6 @@ typedef struct parsed_function_scope_t
 	struct parsed_function_scope_t *next;
 } parsed_function_scope_t;
 
-// Initialises input/output functions
-int parse_init();
 // Parses tokens and generates function structure
 int parse_tokens(parsed_function_scope_t **functions);
 // Clean up all function definitions

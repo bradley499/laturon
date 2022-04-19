@@ -20,6 +20,7 @@
 		} catch { }
 		return false;
 	})();
+	let interpreterData = null;
 	let worker = false;
 	let executing = false;
 	let interpreterReady = false;
@@ -198,11 +199,14 @@
 			worker.postMessage({ "type": "sourceCode", "data": interacts[0].innerText });
 			loadingState("Tokenising source code", true);
 			return;
+		} else {
+			newWorker(interpreterData);
 		}
 		buttons[2].classList.remove("executing");
 		interactsContainer.classList.remove("executing");
 		executing = false;
 		loadingState(null, false);
+		buttonData[2]["state"] = 0;
 	};
 	const load = async (button) => {
 		let empty = false;
@@ -384,6 +388,7 @@
 	interacts[1].classList = "interactive";
 	interacts[1].appendChild(loading);
 	const inputOutput = [[document.createElement("div"), document.createElement("input"), document.createElement("input")], document.createElement("div")];
+	let inputState = false;
 	const inputEnabler = (enabled) => {
 		for (let i = 1; i < 3; i++) {
 			if (enabled) {
@@ -392,16 +397,26 @@
 				inputOutput[0][i].setAttribute("disabled", "disabled");
 			}
 		}
+		inputState = enabled;
 		if (enabled) {
 			inputOutput[0][2].title = " Submit input";
 			inputOutput[0][1].placeholder = " Please type your input here...";
 			inputOutput[0][0].removeAttribute("title");
 			inputOutput[0][0].classList.remove("disabled");
 		} else {
+			inputOutput[0][1].value = "";
 			inputOutput[0][1].placeholder = "Input is currently disabled!";
 			inputOutput[0][0].title = "Input is currently disabled!";
 			inputOutput[0][0].classList.add("disabled");
 		}
+	};
+	const inputSender = (e) => {
+		e.preventDefault();
+		if (!inputState) {
+			return;
+		}
+		worker.postMessage({ "type": "input", "state": 1, "message": inputOutput[0][1].value });
+		inputEnabler(false);
 	};
 	const newOutput = (type, message) => {
 		let output = document.createElement("p");
@@ -436,24 +451,47 @@
 	loadingState("Loading...", true);
 	updateEditor();
 	// Web worker data transition
-	(async () => {
-		const interpreterData = await fetch("./assets/js/interpreter.json").then(response => response.json()).then(response => {
-			return response;
-		});
+	let initialExecution = true;
+	const newWorker = (interpreterData, silentCreation = false) => {
+		if (interpreterData == false) {
+			alertBuilder("Failed to load", "Sorry, but unfortunately the information required to load up the interpreter failed to load.\nThis means that you will be unable to execute your program, however you are still able to: load, edit, and save; your source code.", null, null);
+			return;
+		}
+		interpreterReady = false;
 		worker = new Worker("./assets/js/" + interpreterData["worker"]);
+		worker.postMessage({ "type": "startup", "data": [initialExecution, silentCreation] });
+		initialExecution = false;
 		worker.onmessage = (e) => {
 			e = e.data;
 			switch (e["type"]) {
 				case "loading":
-					loadingState(["Loading interpreter...", null, "Parsing source code", null][e["state"]], (e["state"] != 1 && e["state"] != 3));
+					loadingState(["Loading interpreter...", null, "Parsing source code", null, null][e["state"]], (e["state"] != 1 && e["state"] < 3));
 					if (e["state"] == 1 && !interpreterReady) {
 						interpreterReady = true;
+					} else if (e["state"] == 4) {
+						changeExecutionState(null);
 					}
+					break;
+				case "input":
+					inputEnabler(true);
+					inputOutput[0][2].addEventListener("click", inputSender);
 					break;
 				case "output":
 					newOutput(["info", "warning", "error", "generic"][e["state"]], e["message"]);
+					if (e["state"] == 2) {
+						worker.terminate();
+						newWorker(interpreterData, true);
+					}
 					break;
 			}
 		};
+	};
+	(async () => {
+		interpreterData = await fetch("./assets/js/interpreter.json").then(response => response.json()).then(response => {
+			return response;
+		}).catch(r => {
+			return false;
+		});
+		newWorker(interpreterData);
 	})();
 })();

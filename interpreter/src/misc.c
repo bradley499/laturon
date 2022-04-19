@@ -163,6 +163,7 @@ void syntax_error(syntax_errors error, unsigned int line)
 		break;
 	case INVALID_WHILE:
 		snprintf(buffer, SYNTAX_ERROR_BUFFER_SIZE, "A while loop was declared incorrectly. On line: %d", line);
+		break;
 	case LINE_ENDED_INCORRECTLY:
 		snprintf(buffer, SYNTAX_ERROR_BUFFER_SIZE, "The line ended abruptly. On line: %d", line);
 		break;

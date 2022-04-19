@@ -7,8 +7,8 @@
 #define FLOAT_PRECISION_COMPENSATE_EXPONENT 1e-7 // Used to offset precision in floating point values to a more precise readable format
 #define STRING_MEMORY_MAX_LENGTH 4096			 // Maximum length of a string
 
-#define BOOLEAN_TRUE 1.0
 #define BOOLEAN_FALSE 0.0
+#define BOOLEAN_TRUE 1.0
 
 typedef enum error_codes
 {
@@ -26,6 +26,7 @@ typedef enum error_codes
 	IO_ERROR,					// Failed to perform an operation on source file
 	INVALID_SYNTAX_GENERIC,		// The source provided has invalid syntax
 	STACK_MEMORY_LIMIT_REACHED, // The total amount of stack memory available to execute your program has been reached
+	TOO_BIG_NUMERIC,			// Too many functions or variables are declared within your program to be handled within memory
 } error_codes;
 
 typedef enum syntax_errors

@@ -178,7 +178,7 @@ void tokenize_file(FILE *fp)
 			{
 				if (current_token == NULL)
 					syntax_error(NO_VARIABLE_DEFINITION, line);
-				else if (current_token->type != BRACKETS_OPEN && current_token->type != BRACKETS_CLOSE && current_token->type != PARENTHESES_CLOSE & current_token->type != VARIABLE && current_token->type != RETURN && !(current_token->type == OPERATOR && (current_token->contents.numeric == (int)'=' || current_token->contents.numeric == (int)',')))
+				else if (current_token->type != BRACKETS_OPEN && current_token->type != BRACKETS_CLOSE && current_token->type != PARENTHESES_CLOSE && current_token->type != VARIABLE && current_token->type != RETURN && !(current_token->type == OPERATOR && (current_token->contents.numeric == (int)'=' || current_token->contents.numeric == (int)',')))
 					syntax_error(NO_VARIABLE_DEFINITION, line);
 			}
 			else if (current_token->type == RETURN)

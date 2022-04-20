@@ -526,7 +526,6 @@ void parse_reformat_tokens(token_t **tokens)
 		if (preserve_token == 1 || preserve_token == 4 || preserve_token == 5)
 		{
 			// Storing for later insertion
-			previous_token[0]->next = current_token->next;
 			struct preserved_call_token *preserved_token = xmalloc(sizeof(struct preserved_call_token));
 			preserved_token->token = current_token;
 			preserved_token->counter = 2;
@@ -541,6 +540,8 @@ void parse_reformat_tokens(token_t **tokens)
 			{
 				if (previous_token[0] != NULL)
 					previous_token[0]->next = current_token->next;
+				else
+					previous_token[0] = current_token;
 				break;
 			}
 			case 4:

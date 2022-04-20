@@ -61,7 +61,6 @@ char *input()
 void output(char *message, output_types type)
 {
 	js_output(message, type);
-	emscripten_sleep(100); // Brief sleep to allow for JavaScript engine to render outputs.
 }
 
 void error_code(unsigned int code)

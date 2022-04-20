@@ -576,7 +576,7 @@ int run(parsed_function_scope_t **functions)
 					output(output_string, OUTPUT_GENERIC);
 					run_stack_free_value();
 					run_stack_free_value();
-					if (current_token->next->type == PARENTHESES_CLOSE || current_token->next->type == BRACKETS_CLOSE || current_token->next->type == OPERATOR || current_token->next->type == ASSIGN || current_token->next->type == FUNCTION_CALL)
+					if (current_token->next != NULL && (current_token->next->type == PARENTHESES_CLOSE || current_token->next->type == BRACKETS_CLOSE || current_token->next->type == OPERATOR || current_token->next->type == ASSIGN || current_token->next->type == FUNCTION_CALL))
 					{
 						stack_value_t *stack_result = run_stack_value_new(VARIABLE_INT);
 						stack_result->value.contents.numeric = 0;

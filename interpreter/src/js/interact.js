@@ -98,15 +98,18 @@ function setLoadState(state) {
 }
 
 function error(code, line) {
-    const errors = ["An unknown error occurred.", "Failed to allocate memory.", "Logical operation failed.", "Failed to convert to another type.", "Failed to cleanup variables outside of current scope.", "Failed to execute operation.", "An invalid reference to a call stack scope occurred.", "Failed to correctly read in user input string.", "A reference to a compound literal does not exist.", "An array routine was not given an array to operate on.", "A reference to an item within an array that is out of range.", "Failed to perform an operation on source file.", "The source provided has invalid syntax.", "The total amount of stack memory available to execute your program has been reached.", "Too many functions or variables are declared within your program to be handled within memory."];
+    const errors = ["An unknown error occurred.", "Failed to allocate memory.", "Logical operation failed.", "Failed to convert to another type.", "Failed to cleanup variables outside of current scope.", "Failed to execute operation.", "An invalid reference to a call stack scope occurred.", "Failed to correctly read in user input string.", "A reference to a compound literal does not exist.", "An array routine was not given an array to operate on.", "A reference to an item within an array that is out of range.", "Failed to perform an operation on source file.", "The source provided has invalid syntax.", "The total amount of stack memory available to execute your program has been reached.", "Too many functions or variables are declared within your program to be handled within memory.", "Attempted to use a variable which has not been set yet.", "Zero division error."];
     try {
         let error = errors[code];
+        if (error == undefined){
+            throw new Error("Error");
+        }
         if (line > 0) {
             error = error + " On line: " + line;
         }
         outputMessage(error, 2);
     } catch {
-        error(0);
+        error(0, line);
     }
 }
 

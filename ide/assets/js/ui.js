@@ -22,6 +22,7 @@
 	})();
 	let interpreterData = null;
 	let initialExecution = true;
+	let executed = false;
 	let worker = false;
 	let executing = false;
 	let interpreterReady = false;
@@ -199,11 +200,13 @@
 		}
 		let state = buttonData[2]["state"];
 		if (state == 0 && button != null) {
+			inputEnabler(false);
 			tooltipIter(buttons[2], 2);
 			inputOutput[1].innerHTML = "";
 			buttons[2].classList.add("executing");
 			interactsContainer.classList.add("executing");
 			executing = true;
+			executed = true;
 			if (buttonData[3]["state"] == 3) {
 				resizeEditor();
 			}
@@ -213,6 +216,8 @@
 		} else {
 			if (stopping == 2) {
 				stopping = 0;
+				inputOutput[0][1].placeholder = "Program has finished execution!";
+				inputOutput[0][0].title = "Program has finished execution!";
 				tooltipIter(buttons[2], 2);
 			} else if (stopping == 0) {
 				inputEnabler(false);
@@ -427,8 +432,10 @@
 			inputOutput[0][1].focus();
 		} else {
 			inputOutput[0][1].value = "";
-			inputOutput[0][1].placeholder = "Input is currently disabled!";
-			inputOutput[0][0].title = "Input is currently disabled!";
+			if (executed) {
+				inputOutput[0][1].placeholder = "Input is currently disabled!";
+				inputOutput[0][0].title = "Input is currently disabled!";
+			}
 			inputOutput[0][0].classList.add("disabled");
 		}
 	};
@@ -458,6 +465,8 @@
 	inputOutput[0][2].type = "button";
 	inputOutput[0][0].id = "input";
 	inputEnabler(false);
+	inputOutput[0][1].placeholder = "";
+	inputOutput[0][0].title = "";
 	inputOutput[0][0].appendChild(inputOutput[0][1]);
 	inputOutput[0][0].appendChild(inputOutput[0][2]);
 	inputOutput[1].id = "output";

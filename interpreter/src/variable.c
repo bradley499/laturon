@@ -11,8 +11,11 @@ static unsigned short total_variables = 0;
 
 void variable_initialisation()
 {
-	variable_cleanup(0); // Remove all existing variables and prepare for new initialisation
-	total_variables = 0; // Set total variables in use to 0
+	variable_cleanup(0);																			 // Remove all existing variables and prepare for new initialisation
+	total_variables = 0;																			 // Set total variables in use to 0
+	variable_set_value(new_variable(0, 0, BOOLEAN_FALSE), VARIABLE_BOOLEAN, BOOLEAN_FALSE, 0, 0, 0); // Create boolean false variable
+	variable_set_value(new_variable(0, 0, BOOLEAN_TRUE), VARIABLE_BOOLEAN, BOOLEAN_TRUE, 0, 0, 0);	 // Create boolean true variable
+	variable_set_value(new_variable(0, 0, VARIABLE_NULL), VARIABLE_NULL, BOOLEAN_FALSE, 0, 0, 0);	 // Create null variable
 }
 
 unsigned short new_variable(unsigned int execution_scope, unsigned int function_scope, variable_id id)
@@ -65,7 +68,7 @@ variable_value_t variable_get_value(variable_id id, unsigned int function_scope,
 	return variables[new_variable(execution_scope, function_scope, id)].value; // Create new and return value if not exists
 }
 
-void variable_set_value(unsigned short variable_position, char type, signed long long int numeric, long double floating, char *string)
+void variable_set_value(unsigned short variable_position, char type, signed long long int numeric, long double floating, char *string, struct array_value_t *array)
 {
 	if (variable_position >= VARIABLE_MAX_TOTAL)
 		fatal_error(STACK_REFERENCE_ERROR);
@@ -74,6 +77,8 @@ void variable_set_value(unsigned short variable_position, char type, signed long
 	switch (type)
 	{
 	case VARIABLE_INT:
+	case VARIABLE_BOOLEAN:
+	case VARIABLE_NULL:
 		variables[variable_position].value.contents.numeric = numeric;
 		break;
 	case VARIABLE_DOUBLE:
@@ -81,16 +86,20 @@ void variable_set_value(unsigned short variable_position, char type, signed long
 		break;
 	case VARIABLE_STRING:
 	{
-		variables[variable_position].value.contents.string = xmalloc(strlen(string));
-		if (strcmp(strcpy(variables[variable_position].value.contents.string, string), string) != 0)
+		variables[variable_position].value.contents.string = xmalloc(strlen(string) + 1);
+		if (!copy_string(variables[variable_position].value.contents.string, string))
 			fatal_error(MEMORY_ALLOCATION_ERROR);
 		break;
 	}
+	case VARIABLE_ARRAY:
+		variables[variable_position].value.contents.array = array;
+		break;
 	default:
 		fatal_error(UNKNOWN_ERROR);
 		break;
 	}
-	variables[variable_position].variable_id = variable_value_assigned(variables[variable_position].variable_id, 1); // Declare variable as assigned;
+	variables[variable_position].value.type = type;
+	variables[variable_position].variable_id = variable_value_assigned(variables[variable_position].variable_id, 1); // Declare variable as assigned
 }
 
 variable_id variable_value_assigned(variable_id id, int declare_as_defined)

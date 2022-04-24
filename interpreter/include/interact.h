@@ -2,6 +2,7 @@
 #define interact_h
 
 #include <stdio.h>
+#include <misc.h>
 
 typedef enum output_types {
 	OUTPUT_INFO,
@@ -15,13 +16,17 @@ char * input();
 // Output to user
 void output(char *message, output_types type);
 // Exit error code
-void error_code(unsigned int code);
+void error_code(error_codes code);
+// Exit error code with line
+void error_code_lined(error_codes code, unsigned long long line);
 #ifdef EMSCRIPTEN
 // Return the file pointer of source code
 FILE* get_execution_source_file();
 // Set the current loading state
 void set_load_state(unsigned int state);
-
+// Is execution stopping
+int stopping_execution();
+#define STOP_EXECUTION_ENABLED
 typedef enum loading_states {
 	TOKENIZING_DONE = 2,
 	PARSING_DONE,

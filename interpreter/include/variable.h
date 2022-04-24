@@ -2,7 +2,6 @@
 #define variable_h
 
 #include <limits.h>
-#include "misc.h"
 
 typedef long long variable_id;
 
@@ -12,7 +11,7 @@ typedef long long variable_id;
 #define VARIABLE_TEMPORARY 0														   // A temporary variable defintion
 #define VARIABLE_SCOPE_GLOBAL 0														   // Variable's scope is global
 
-#define VARIABLE_NUMERIC_REFERENCE_START (int)(BOOLEAN_TRUE + 1)
+#define VARIABLE_NUMERIC_REFERENCE_START TOTAL_DEFAULT_VALUES
 
 typedef enum variable_type_t
 {
@@ -22,8 +21,12 @@ typedef enum variable_type_t
 	VARIABLE_STRING,
 	VARIABLE_BOOLEAN,
 	VARIABLE_ARRAY,
+	VARIABLE_NULL,
 	VARIABLE_END,
 } variable_type_t;
+
+#include "misc.h"
+#include "array.h"
 
 enum variable_id_type
 {
@@ -34,11 +37,12 @@ enum variable_id_type
 typedef struct variable_value_t
 {
 	variable_type_t type;
-	union value
+	union
 	{
 		signed long long int numeric;
 		long double floating;
 		char *string;
+		struct array_value_t *array;
 	} contents;
 	variable_id variable_id_reference[2];
 } variable_value_t;
@@ -60,7 +64,7 @@ void variable_delete(unsigned short variable_position);
 // Get value of variable
 variable_value_t variable_get_value(variable_id id, unsigned int function_scope, unsigned int execution_scope);
 // Set value of variable
-void variable_set_value(unsigned short variable_position, char type, signed long long int numeric, long double floating, char *string);
+void variable_set_value(unsigned short variable_position, char type, signed long long int numeric, long double floating, char *string, struct array_value_t *array);
 // Check and declare variable assigned state
 variable_id variable_value_assigned(variable_id id, int declare_as_defined);
 // Get the variable host ID from position

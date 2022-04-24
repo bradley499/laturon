@@ -8,5 +8,5 @@ try {
 async function updateSourceFile(sourceCode){
 	FS.truncate(sourceFile, 0);
 	FS.writeFile(sourceFile, sourceCode);
-	await Module.ccall("run_file", "number", [], []);
+	await Module.ccall("run_file", "number", [], [], {async: true}).then(function(){}).catch(function(){});
 }

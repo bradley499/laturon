@@ -36,7 +36,9 @@ typedef enum token_types
 	WHILE_START,
 	RETURN,
 	BREAK,
+	NEGATE,
 	ARRAY_LOCATION,
+	NO_OPERATION,
 } token_types;
 
 typedef struct token_t

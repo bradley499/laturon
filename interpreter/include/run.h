@@ -7,11 +7,12 @@
 
 typedef struct stack_value_t
 {
-	variable_value_t value;
+	variable_value_t *value;
 	char operation_type;
+	token_t *token;
 } stack_value_t;
 
-#define EXECUTION_STACK_MAX_MEMORY_SIZE 1000000
+#define EXECUTION_STACK_MAX_MEMORY_SIZE 30000
 #define EXECUTION_STACK_SIZE (EXECUTION_STACK_MAX_MEMORY_SIZE / sizeof(stack_value_t))
 
 // Reset the execution stack

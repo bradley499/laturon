@@ -5,8 +5,8 @@ try {
 	outputMessage("Failed to generate the required files", 2);
 }
 
-function updateSourceFile(sourceCode){
+async function updateSourceFile(sourceCode){
 	FS.truncate(sourceFile, 0);
 	FS.writeFile(sourceFile, sourceCode);
-	Module.ccall("run_file", "number", [], [])
+	await Module.ccall("run_file", "number", [], [], {async: true}).then(function(){}).catch(function(){});
 }

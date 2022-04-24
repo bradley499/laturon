@@ -6,6 +6,7 @@
 #include "tokenizer.h"
 #include "misc.h"
 #include "parse.h"
+#include "run.h"
 
 #ifndef VERSION
 #error "No version was defined during compilation"
@@ -23,39 +24,45 @@
 
 int run_file();
 
-FILE* fp = NULL;
+FILE *fp = NULL;
 
 #ifdef EMSCRIPTEN
-char run_state = 0;
-
-int EMSCRIPTEN_KEEPALIVE main() {
-	ready();
-	output("Version: "NUM_WRAPPER(VERSION), OUTPUT_INFO);
-	output("Build:   "NUM_WRAPPER(BUILDNUMBER), OUTPUT_INFO);
+int EMSCRIPTEN_KEEPALIVE versioning()
 #else
-int main(int argc, char **argv) {
-	if (argc != 2) {
+int versioning()
+#endif
+{
+	output("Version: " NUM_WRAPPER(VERSION), OUTPUT_INFO);
+	output("Build: " NUM_WRAPPER(BUILDNUMBER), OUTPUT_INFO);
+	return 0;
+}
+
+#ifndef EMSCRIPTEN
+int main(int argc, char **argv)
+{
+	if (argc != 2)
+	{
 		output("Please give a location of your source code.", OUTPUT_ERROR);
 		return 1;
 	}
 	fp = get_execution_source_file(argv[1]);
 	run_file();
-#endif
 	return 0;
 }
-
-int EMSCRIPTEN_KEEPALIVE run_file() {
-#ifdef EMSCRIPTEN
-	if (run_state == 1)
-	{
-		fclose(fp);
-		fp = NULL;
-	}
 #endif
-	if (fp == NULL) {
+
+#ifdef EMSCRIPTEN
+int EMSCRIPTEN_KEEPALIVE run_file()
+#else
+int run_file()
+#endif
+{
+	if (fp == NULL)
+	{
 #ifdef EMSCRIPTEN
 		fp = get_execution_source_file();
-		if (fp == NULL) {
+		if (fp == NULL)
+		{
 #endif
 			fatal_error(IO_ERROR);
 #ifdef EMSCRIPTEN
@@ -63,21 +70,26 @@ int EMSCRIPTEN_KEEPALIVE run_file() {
 		}
 #endif
 	}
-#ifdef EMSCRIPTEN
-	run_state = 1;
-#endif
-	parse_cleanup(1);
-	parse_init();
+	parse_cleanup();
+	variable_initialisation();
+	run_stack_reset();
 	tokenize_file(fp);
-#ifdef EMSCRIPTEN
-	set_load_state(TOKENIZING_DONE);
-	run_state = 2;
-#endif
 	fclose(fp);
 	fp = NULL;
-	parse_tokens();
+	parsed_function_scope_t *functions = NULL;
+	if (parse_tokens(&functions) == 0)
+	{
+#ifdef EMSCRIPTEN
+		set_load_state(EXECUTION_COMPLETED);
+#endif
+		return 0; // Nothing to execute
+	}
 #ifdef EMSCRIPTEN
 	set_load_state(PARSING_DONE);
+#endif
+	run(&functions);
+#ifdef EMSCRIPTEN
+	set_load_state(EXECUTION_COMPLETED);
 #endif
 	return 0;
 }

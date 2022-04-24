@@ -20,6 +20,8 @@
 		} catch { }
 		return false;
 	})();
+	let interpreterData = null;
+	let initialExecution = true;
 	let worker = false;
 	let executing = false;
 	let interpreterReady = false;
@@ -28,16 +30,21 @@
 	const interacts = [document.createElement({ true: "div", false: "textarea" }[chromium]), document.createElement("div")];
 	const buttons = [document.createElement("div"), document.createElement("div"), document.createElement("div"), document.createElement("div")];
 	loading.id = "loading";
+	let authorPictureBlob = null;
 	const authorPicture = await fetch("https://api.github.com/users/bradley499").then(response => response.json()).then(async data => {
 		return await fetch(data["avatar_url"]).then(image => image.blob()).catch(error => {
-			throw new Error(error);
+			return null;
 		});
 	}).catch(error => {
 		return null;
 	});
-	const authorPictureBlob = (window.URL || window.webkitURL).createObjectURL(authorPicture);
 	let authorPictureImg = document.createElement("img");
-	authorPictureImg.src = authorPictureBlob;
+	if (authorPicture == null) {
+		authorPictureBlob = null;
+	} else {
+		authorPictureBlob = (window.URL || window.webkitURL).createObjectURL(authorPicture);
+		authorPictureImg.src = authorPictureBlob;
+	}
 	let authorPictureDirection = (() => {
 		if (typeof gazeDetection !== "undefined") {
 			return gazeDetection.default;
@@ -180,14 +187,19 @@
 		interacts[1].classList.add("loading");
 	}
 	loadingState(null, false);
-	const changeExecutionState = (button) => {
+	let stopping = 0;
+	const changeExecutionState = async (button) => {
 		if (!interpreterReady) {
-			alertBuilder("Unable to run", "Sorry, but the interpreter is still being loaded... Until the interpreter has loaded, you'll have to wait before you can run your program.", null, null);
+			if (initialExecution) {
+				alertBuilder("Unable to run", "Sorry, but the interpreter is still being loaded... Until the interpreter has loaded, you'll have to wait before you can run your program.", null, null);
+			} else {
+				alertBuilder("Unable to run", "Sorry, but a new instance of the interpreter is still being loaded... Until this new instance of the interpreter has loaded, you'll have to wait before you can run your program.", null, null);
+			}
 			return;
 		}
 		let state = buttonData[2]["state"];
-		tooltipIter(buttons[2], 2);
 		if (state == 0 && button != null) {
+			tooltipIter(buttons[2], 2);
 			inputOutput[1].innerHTML = "";
 			buttons[2].classList.add("executing");
 			interactsContainer.classList.add("executing");
@@ -198,11 +210,24 @@
 			worker.postMessage({ "type": "sourceCode", "data": interacts[0].innerText });
 			loadingState("Tokenising source code", true);
 			return;
+		} else {
+			if (stopping == 2) {
+				stopping = 0;
+				tooltipIter(buttons[2], 2);
+			} else if (stopping == 0) {
+				inputEnabler(false);
+				worker.postMessage({ "type": "stop", "data": null });
+				stopping = 1;
+				return;
+			} else {
+				return;
+			}
 		}
 		buttons[2].classList.remove("executing");
 		interactsContainer.classList.remove("executing");
 		executing = false;
 		loadingState(null, false);
+		buttonData[2]["state"] = 0;
 	};
 	const load = async (button) => {
 		let empty = false;
@@ -384,6 +409,7 @@
 	interacts[1].classList = "interactive";
 	interacts[1].appendChild(loading);
 	const inputOutput = [[document.createElement("div"), document.createElement("input"), document.createElement("input")], document.createElement("div")];
+	let inputState = false;
 	const inputEnabler = (enabled) => {
 		for (let i = 1; i < 3; i++) {
 			if (enabled) {
@@ -392,16 +418,27 @@
 				inputOutput[0][i].setAttribute("disabled", "disabled");
 			}
 		}
+		inputState = enabled;
 		if (enabled) {
 			inputOutput[0][2].title = " Submit input";
 			inputOutput[0][1].placeholder = " Please type your input here...";
 			inputOutput[0][0].removeAttribute("title");
 			inputOutput[0][0].classList.remove("disabled");
+			inputOutput[0][1].focus();
 		} else {
+			inputOutput[0][1].value = "";
 			inputOutput[0][1].placeholder = "Input is currently disabled!";
 			inputOutput[0][0].title = "Input is currently disabled!";
 			inputOutput[0][0].classList.add("disabled");
 		}
+	};
+	const inputSender = (e) => {
+		e.preventDefault();
+		if (!inputState) {
+			return;
+		}
+		worker.postMessage({ "type": "input", "state": 1, "message": inputOutput[0][1].value });
+		inputEnabler(false);
 	};
 	const newOutput = (type, message) => {
 		let output = document.createElement("p");
@@ -436,24 +473,53 @@
 	loadingState("Loading...", true);
 	updateEditor();
 	// Web worker data transition
-	(async () => {
-		const interpreterData = await fetch("./assets/js/interpreter.json").then(response => response.json()).then(response => {
-			return response;
-		});
+	const newWorker = (interpreterData, silentCreation = false) => {
+		if (interpreterData == false) {
+			alertBuilder("Failed to load", "Sorry, but unfortunately the information required to load up the interpreter failed to load.\nThis means that you will be unable to execute your program, however you are still able to: load, edit, and save; your source code.", null, null);
+			return;
+		}
+		interpreterReady = false;
 		worker = new Worker("./assets/js/" + interpreterData["worker"]);
+		worker.postMessage({ "type": "startup", "data": [initialExecution, silentCreation] });
 		worker.onmessage = (e) => {
 			e = e.data;
 			switch (e["type"]) {
 				case "loading":
-					loadingState(["Loading interpreter...", null, "Parsing source code", null][e["state"]], (e["state"] != 1 && e["state"] != 3));
+					if (!(e["state"] == 0 && !initialExecution)) {
+						loadingState(["Loading interpreter...", null, "Parsing source code", null, null][e["state"]], (e["state"] != 1 && e["state"] < 3));
+						initialExecution = false;
+					}
 					if (e["state"] == 1 && !interpreterReady) {
 						interpreterReady = true;
+					} else if (e["state"] == 4) {
+						stopping = 2;
+						worker.terminate();
+						changeExecutionState(null);
+						newWorker(interpreterData, true);
 					}
+					break;
+				case "input":
+					inputEnabler(true);
+					inputOutput[0][2].addEventListener("click", inputSender);
 					break;
 				case "output":
 					newOutput(["info", "warning", "error", "generic"][e["state"]], e["message"]);
+					if (e["state"] == 2) {
+						stopping = 2;
+						worker.terminate();
+						changeExecutionState(null);
+						newWorker(interpreterData, true);
+					}
 					break;
 			}
 		};
+	};
+	(async () => {
+		interpreterData = await fetch("./assets/js/interpreter.json").then(response => response.json()).then(response => {
+			return response;
+		}).catch(r => {
+			return false;
+		});
+		newWorker(interpreterData);
 	})();
 })();

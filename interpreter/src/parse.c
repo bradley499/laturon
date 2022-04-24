@@ -3,20 +3,18 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <limits.h>
 #include "parse.h"
 #include "tokenizer.h"
-#include "scope.h"
+#include "variable.h"
 #include "misc.h"
 
-typedef struct parsed_object_type_t
+typedef struct parsed_function_type_t
 {
 	char *name;
-	int is_function;
-	int scope_type;
-	unsigned long long int numeric_reference;
-	scope_t *referenced_scope;
-	struct parsed_object_type_t *next;
-} parsed_object_type_t;
+	unsigned long long int parameters;
+	struct parsed_function_type_t *next;
+} parsed_function_type_t;
 
 typedef struct parsed_parent_relative_position
 {
@@ -24,113 +22,142 @@ typedef struct parsed_parent_relative_position
 	struct parsed_parent_relative_position *parent;
 } parsed_parent_relative_position;
 
-parsed_object_type_t *objects_root = NULL;
-parsed_object_type_t *objects_current = NULL;
-scope_t *scope_tree = NULL;
-scope_t *scope_current = NULL;
+parsed_function_type_t *function_definitions = NULL;
 parsed_parent_relative_position *relative_position_root = NULL;
 
-scope_t *parse_create_scope(char *name, int is_function, int scope_type, int line);
-int parse_scope_tree_append(scope_t *scope, int is_function, int parent_traversal);
-void parsed_parent_relative_position_update(unsigned int new, signed int relative_change);
-
-int parse_init()
+// Clean up function references
+void parse_cleanup_function_references()
 {
-	parse_cleanup(1);
-	scope_tree = parse_create_scope(NULL, BOOLEAN_TRUE, SCOPE_TYPE_FUNCTION, 0);
-	scope_tree->left = parse_create_scope("print", BOOLEAN_TRUE, SCOPE_TYPE_FUNCTION, 0);
-	scope_tree->left->left = parse_create_scope("input", BOOLEAN_TRUE, SCOPE_TYPE_FUNCTION, 0);
-	scope_current = NULL;
-	return 1;
+	parsed_function_type_t *current_function = function_definitions;
+	for (; current_function != NULL;)
+	{
+		free(current_function->name);
+		parsed_function_type_t *remove_function = current_function;
+		current_function = current_function->next;
+		free(remove_function);
+	}
+	function_definitions = NULL;
 }
 
-parsed_object_type_t *parse_object_type_new()
+// Create a new function object
+parsed_function_type_t *parse_function_type_new()
 {
-	parsed_object_type_t *object = xmalloc(sizeof(parsed_object_type_t));
+	parsed_function_type_t *object = xmalloc(sizeof(parsed_function_type_t));
 	object->name = NULL;
 	object->next = NULL;
 	return object;
 }
 
-scope_t *parse_create_scope(char *name, int is_function, int scope_type, int line)
+unsigned long long total_functions = 0;
+
+// Get function scope's numeric reference from `name` and `parameter_count`
+signed long long parse_get_function_scope_numeric(char *name, unsigned long long parameter_count)
 {
-	scope_t *scope = scope_new();
-	scope->type = scope_type;
-	parsed_object_type_t *object = parse_object_type_new();
-	if (name != NULL)
-		strcpy(object->name, name);
-	object->is_function = is_function;
-	object->numeric_reference = -1;
-	object->scope_type = scope_type;
-	object->referenced_scope = scope;
-	if (is_function && scope_type == SCOPE_TYPE_FUNCTION)
+	parsed_function_type_t *current_function = function_definitions;
+	if (parameter_count == 0)
 	{
-		parsed_object_type_t *current_object = objects_root;
-		for (; current_object != NULL;)
-		{
-			if (current_object->is_function && current_object->scope_type == SCOPE_TYPE_FUNCTION && current_object->name != NULL && strcmp(current_object->name, object->name) == 0)
-				syntax_error(DUPLICATE_FUNCTION_DEFINITION, line);
-			current_object = current_object->next;
-		}
+		if (strcmp(name, "input") == 0)
+			return -3;
 	}
-	if (objects_root == NULL)
+	else if (parameter_count == 1)
 	{
-		objects_root = object;
-		objects_current = object;
+		if (strcmp(name, "print") == 0)
+			return -2;
+		else if (strcmp(name, "str") == 0)
+			return -4;
+		else if (strcmp(name, "int") == 0)
+			return -5;
+		else if (strcmp(name, "float") == 0)
+			return -6;
+		else if (strcmp(name, "bool") == 0)
+			return -7;
+		else if (strcmp(name, "len") == 0)
+			return -8;
+		else if (strcmp(name, "type") == 0)
+			return -9;
+	}
+	if (current_function == NULL)
+		return 0;
+	signed long long numeric_reference = 1;
+	for (; current_function != NULL; numeric_reference++)
+	{
+		if (strcmp(name, current_function->name) == 0)
+		{
+			if (current_function->parameters == parameter_count)
+				return (total_functions - numeric_reference + 1);
+			return -1;
+		}
+		current_function = current_function->next;
+	}
+	return 0;
+}
+
+// Create a new function scope
+int parse_create_function_scope(char *name)
+{
+	total_functions++;
+	parsed_function_type_t *function_definition = parse_function_type_new();
+	if (name != NULL)
+	{
+		function_definition->name = xmalloc(strlen(name) + 1);
+		strcpy(function_definition->name, name);
 	}
 	else
-		objects_current->next = object;
-	return scope;
-}
-
-int parse_scope_tree_append(scope_t *scope, int is_function, int parent_traversal)
-{
-}
-
-void parsed_parent_relative_position_update(unsigned int new, signed int relative_change)
-{
-	parsed_parent_relative_position *current_relative_position = relative_position_root;
-	if (!new)
+		fatal_error(INVALID_SYNTAX_GENERIC);
+	parsed_function_type_t *current_function = function_definitions;
+	if (current_function == NULL)
+		function_definitions = function_definition;
+	else
 	{
-		if (current_relative_position != NULL)
-			relative_change = -(current_relative_position->position);
+		for (signed long long numeric_reference = 1;; numeric_reference++)
+		{
+			if (numeric_reference == LLONG_MAX)
+			{
+				free(function_definition);
+				fatal_error(TOO_BIG_NUMERIC);
+			}
+			if (strcmp(name, current_function->name) == 0)
+			{
+				total_functions--;
+				free(function_definition);
+				return 0;
+			}
+			if (current_function->next == NULL)
+			{
+				current_function->next = function_definition;
+				break;
+			}
+			else
+				current_function = current_function->next;
+		}
 	}
-	for (; current_relative_position->parent != NULL;)
-	{
-		current_relative_position->position += relative_change;
-		current_relative_position = current_relative_position->parent;
-	}
-	if (new)
-	{
-		parsed_parent_relative_position *new_relative_position = xmalloc(sizeof(parsed_parent_relative_position));
-		new_relative_position->position = relative_change;
-		new_relative_position->parent = relative_position_root;
-		relative_position_root = new_relative_position;
-	}
-	else if (relative_position_root != NULL)
-	{
-		current_relative_position = relative_position_root;
-		relative_position_root = relative_position_root->parent;
-		free(current_relative_position);
-		// Write a function to traverse a cursor/current/pointer up each parent...
-	}
+	return 1;
 }
 
 void parse_reformat_tokens(token_t **tokens);
+void parse_numeric_reformat(parsed_function_scope_t **function_scopes);
 
-int parse_tokens()
+int parse_tokens(parsed_function_scope_t **functions)
 {
 	token_t *tokens = token_get_head();
 	if (tokens == NULL)
 		return 0;
+	token_t *token = xmalloc(sizeof(token_t));
+	token->type = NO_OPERATION; // Create a no operation token to allow for rearrangement
+	token->next = tokens;
+	tokens = token;
 	parse_reformat_tokens(&tokens);
 	token_t *current_token = tokens;
-	token_t *previous_token = NULL;
-	int function_scope_parameters = 0;
-	int function_scope_parameters_declaration = 0;
-	int function_scope_unable = 0;
+	token_t *previous_token[2] = {NULL, NULL};
+	unsigned long long function_scope_unable = 0;
+	token_t *token_root_starting_point = token;
+	token_t *next_token = xmalloc(sizeof(token_t));
+	parsed_function_scope_t *function_scopes = NULL;
+	signed long long active_parameters = 0;
 	for (; current_token != NULL;)
 	{
+		if (function_scope_unable == 1 && !((current_token->type == SCOPE_OPEN && previous_token[0]->type == PARENTHESES_CLOSE) || current_token->type == PARENTHESES_CLOSE) && current_token->type != VARIABLE && !(current_token->type == OPERATOR && current_token->contents.numeric == (int)',') && current_token->type != PARENTHESES_CLOSE &&  !(current_token->type == PARENTHESES_OPEN && previous_token[0]->type == FUNCTION_DECLARATION))
+			syntax_error(INVALID_PARAMETERS, current_token->line);
 		switch (current_token->type)
 		{
 		case NOT_DEFINED:
@@ -140,306 +167,821 @@ int parse_tokens()
 		{
 			if (function_scope_unable == 0)
 			{
-				parse_scope_tree_append(parse_create_scope(current_token->contents, 1, SCOPE_TYPE_FUNCTION, current_token->line), 1, 0);
-				function_scope_unable++;
+				if (previous_token[0] != NULL)
+					previous_token[0]->next = NULL;
+				if (!parse_create_function_scope(current_token->contents.string))
+					syntax_error(DUPLICATE_FUNCTION_DEFINITION, current_token->line);
+				parsed_function_scope_t *new_function_scope = xmalloc(sizeof(function_scopes));
+				new_function_scope->function_token = current_token;
+				new_function_scope->next = function_scopes;
+				function_scopes = new_function_scope;
+				function_scope_unable = 1;
+				active_parameters = 0;
 			}
 			else
 				syntax_error(FUNCTION_DEFINITION_RECURSIVE, current_token->line);
 			break;
 		}
-		case FUNCTION_CALL:
-		{
-			parse_scope_tree_append(parse_create_scope(current_token->contents, 0, SCOPE_TYPE_FUNCTION_CALL, current_token->line), 0, 0);
-			break;
-		}
-		case VARIABLE:
-		{
-			if (current_token->next != NULL && current_token->next->type == OPERATOR && current_token->contents == '=')
-			{
-				parse_scope_tree_append(parse_create_scope(current_token->contents, 0, SCOPE_VARIABLE_UPDATE, current_token->line), 0, 0);
-				break;
-			}
-			parse_scope_tree_append(parse_create_scope(current_token->contents, 0, SCOPE_VARIABLE, current_token->line), 0, 0);
-			break;
-		}
-		case PARENTHESES_OPEN:
-		{
-			if (previous_token != NULL && (previous_token->type == FUNCTION_DECLARATION || previous_token->type == FUNCTION_CALL))
-			{
-				if (previous_token->type == FUNCTION_DECLARATION)
-				{
-					if (function_scope_parameters_declaration != 0)
-						syntax_error(SCOPE_OPEN_WITHIN_EXPRESSION, current_token->line);
-					else
-						function_scope_parameters_declaration = 1;
-				}
-				parse_scope_tree_append(parse_create_scope(current_token->contents, 0, SCOPE_TYPE_PARAMETER_START, current_token->line), 0, 0);
-				function_scope_parameters++;
-			}
-			else
-				parse_scope_tree_append(parse_create_scope(current_token->contents, 0, SCOPE_TYPE_CONTAINER, current_token->line), 0, 1);
-			break;
-		}
-		case PARENTHESES_CLOSE:
-		{
-			if (previous_token != NULL)
-			{
-				if (function_scope_parameters_declaration != 0)
-					parsed_parent_relative_position_update(0, 0);
-				function_scope_parameters_declaration = 0;
-			}
-			break;
-		}
-		case BRACKETS_OPEN:
-		{
-			if (previous_token != NULL && (previous_token->type == VARIABLE || previous_token->type == BRACKETS_CLOSE || previous_token->type == PARENTHESES_OPEN || previous_token->type == PARENTHESES_CLOSE))
-				parse_scope_tree_append(parse_create_scope(current_token->contents, 0, SCOPE_TYPE_ARRAY, current_token->line), 0, 1);
-			else
-				syntax_error(INVALID_VARIABLE_REFERENCE, current_token->line);
-			break;
-		}
-		case BRACKETS_CLOSE:
-		{
-			break;
-		}
 		case SCOPE_OPEN:
 		{
-			parse_scope_tree_append(parse_create_scope(current_token->contents, 0, SCOPE_TYPE_CONTAINER, current_token->line), 0, 0);
+			if (function_scope_unable > 0)
+				function_scope_unable++;
+			else
+				previous_token[1] = current_token;
 			break;
 		}
 		case SCOPE_CLOSE:
 		{
+			if (function_scope_unable > 2)
+				function_scope_unable--;
+			else if (function_scope_unable == 0)
+				previous_token[1] = current_token;
+			else if (function_scope_unable == 2)
+			{
+				function_scope_unable = 0;
+				token_t *terminating_token = current_token;
+				next_token->next = current_token->next;
+				previous_token[0]->next = NULL;
+				current_token = next_token;
+				free(terminating_token);
+				if (current_token->next->type != FUNCTION_DECLARATION && previous_token[1] != NULL)
+					previous_token[1]->next = current_token->next;
+			}
 			break;
 		}
 		case OPERATOR:
 		{
+			if (function_scope_unable > 0 && active_parameters != -1 && current_token->contents.numeric == (int)',')
+			{
+				active_parameters++;
+				if (active_parameters == LLONG_MAX)
+					syntax_error(PARAMETER_ABUSED, current_token->line);
+				if (previous_token[0]->type != PARENTHESES_OPEN && active_parameters == 1)
+					active_parameters++;
+			}
 			break;
 		}
-		case LITERAL:
+		case PARENTHESES_CLOSE:
 		{
-			break;
-		}
-		case NUMERIC:
-		{
-			break;
-		}
-		case EQUALITY:
-		{
-			break;
-		}
-		case NOT_EQUALITY:
-		{
-			break;
-		}
-		case LESS_OR_EQUALITY:
-		{
-			break;
-		}
-		case MORE_OR_EQUALITY:
-		{
-			break;
-		}
-		case AND:
-		{
-			break;
-		}
-		case OR:
-		{
-			break;
-		}
-		case INSERT:
-		{
-			break;
-		}
-		case REMOVE:
-		{
-			break;
-		}
-		case IF:
-		{
-			break;
-		}
-		case ELSE:
-		{
-			break;
-		}
-		case WHILE:
-		{
-			break;
-		}
-		case RETURN:
-		{
-			break;
-		}
-		case BREAK:
-		{
+			if (function_scope_unable > 0 && active_parameters >= 0)
+			{
+				if (previous_token[0]->type != PARENTHESES_OPEN && active_parameters == 0)
+					active_parameters++;
+				parsed_function_type_t *current_function = function_definitions;
+				if (current_function == NULL)
+					fatal_error(UNKNOWN_ERROR);
+				for (; current_function->next != NULL;)
+					current_function = current_function->next;
+				current_function->parameters = active_parameters;
+			}
+			active_parameters = -1;
 			break;
 		}
 		default:
+		{
+			if (function_scope_unable == 0)
+					previous_token[1] = current_token;
 			break;
 		}
-		previous_token = current_token;
+		}
+		previous_token[0] = current_token;
 		current_token = current_token->next;
 	}
+	free(next_token);
+	if (token_root_starting_point == NULL)
+	{
+		parse_cleanup();
+		return 0;
+	}
+	previous_token[1]->next = NULL;
+	parsed_function_scope_t *new_function_scope = xmalloc(sizeof(function_scopes));
+	new_function_scope->function_token = token_root_starting_point;
+	new_function_scope->next = function_scopes;
+	function_scopes = new_function_scope;
+	*functions = function_scopes;
+	parse_numeric_reformat(functions);
 	return 1;
 }
 
+// Restructure the format of tokens to account for stack machine operations
 void parse_reformat_tokens(token_t **tokens)
 {
-	token_t *current_token = *tokens;
+	token_t *root_token = *tokens;
+	token_t *current_token = root_token;
 	token_t *previous_token[3] = {NULL, NULL, NULL};
 	int operator_count = 0;
-	int operator_signing = 0;
 	for (; current_token != NULL;)
 	{
 		if (current_token->type == OPERATOR)
 		{
 			operator_count++;
-			if (current_token->contents == (char *)'&' || current_token->contents == (char *)'|')
+			if (current_token->contents.numeric == (int)'&' || current_token->contents.numeric == (int)'|')
 				syntax_error(INVALID_OPERATION, current_token->line);
-			if (operator_count != 1)
+			else if (current_token->contents.numeric == (int)'=')
 			{
-				if (current_token->contents == (char *)'-')
+				current_token->type = ASSIGN;
+				current_token->contents.numeric = 0;
+				operator_count = 0;
+			}
+			else 
+			{
+				if (current_token->contents.numeric == (int)'-')
 				{
-					operator_signing++;
-					if (operator_signing % 2 == 0)
-					{
-						if (previous_token[1] == NULL)
-							syntax_error(INVALID_OPERATION, current_token->line);
-						previous_token[1]->next = current_token->next;
-						current_token->contents = NULL;
-						previous_token[0]->contents = NULL;
-						free(previous_token[0]);
-						free(current_token);
-						previous_token[1] = previous_token[2];
-					}
+					if (operator_count != 1)
+							current_token->type = NEGATE;
+					else if (previous_token[0] != NULL && (previous_token[0]->type == ASSIGN || previous_token[0]->type == INSERT  || previous_token[0]->type == EQUALITY || previous_token[0]->type == NOT_EQUALITY || previous_token[0]->type == LESS_OR_EQUALITY || previous_token[0]->type == MORE_OR_EQUALITY || previous_token[0]->type == AND || previous_token[0]->type == OR || previous_token[0]->type == NEGATE || previous_token[0]->type == BRACKETS_OPEN || previous_token[0]->type == PARENTHESES_OPEN || previous_token[0]->type == RETURN || (previous_token[0]->type == OPERATOR && (previous_token[0]->contents.numeric == (int)'<' || previous_token[0]->contents.numeric == (int)'>'))))
+							current_token->type = NEGATE;
 				}
-				else if (current_token->contents == (char *)'+')
+				if (current_token->contents.numeric == (int)'+' && operator_count != 1)
 				{
 					// Remove unnecessary positivity statement
-					token_t *next_token = current_token->next;
-					current_token->contents = NULL;
 					token_t *remove_token = current_token;
-					current_token = next_token;
+					current_token = current_token->next;
 					free(remove_token);
-					previous_token[0]->next = next_token;
+					previous_token[0]->next = current_token;
 					continue;
 				}
 			}
 		}
-		else
+		else if (current_token->type == WHILE)
 		{
-			operator_count = 0;
-			operator_signing = 0;
+			int while_structure_valid = 0;
+			if (current_token->next != NULL && current_token->next->type == PARENTHESES_OPEN)
+				while_structure_valid = 1;
+			if (while_structure_valid == 0)
+				syntax_error(INVALID_WHILE, current_token->line);
 		}
+		else
+			operator_count = 0;
 		previous_token[2] = previous_token[1];
 		previous_token[1] = previous_token[0];
 		previous_token[0] = current_token;
 		current_token = current_token->next;
 	}
-	if (*tokens == NULL)
+	if (root_token == NULL)
 		syntax_error(INVALID_SYNTAX, 1);
-	current_token = *tokens;
+	current_token = root_token;
 	previous_token[0] = NULL;
 	previous_token[1] = NULL;
 	previous_token[2] = NULL;
-	struct function_call_token
+	struct preserved_call_token
 	{
+		int counter;
 		int parentheses_position;
+		int brackets_position;
+		int scope_position;
 		token_t *token;
-		struct function_call_token *previous;
-	} function_call_token;
-	struct function_call_token *function_call_tokens = NULL;
-	int paratheses_position = 0;
-	for (; current_token != NULL;)
+		struct preserved_call_token *previous;
+	};
+	struct array_value_identifiers
 	{
+		token_t *token;
+		struct array_value_identifiers *previous;
+	};
+	struct preserved_call_token *preserved_call_tokens = NULL;
+	int parentheses_position = 0;
+	int brackets_position = 0;
+	int scope_position = 0;
+	int iteration = 0;
+	int function_call = 0;
+	int function_scope[2] = {0, 0};
+	unsigned long long special_operation[6] = {0, 0, 0, 0, 0, 0}; // type, position increment (0 means insert), insert allowed, previous, return token line, hold
+	for (; current_token != NULL; iteration++)
+	{
+		int reorganised = 1;
+		int preserve_token = 0;
+		special_operation[5] = 0;
 		switch (current_token->type)
 		{
-		case FUNCTION_CALL:
+		case FUNCTION_DECLARATION:
 		{
-			// Store function call for later insertion
-			struct function_call_token *function_token = xmalloc(sizeof(struct function_call_token));
-			function_token->token = current_token;
-			function_token->parentheses_position = paratheses_position;
-			function_token->previous = function_call_tokens;
-			function_call_tokens = function_token;
-			previous_token[0]->next = current_token->next;
-			current_token = function_token->token;
-			paratheses_position++;
+			if (function_scope[0] != 0 || function_scope[1] == 1)
+				syntax_error(FUNCTION_DEFINITION_RECURSIVE, current_token->line);
+			function_scope[1] = 1;
+			break;
+		}
+		case PARENTHESES_OPEN:
+		case FUNCTION_CALL_PARAMETERS:
+		{
+			parentheses_position++;
+			if (special_operation[0] != 0)
+				special_operation[1]++;
 			break;
 		}
 		case PARENTHESES_CLOSE:
 		{
-			if (paratheses_position == 0)
+			if (parentheses_position == 0)
 				break;
-			paratheses_position--;
-			if (function_call_tokens == NULL)
+			parentheses_position--;
+			if (special_operation[0] != 0 && (current_token->next == NULL || (current_token->next != NULL && current_token->next->type != OPERATOR)))
+				special_operation[1]--;
+			else if (function_call == 0 && function_scope[1] == 1 && function_scope[0] == 0 && current_token->next != NULL && current_token->next->type == SCOPE_OPEN)
+				function_scope[0] = (scope_position + 1);
+			break;
+		}
+		case BRACKETS_OPEN:
+		{
+			brackets_position++;
+			break;
+		}
+		case BRACKETS_CLOSE:
+		{
+			if (brackets_position == 0)
 				break;
-			if (function_call_tokens->parentheses_position == paratheses_position)
+			brackets_position--;
+		}
+		case SCOPE_OPEN:
+		{
+			scope_position++;
+			break;
+		}
+		case SCOPE_CLOSE:
+		{
+			if (scope_position == 0)
+				break;
+			scope_position--;
+			if (function_scope[1] != 0 && (function_scope[0] - 1) == scope_position)
 			{
-				// Can insert function call previously stored
-				(function_call_tokens->token)->next = current_token->next;
-				current_token->next = function_call_tokens->token;
-				struct function_call_token *function_token = function_call_tokens;
-				function_call_tokens = function_call_tokens->previous;
-				free(function_token);
-				previous_token[2] = previous_token[1];
-				previous_token[1] = previous_token[0];
-				previous_token[0] = current_token;
-				current_token = current_token->next;
+				function_scope[0] = 0;
+				function_scope[1] = 0;
 			}
 			break;
 		}
+		case FUNCTION_CALL:
+		case IF:
+		case WHILE:
+		case ASSIGN:
 		case EQUALITY:
 		case NOT_EQUALITY:
 		case LESS_OR_EQUALITY:
 		case MORE_OR_EQUALITY:
 		case AND:
 		case OR:
+		case INSERT:
+		case OPERATOR:
+		case RETURN:
+		case NEGATE:
 		{
+			if (current_token->type == ASSIGN && (parentheses_position > 0 || brackets_position > 0))
+				syntax_error(INVALID_OPERATION, current_token->line);
 			if (previous_token[0] == NULL)
-				syntax_error(INVALID_SYNTAX, current_token->line);
-			switch (previous_token[0]->type)
 			{
-			case FUNCTION_CALL:
-			case LITERAL:
-			case NUMERIC:
-				break;
-			default:
-				syntax_error(INVALID_SYNTAX, current_token->line);
+				switch (current_token->type)
+				{
+				case ASSIGN:
+				case EQUALITY:
+				case NOT_EQUALITY:
+				case LESS_OR_EQUALITY:
+				case MORE_OR_EQUALITY:
+				case AND:
+				case OR:
+				case INSERT:
+				case OPERATOR:
+				case RETURN:
+					syntax_error(INVALID_OPERATION, current_token->line);
+					break;
+				case NEGATE:
+					syntax_error(INVALID_SYNTAX, current_token->line);
+					break;
+				default:
+					break;
+				}
+				reorganised = 1;
+			}
+			if (current_token->type == OPERATOR)
+				if (current_token->contents.numeric == (int)',')
+					break;
+			if (current_token->type == RETURN)
+			{
+				if (current_token->next != NULL && current_token->next->type == SCOPE_CLOSE)
+					syntax_error(EMPTY_RETURN, current_token->line);
+			}
+			switch (current_token->type)
+			{
+			case EQUALITY:
+			case NOT_EQUALITY:
+			case LESS_OR_EQUALITY:
+			case MORE_OR_EQUALITY:
+			case AND:
+			case OR:
+			case ASSIGN:
+			case INSERT:
+			case RETURN:
+			{
+				if (previous_token[0] == NULL)
+					syntax_error(INVALID_SYNTAX, current_token->line);
+				if (special_operation[0] != 0)
+					syntax_error(INVALID_OPERATION, current_token->line);
+				if (current_token->type == RETURN && function_scope[1] == 0)
+					syntax_error(RETURN_WITHOUT_FUNCTION, current_token->line);
+				special_operation[0] = current_token->type;
+				special_operation[1] = 1;
+				special_operation[2] = 0;
+				special_operation[3] = (int)&previous_token[0];
+				special_operation[4] = current_token->line;
+				special_operation[5] = 1;
+				token_t *token_remove = current_token;
+				previous_token[0]->next = current_token->next;
+				current_token = current_token->next;
+				if (previous_token[0] != NULL)
+					previous_token[0]->next = current_token;
+				preserve_token = 3;
+				token_destroy(token_remove);
 				break;
 			}
-			previous_token[1]->next = current_token;
-			previous_token[0]->next = current_token->next;
-			current_token->next = previous_token[0];
+			case FUNCTION_CALL:
+			{
+				if (current_token->next == NULL)
+					syntax_error(LINE_ENDED_INCORRECTLY, current_token->line);
+				if (previous_token[0] != NULL && (unsigned long long)&(previous_token[0]) == special_operation[3])
+				{
+					special_operation[2] = 2;
+				}
+				if (special_operation[0] != NOT_DEFINED)
+					special_operation[5] = 1;
+				function_call++;
+				if (current_token->next->type == PARENTHESES_OPEN)
+					current_token->next->type = FUNCTION_CALL_PARAMETERS;
+				preserve_token = 4;
+				break;
+			}
+			case OPERATOR:
+			{
+				if (special_operation[0] != NOT_DEFINED)
+					special_operation[1]--;
+				preserve_token = 1;
+				break;
+			}
+			case IF:
+			case NEGATE:
+				preserve_token = 1;
+				break;
+			case WHILE:
+				preserve_token = 5;
+				break;
+			default:
+				break;
+			}
+			switch (current_token->next->type)
+			{
+			case PARENTHESES_CLOSE:
+			{
+				if (special_operation[0] != RETURN && special_operation[0] != EQUALITY && special_operation[0] != NOT_EQUALITY && special_operation[0] != LESS_OR_EQUALITY && special_operation[0] != MORE_OR_EQUALITY && special_operation[0] != MORE_OR_EQUALITY && special_operation[0] != MORE_OR_EQUALITY && special_operation[0] != AND && special_operation[0] != OR)
+					syntax_error(INVALID_OPERATION, current_token->line);
+				break;
+			}
+			default:
+				break;
+			}
+			break;
+		}
+		case VARIABLE:
+		case LITERAL:
+		case NUMERIC:
+		case DOUBLE:
+		{
+			if (current_token->next != NULL && current_token->next->type == OPERATOR)
+				special_operation[1]++;
 			break;
 		}
 		default:
+		{
+			if (special_operation[0] != 0)
+			{
+				if (current_token->next != NULL && current_token->next->type != OPERATOR)
+					special_operation[1]--;
+			}
+			reorganised = 0;
 			break;
 		}
-		previous_token[2] = previous_token[1];
-		previous_token[1] = previous_token[0];
-		previous_token[0] = current_token;
-		current_token = current_token->next;
+		}
+		if (special_operation[1] == ULLONG_MAX)
+			special_operation[1] = 0;
+		if (special_operation[2] != 2)
+		{
+			if (preserve_token != 3 && special_operation[0] != 0 && special_operation[1] == !(current_token->type == FUNCTION_CALL || current_token->type == FUNCTION_DECLARATION || current_token->type == IF || current_token->type == WHILE || current_token->type == RETURN) && special_operation[5] == 0)
+				special_operation[2] = 1;
+		}
+		else
+			special_operation[2] = 0;
+		if (iteration == 0 && reorganised == 1)
+		{
+			if (current_token->next != NULL)
+			{
+				if (current_token->next->type != PARENTHESES_OPEN)
+				{
+					root_token = current_token->next;
+					*tokens = root_token;
+				}
+				else
+					iteration--;
+			}
+			else
+				syntax_error(INVALID_SYNTAX, current_token->line);
+		}
+		if (preserve_token == 1 || preserve_token == 4 || preserve_token == 5)
+		{
+			// Storing for later insertion
+			struct preserved_call_token *preserved_token = xmalloc(sizeof(struct preserved_call_token));
+			preserved_token->token = current_token;
+			preserved_token->counter = 2;
+			preserved_token->parentheses_position = parentheses_position;
+			preserved_token->brackets_position = brackets_position;
+			preserved_token->scope_position = scope_position;
+			preserved_token->previous = preserved_call_tokens;
+			preserved_call_tokens = preserved_token;
+			switch (preserve_token)
+			{
+			case 1:
+			{
+				if (previous_token[0] != NULL)
+					previous_token[0]->next = current_token->next;
+				else
+					previous_token[0] = current_token;
+				break;
+			}
+			case 4:
+			{
+				token_t *new_token = xmalloc(sizeof(token_t));
+				memcpy(new_token, current_token, sizeof(token_t));
+				new_token->type = FUNCTION_CALL_HOST; // Declare start of function call
+				if (previous_token[0] != NULL)
+					previous_token[0]->next = new_token;
+				else
+				{
+					new_token->next = current_token->next;
+					previous_token[0] = new_token;
+					root_token = new_token;
+					*tokens = root_token;
+				}
+				break;
+			}
+			case 5:
+			{
+				token_t *new_token = xmalloc(sizeof(token_t));
+				memcpy(new_token, current_token, sizeof(token_t));
+				new_token->type = WHILE_START; // Declare start of while loop
+				if (previous_token[0] != NULL)
+					previous_token[0]->next = new_token;
+				else
+				{
+					new_token->next = current_token->next;
+					previous_token[0] = new_token;
+					root_token = new_token;
+					*tokens = root_token;
+				}
+				break;
+			}
+			}
+			current_token->supporting_reference = previous_token[0];
+			current_token = current_token->next;
+			continue;
+		}
+		else if (preserved_call_tokens != NULL && preserved_call_tokens->parentheses_position == parentheses_position && preserved_call_tokens->brackets_position == brackets_position && preserved_call_tokens->scope_position == scope_position)
+		{
+			// Reinserting previously stored values
+			int additional_insertion = 0;
+			do
+			{
+				if (additional_insertion == 1)
+					current_token = current_token->next;
+				struct preserved_call_token *preserved_token = preserved_call_tokens;
+				preserved_call_tokens = preserved_call_tokens->previous;
+				token_t *restored_token = preserved_token->token;
+				if (restored_token->type == FUNCTION_CALL)
+					function_call--;
+				restored_token->next = current_token->next;
+				current_token->next = restored_token;
+				free(preserved_token);
+				additional_insertion = 1;
+			} while (preserved_call_tokens != NULL && preserved_call_tokens->parentheses_position == parentheses_position && preserved_call_tokens->brackets_position == brackets_position && preserved_call_tokens->scope_position == scope_position);
+			preserve_token = 2;
+			if (special_operation[2] == 1)
+				current_token = current_token->next;
+		}
+		else if (special_operation[2] == 1)
+		{
+			if (special_operation[0] == RETURN)
+				preserve_token = 2;
+			else
+				preserve_token = 1;
+		}
+		else if (preserve_token < 2)
+			preserve_token = 1;
+		else if (preserve_token == 3)
+			continue;
+		int special_operation_insertion = 1;
+		for (; (preserve_token > 0 && current_token != NULL); preserve_token--)
+		{
+			previous_token[2] = previous_token[1];
+			previous_token[1] = previous_token[0];
+			previous_token[0] = current_token;
+			if (special_operation[2] == 1 && special_operation_insertion)
+			{
+				if (current_token->next != NULL && special_operation[0] != RETURN)
+					preserve_token = 2;
+				special_operation_insertion = 0;
+				token_t *special_token = xmalloc(sizeof(token_t));
+				special_token->type = special_operation[0];
+				special_token->next = current_token->next;
+				current_token->next = special_token;
+				special_operation[0] = 0;
+				special_operation[1] = 0;
+				special_operation[2] = 0;
+			}
+			current_token = current_token->next;
+		}
 	}
-	if (function_call_tokens != NULL)
-		syntax_error(SCOPE_CLOSE_UNABLE, function_call_tokens->token->line);
+	int additional_insertion = 0;
+	for (; (preserved_call_tokens != NULL && preserved_call_tokens->parentheses_position == parentheses_position && preserved_call_tokens->brackets_position == brackets_position && preserved_call_tokens->scope_position == scope_position);)
+	{
+		// Reinserting previously stored values
+		if (additional_insertion == 1)
+			current_token = current_token->next;
+		struct preserved_call_token *preserved_token = preserved_call_tokens;
+		preserved_call_tokens = preserved_call_tokens->previous;
+		token_t *restored_token = preserved_token->token;
+		restored_token->next = current_token->next;
+		current_token->next = restored_token;
+		free(preserved_token);
+		additional_insertion = 1;
+	}
+	if (additional_insertion == 1)
+		current_token->next = NULL;
+	if (special_operation[0] != 0)
+	{
+		token_t *special_token = xmalloc(sizeof(token_t));
+		special_token->type = special_operation[0];
+		special_token->next = NULL;
+		previous_token[0]->next = special_token;
+	}
+	if (preserved_call_tokens != NULL)
+		syntax_error(SCOPE_CLOSE_UNABLE, preserved_call_tokens->token->line);
 }
 
-void parse_cleanup(int destroy_scopes)
+typedef struct parsed_variable_type_t
 {
-	parsed_object_type_t *object = objects_root;
-	for (; object != NULL;)
+	unsigned long long numeric_reference;
+	signed long long function_numeric_reference;
+	char *name;
+	struct parsed_variable_type_t *next;
+} parsed_variable_type_t;
+
+parsed_variable_type_t *parse_variable_references = NULL;
+
+// Clean up variable references
+void parse_cleanup_variable_references()
+{
+	parsed_variable_type_t *current_variable = parse_variable_references;
+	for (; current_variable != NULL;)
 	{
-		parsed_object_type_t *object_next = object->next;
-		if (object->name != NULL)
-			free(object->name);
-		parsed_object_type_t *object_current = object;
-		free(object_current);
-		object = object_next;
+		parsed_variable_type_t *remove_variable = current_variable;
+		current_variable = current_variable->next;
+		free(current_variable->name);
+		free(remove_variable);
 	}
-	if (destroy_scopes)
-		scope_destroy(scope_tree);
+	parse_variable_references = NULL;
+}
+
+// Assign a numeric reference to a variable by name and scope
+variable_id parse_get_variable_numeric(char *name, int function_numeric_reference)
+{
+	if (strcmp(name, "false") == 0)
+		return BOOLEAN_FALSE;
+	else if (strcmp(name, "true") == 0)
+		return BOOLEAN_TRUE;
+	else if (strcmp(name, "null") == 0)
+		return VALUE_NULL;
+	parsed_variable_type_t *new_variable = xmalloc(sizeof(parsed_variable_type_t));
+	new_variable->name = xmalloc(strlen(name) + 1);
+	new_variable->function_numeric_reference = function_numeric_reference;
+	strcpy(new_variable->name, name);
+	if (parse_variable_references == NULL)
+	{
+		new_variable->numeric_reference = VARIABLE_NUMERIC_REFERENCE_START;
+		parse_variable_references = new_variable;
+		return VARIABLE_NUMERIC_REFERENCE_START;
+	}
+	parsed_variable_type_t *current_variable = parse_variable_references;
+	variable_id numeric_reference = VARIABLE_NUMERIC_REFERENCE_START;
+	for (; current_variable != NULL; numeric_reference++)
+	{
+		if (numeric_reference == VARIABLE_UNASSIGNED)
+		{
+			free(new_variable);
+			fatal_error(TOO_BIG_NUMERIC);
+		}
+		if (strcmp(current_variable->name, name) == 0)
+		{
+			if (current_variable->function_numeric_reference == 0 || current_variable->function_numeric_reference == function_numeric_reference)
+				return current_variable->numeric_reference;
+		}
+		if (current_variable->next == NULL)
+		{
+			new_variable->numeric_reference = ++numeric_reference;
+			current_variable->next = new_variable;
+			return numeric_reference;
+		}
+		current_variable = current_variable->next;
+	}
+	fatal_error(UNKNOWN_ERROR);
+	return 0;
+}
+
+// Convertion function and variable references to numeric values
+void parse_numeric_reformat(parsed_function_scope_t **function_scopes)
+{
+	parsed_function_scope_t *root_function = *function_scopes;
+	parsed_function_scope_t *current_function = root_function;
+	for (signed long long function_count = 0; current_function != NULL; function_count++)
+	{
+		if (function_count == LLONG_MAX)
+			fatal_error(TOO_BIG_NUMERIC);
+		token_t *current_token = current_function->function_token;
+		token_t *previous_token = NULL;
+		int within_array = 0;
+		struct function_call_parameter
+		{
+			unsigned long long count;
+			unsigned long long array_scope;
+			struct function_call_parameter *parent;
+		};
+		struct function_call_parameter *parameter_stack = NULL;
+		struct function_parameter_variable
+		{
+			variable_id variable_id;
+			struct function_parameter_variable *previous;
+		};
+		struct function_parameter_variable *parameter_variable_stack = NULL;
+		int is_function_declaration = 0;
+		for (; current_token != NULL;)
+		{
+			int removable = 0;
+			switch (current_token->type)
+			{
+			case FUNCTION_DECLARATION:
+			{
+				is_function_declaration = 1;
+				break;
+			}
+			case FUNCTION_CALL:
+			{
+				if (parameter_stack == NULL)
+					syntax_error(INVALID_FUNCTION_PARAMETERS, current_token->line);
+				signed long long function_id = parse_get_function_scope_numeric(current_token->contents.string, parameter_stack->count);
+				struct function_call_parameter *parameters = parameter_stack;
+				parameter_stack = parameters->parent;
+				free(parameters);
+				if (function_id == 0)
+					syntax_error(NO_FUNCTION_REFERENCE, current_token->line);
+				else if (function_id == -1)
+					syntax_error(INVALID_FUNCTION_PARAMETERS, current_token->line);
+				else if (function_id < -1)
+					function_id++;
+				free(current_token->contents.string);
+				current_token->contents.numeric = function_id;
+				break;
+			}
+			case VARIABLE:
+			{
+				variable_id variable_id = parse_get_variable_numeric(current_token->contents.string, function_count);
+				free(current_token->contents.string);
+				current_token->contents.numeric = variable_id;
+				if (is_function_declaration)
+				{
+					struct function_parameter_variable* parameter = xmalloc(sizeof(struct function_parameter_variable));
+					parameter->variable_id = variable_id;
+					parameter->previous = parameter_variable_stack;
+					parameter_variable_stack = parameter;
+				}
+				break;
+			}
+			case FUNCTION_CALL_PARAMETERS:
+			{
+				struct function_call_parameter *parameters = xmalloc(sizeof(struct function_call_parameter));
+				if (current_token->next != NULL && current_token->next->type != PARENTHESES_CLOSE)
+					parameters->count = 1;
+				parameters->array_scope = within_array;
+				if (parameter_stack == NULL)
+					parameter_stack = parameters;
+				else
+				{
+					parameters->parent = parameter_stack;
+					parameter_stack = parameters;
+				}
+				removable = 1;
+			}
+			case OPERATOR:
+			{
+				if (current_token->contents.numeric == (int)',')
+				{
+					if (is_function_declaration == 0)
+					{
+						if (parameter_stack == NULL && within_array == 0)
+							syntax_error(INVALID_SYNTAX, current_token->line);
+						if (parameter_stack != NULL && parameter_stack->array_scope == within_array)
+							parameter_stack->count++;
+					}
+					removable = 1;
+				}
+				break;
+			}
+			case PARENTHESES_OPEN:
+			{
+				removable = 1;
+				break;
+			}
+			case BRACKETS_OPEN:
+			{
+				within_array++;
+				break;
+			}
+			case BRACKETS_CLOSE:
+			{
+				within_array--;
+				break;
+			}
+			case SCOPE_OPEN:
+			{
+				if (is_function_declaration == 1)
+				{
+					is_function_declaration = 0;
+					unsigned long long line = 0;
+					if (previous_token != NULL)
+						line = previous_token->line;
+					for (; parameter_variable_stack != NULL;)
+					{
+						token_t *next_token = current_token->next;
+						token_t *parameter_variable_assign = xmalloc(sizeof(token_t));
+						parameter_variable_assign->line = line;
+						parameter_variable_assign->type = VARIABLE;
+						struct function_parameter_variable *current_parameter = parameter_variable_stack;
+						parameter_variable_assign->contents.numeric = current_parameter->variable_id;
+						parameter_variable_stack = parameter_variable_stack->previous;
+						free(current_parameter);
+						current_token->next = parameter_variable_assign;
+						current_token = current_token->next;
+						token_t *parameter_assign = xmalloc(sizeof(token_t));
+						parameter_assign->next = next_token;
+						parameter_assign->line = line;
+						parameter_assign->type = ASSIGN;
+						parameter_assign->contents.numeric = 1;
+						current_token->next = parameter_assign;
+						current_token = current_token->next;
+					}
+				}
+				break;
+			}
+			case SCOPE_CLOSE:
+			{
+				if (current_token->next == NULL && function_count > 0)
+					removable = 1;
+				break;
+			}
+			case PARENTHESES_CLOSE:
+			{
+				removable = 1;
+				break;
+			}
+			default:
+				break;
+			}
+			if (is_function_declaration == 1)
+				removable = 1;
+			if (removable == 1)
+			{
+				if (previous_token != NULL)
+					previous_token->next = current_token->next;
+				else
+					current_function->function_token = current_token->next;
+				token_t *remove = current_token;
+				current_token = current_token->next;
+				free(remove);
+				continue;
+			}
+			previous_token = current_token;
+			current_token = current_token->next;
+		}
+		if (parameter_stack != NULL)
+			fatal_error(STACK_REFERENCE_ERROR);
+		current_function = current_function->next;
+	}
+}
+
+void parse_cleanup()
+{
+	parsed_function_type_t *function_definition = function_definitions;
+	for (; function_definition != NULL;)
+	{
+		parsed_function_type_t *function_definition_next = function_definition->next;
+		if (function_definition->name != NULL)
+			free(function_definition->name);
+		parsed_function_type_t *object_current = function_definition;
+		free(object_current);
+		function_definition = function_definition_next;
+	}
+	parse_cleanup_function_references();
+	parse_cleanup_variable_references();
 }
 
 #endif

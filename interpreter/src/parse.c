@@ -494,9 +494,7 @@ void parse_reformat_tokens(token_t **tokens)
 				if (current_token->next == NULL)
 					syntax_error(LINE_ENDED_INCORRECTLY, current_token->line);
 				if (previous_token[0] != NULL && (unsigned long long)&(previous_token[0]) == special_operation[3])
-				{
 					special_operation[2] = 2;
-				}
 				if (special_operation[0] != NOT_DEFINED)
 					special_operation[5] = 1;
 				function_call++;
@@ -512,8 +510,13 @@ void parse_reformat_tokens(token_t **tokens)
 				preserve_token = 1;
 				break;
 			}
-			case IF:
 			case NEGATE:
+			{
+				special_operation[5] = 1;
+				preserve_token = 1;
+				break;
+			}
+			case IF:
 				preserve_token = 1;
 				break;
 			case WHILE:

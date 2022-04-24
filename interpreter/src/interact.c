@@ -213,6 +213,9 @@ void error_code(error_codes code)
 	case VALUE_NOT_SET:
 		copy_string(buffer, "Attempted to use a variable which has not been set yet.");
 		break;
+	case ZERO_DIVISION_ERROR:
+		copy_string(buffer, "Zero division error.");
+		break;
 	case UNKNOWN_ERROR:
 	default:
 		copy_string(buffer, "An unknown error.");
@@ -270,9 +273,11 @@ void error_code_lined(error_codes code, unsigned long long line)
 		snprintf(buffer, ERROR_MESSAGE_SIZE, "Too many functions or variables are declared within your program to be handled within memory. On line: %lld", line);
 		break;
 	case VALUE_NOT_SET:
-		copy_string(buffer, "Attempted to use a variable which has not been set yet.");
+		snprintf(buffer, "Attempted to use a variable which has not been set yet. On line: %lld\n", line);
 		break;
-
+	case ZERO_DIVISION_ERROR:
+		snprintf(buffer, "Zero division error. On line: %lld\n", line);
+		break;
 	case UNKNOWN_ERROR:
 	default:
 		snprintf(buffer, ERROR_MESSAGE_SIZE, "An unknown error. On line: %lld", line);

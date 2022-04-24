@@ -88,18 +88,14 @@ int run_stack_size_assigned_ok(unsigned char size)
 		return 0;
 	unsigned long long relative_stack_position = (execution_stack_position - 1);
 	if (execution_stack[relative_stack_position]->operation_type == NOT_DEFINED)
-	{
 		if (!variable_value_assigned(variable_get_host_id(execution_stack[relative_stack_position]->value->variable_id_reference[VARIABLE_ID_TYPE_POSITIONAL]), 0))
 			return 0;
-	}
 	if (size == 2)
 	{
 		relative_stack_position--;
 		if (execution_stack[relative_stack_position]->operation_type == NOT_DEFINED)
-		{
 			if (!variable_value_assigned(variable_get_host_id(execution_stack[relative_stack_position]->value->variable_id_reference[VARIABLE_ID_TYPE_POSITIONAL]), 0))
 				return 0;
-		}
 	}
 	return 1;
 }
@@ -248,8 +244,8 @@ struct run_step_state run_stack_step(token_t *token, parsed_function_scope_t *fu
 			fatal_error(STACK_REFERENCE_ERROR);
 		int value_types[2] = {0, execution_stack[secondary_value(relative_stack_position)]->value->type};
 		signed long long c = token->contents.numeric;
-		if (!run_stack_size_assigned_ok(c != (signed long long)'!'))
-			fatal_error(STACK_REFERENCE_ERROR);
+		if (!run_stack_size_assigned_ok(1 + (c != (signed long long)'!')))
+			fatal_error(VALUE_NOT_SET);
 		if (c != (signed long long)'!')
 		{
 			if (relative_stack_position < 2)
@@ -276,9 +272,9 @@ struct run_step_state run_stack_step(token_t *token, parsed_function_scope_t *fu
 				}
 				else if (value_types[1] == VARIABLE_DOUBLE)
 				{
-					if ((long double)execution_stack[secondary_value(relative_stack_position)]->value->contents.numeric > 0 && execution_stack[initial_value(relative_stack_position)]->value->contents.floating > (DBL_MAX - (long double)execution_stack[secondary_value(relative_stack_position)]->value->contents.numeric))
+					if ((long double)execution_stack[secondary_value(relative_stack_position)]->value->contents.numeric > 0 && execution_stack[initial_value(relative_stack_position)]->value->contents.floating > (LDBL_MAX - (long double)execution_stack[secondary_value(relative_stack_position)]->value->contents.numeric))
 						overflow_underflow = OVERFLOW;
-					else if ((long double)execution_stack[secondary_value(relative_stack_position)]->value->contents.numeric < 0 && execution_stack[initial_value(relative_stack_position)]->value->contents.floating < (DBL_MIN - (long double)execution_stack[secondary_value(relative_stack_position)]->value->contents.numeric))
+					else if ((long double)execution_stack[secondary_value(relative_stack_position)]->value->contents.numeric < 0 && execution_stack[initial_value(relative_stack_position)]->value->contents.floating < (-LDBL_MAX - (long double)execution_stack[secondary_value(relative_stack_position)]->value->contents.numeric))
 						overflow_underflow = UNDERFLOW;
 					long double result = (execution_stack[initial_value(relative_stack_position)]->value->contents.numeric + execution_stack[secondary_value(relative_stack_position)]->value->contents.floating);
 					run_stack_free_value();
@@ -295,9 +291,9 @@ struct run_step_state run_stack_step(token_t *token, parsed_function_scope_t *fu
 			{
 				if (value_types[1] == VARIABLE_INT || value_types[1] == VARIABLE_BOOLEAN)
 				{
-					if (execution_stack[secondary_value(relative_stack_position)]->value->contents.floating > 0 && (long double)execution_stack[initial_value(relative_stack_position)]->value->contents.numeric > (DBL_MAX - execution_stack[secondary_value(relative_stack_position)]->value->contents.floating))
+					if (execution_stack[secondary_value(relative_stack_position)]->value->contents.floating > 0 && (long double)execution_stack[initial_value(relative_stack_position)]->value->contents.numeric > (LDBL_MAX - execution_stack[secondary_value(relative_stack_position)]->value->contents.floating))
 						overflow_underflow = OVERFLOW;
-					else if (execution_stack[secondary_value(relative_stack_position)]->value->contents.floating < 0 && (long double)execution_stack[initial_value(relative_stack_position)]->value->contents.numeric < (DBL_MIN - execution_stack[secondary_value(relative_stack_position)]->value->contents.floating))
+					else if (execution_stack[secondary_value(relative_stack_position)]->value->contents.floating < 0 && (long double)execution_stack[initial_value(relative_stack_position)]->value->contents.numeric < (-LDBL_MAX - execution_stack[secondary_value(relative_stack_position)]->value->contents.floating))
 						overflow_underflow = UNDERFLOW;
 					long double result = (execution_stack[initial_value(relative_stack_position)]->value->contents.floating + (long double)execution_stack[secondary_value(relative_stack_position)]->value->contents.numeric);
 					run_stack_free_value();
@@ -309,9 +305,9 @@ struct run_step_state run_stack_step(token_t *token, parsed_function_scope_t *fu
 				}
 				else if (value_types[1] == VARIABLE_DOUBLE)
 				{
-					if (execution_stack[secondary_value(relative_stack_position)]->value->contents.floating > 0 && execution_stack[initial_value(relative_stack_position)]->value->contents.floating > (DBL_MAX - execution_stack[secondary_value(relative_stack_position)]->value->contents.floating))
+					if (execution_stack[secondary_value(relative_stack_position)]->value->contents.floating > 0 && execution_stack[initial_value(relative_stack_position)]->value->contents.floating > (LDBL_MAX - execution_stack[secondary_value(relative_stack_position)]->value->contents.floating))
 						overflow_underflow = OVERFLOW;
-					else if (execution_stack[secondary_value(relative_stack_position)]->value->contents.floating < 0 && execution_stack[initial_value(relative_stack_position)]->value->contents.floating < (DBL_MIN - execution_stack[secondary_value(relative_stack_position)]->value->contents.floating))
+					else if (execution_stack[secondary_value(relative_stack_position)]->value->contents.floating < 0 && execution_stack[initial_value(relative_stack_position)]->value->contents.floating < (-LDBL_MAX - execution_stack[secondary_value(relative_stack_position)]->value->contents.floating))
 						overflow_underflow = UNDERFLOW;
 					long double result = (execution_stack[initial_value(relative_stack_position)]->value->contents.floating + execution_stack[secondary_value(relative_stack_position)]->value->contents.floating);
 					run_stack_free_value();
@@ -368,9 +364,9 @@ struct run_step_state run_stack_step(token_t *token, parsed_function_scope_t *fu
 				}
 				else if (value_types[1] == VARIABLE_DOUBLE)
 				{
-					if ((long double)execution_stack[secondary_value(relative_stack_position)]->value->contents.numeric < 0 && execution_stack[initial_value(relative_stack_position)]->value->contents.floating > (DBL_MAX + (long double)execution_stack[secondary_value(relative_stack_position)]->value->contents.numeric))
+					if ((long double)execution_stack[secondary_value(relative_stack_position)]->value->contents.numeric < 0 && execution_stack[initial_value(relative_stack_position)]->value->contents.floating > (LDBL_MAX + (long double)execution_stack[secondary_value(relative_stack_position)]->value->contents.numeric))
 						overflow_underflow = OVERFLOW;
-					else if ((long double)execution_stack[secondary_value(relative_stack_position)]->value->contents.numeric > 0 && execution_stack[initial_value(relative_stack_position)]->value->contents.floating < (DBL_MIN + (long double)execution_stack[secondary_value(relative_stack_position)]->value->contents.numeric))
+					else if ((long double)execution_stack[secondary_value(relative_stack_position)]->value->contents.numeric > 0 && execution_stack[initial_value(relative_stack_position)]->value->contents.floating < (-LDBL_MAX + (long double)execution_stack[secondary_value(relative_stack_position)]->value->contents.numeric))
 						overflow_underflow = UNDERFLOW;
 					long double result = (execution_stack[initial_value(relative_stack_position)]->value->contents.numeric - execution_stack[secondary_value(relative_stack_position)]->value->contents.floating);
 					run_stack_free_value();
@@ -387,9 +383,9 @@ struct run_step_state run_stack_step(token_t *token, parsed_function_scope_t *fu
 			{
 				if (value_types[1] == VARIABLE_INT || value_types[1] == VARIABLE_BOOLEAN)
 				{
-					if (execution_stack[secondary_value(relative_stack_position)]->value->contents.floating < 0 && (long double)execution_stack[initial_value(relative_stack_position)]->value->contents.numeric > (DBL_MAX + execution_stack[secondary_value(relative_stack_position)]->value->contents.floating))
+					if (execution_stack[secondary_value(relative_stack_position)]->value->contents.floating < 0 && (long double)execution_stack[initial_value(relative_stack_position)]->value->contents.numeric > (LDBL_MAX + execution_stack[secondary_value(relative_stack_position)]->value->contents.floating))
 						overflow_underflow = OVERFLOW;
-					else if (execution_stack[secondary_value(relative_stack_position)]->value->contents.floating > 0 && (long double)execution_stack[initial_value(relative_stack_position)]->value->contents.numeric < (DBL_MIN + execution_stack[secondary_value(relative_stack_position)]->value->contents.floating))
+					else if (execution_stack[secondary_value(relative_stack_position)]->value->contents.floating > 0 && (long double)execution_stack[initial_value(relative_stack_position)]->value->contents.numeric < (-LDBL_MAX + execution_stack[secondary_value(relative_stack_position)]->value->contents.floating))
 						overflow_underflow = UNDERFLOW;
 					long double result = (execution_stack[initial_value(relative_stack_position)]->value->contents.floating - (long double)execution_stack[secondary_value(relative_stack_position)]->value->contents.numeric);
 					run_stack_free_value();
@@ -401,9 +397,9 @@ struct run_step_state run_stack_step(token_t *token, parsed_function_scope_t *fu
 				}
 				else if (value_types[1] == VARIABLE_DOUBLE)
 				{
-					if (execution_stack[secondary_value(relative_stack_position)]->value->contents.floating < 0 && execution_stack[initial_value(relative_stack_position)]->value->contents.floating > (DBL_MAX + execution_stack[secondary_value(relative_stack_position)]->value->contents.floating))
+					if (execution_stack[secondary_value(relative_stack_position)]->value->contents.floating < 0 && execution_stack[initial_value(relative_stack_position)]->value->contents.floating > (LDBL_MAX + execution_stack[secondary_value(relative_stack_position)]->value->contents.floating))
 						overflow_underflow = OVERFLOW;
-					else if (execution_stack[secondary_value(relative_stack_position)]->value->contents.floating > 0 && execution_stack[initial_value(relative_stack_position)]->value->contents.floating < (DBL_MIN + execution_stack[secondary_value(relative_stack_position)]->value->contents.floating))
+					else if (execution_stack[secondary_value(relative_stack_position)]->value->contents.floating > 0 && execution_stack[initial_value(relative_stack_position)]->value->contents.floating < (-LDBL_MAX + execution_stack[secondary_value(relative_stack_position)]->value->contents.floating))
 						overflow_underflow = UNDERFLOW;
 					long double result = (execution_stack[initial_value(relative_stack_position)]->value->contents.floating - execution_stack[secondary_value(relative_stack_position)]->value->contents.floating);
 					run_stack_free_value();
@@ -443,13 +439,13 @@ struct run_step_state run_stack_step(token_t *token, parsed_function_scope_t *fu
 				}
 				else if (value_types[1] == VARIABLE_DOUBLE)
 				{
-					if ((execution_stack[initial_value(relative_stack_position)]->value->contents.numeric == -1) && (execution_stack[secondary_value(relative_stack_position)]->value->contents.floating == DBL_MIN))
+					if ((execution_stack[initial_value(relative_stack_position)]->value->contents.numeric == -1) && (execution_stack[secondary_value(relative_stack_position)]->value->contents.floating == -LDBL_MAX))
 						overflow_underflow = OVERFLOW;
-					else if ((execution_stack[secondary_value(relative_stack_position)]->value->contents.floating == -1) && (execution_stack[initial_value(relative_stack_position)]->value->contents.numeric == DBL_MIN))
+					else if ((execution_stack[secondary_value(relative_stack_position)]->value->contents.floating == -1) && (execution_stack[initial_value(relative_stack_position)]->value->contents.numeric == -LDBL_MAX))
 						overflow_underflow = UNDERFLOW;
-					else if (execution_stack[initial_value(relative_stack_position)]->value->contents.numeric > (DBL_MAX / execution_stack[secondary_value(relative_stack_position)]->value->contents.floating))
+					else if (execution_stack[initial_value(relative_stack_position)]->value->contents.numeric > (LDBL_MAX / execution_stack[secondary_value(relative_stack_position)]->value->contents.floating))
 						overflow_underflow = OVERFLOW;
-					else if (execution_stack[initial_value(relative_stack_position)]->value->contents.numeric < (DBL_MIN / execution_stack[secondary_value(relative_stack_position)]->value->contents.floating))
+					else if (execution_stack[initial_value(relative_stack_position)]->value->contents.numeric < (-LDBL_MAX / execution_stack[secondary_value(relative_stack_position)]->value->contents.floating))
 						overflow_underflow = UNDERFLOW;
 					long double result = (execution_stack[initial_value(relative_stack_position)]->value->contents.numeric * execution_stack[secondary_value(relative_stack_position)]->value->contents.floating);
 					run_stack_free_value();
@@ -466,13 +462,13 @@ struct run_step_state run_stack_step(token_t *token, parsed_function_scope_t *fu
 			{
 				if (value_types[1] == VARIABLE_INT || value_types[1] == VARIABLE_BOOLEAN)
 				{
-					if ((execution_stack[initial_value(relative_stack_position)]->value->contents.floating == -1) && (execution_stack[secondary_value(relative_stack_position)]->value->contents.numeric == DBL_MIN))
+					if ((execution_stack[initial_value(relative_stack_position)]->value->contents.floating == -1) && (execution_stack[secondary_value(relative_stack_position)]->value->contents.numeric == -LDBL_MAX))
 						overflow_underflow = OVERFLOW;
-					else if ((execution_stack[secondary_value(relative_stack_position)]->value->contents.numeric == -1) && (execution_stack[initial_value(relative_stack_position)]->value->contents.floating == DBL_MIN))
+					else if ((execution_stack[secondary_value(relative_stack_position)]->value->contents.numeric == -1) && (execution_stack[initial_value(relative_stack_position)]->value->contents.floating == -LDBL_MAX))
 						overflow_underflow = UNDERFLOW;
-					else if (execution_stack[initial_value(relative_stack_position)]->value->contents.floating > (DBL_MAX / execution_stack[secondary_value(relative_stack_position)]->value->contents.numeric))
+					else if (execution_stack[initial_value(relative_stack_position)]->value->contents.floating > (LDBL_MAX / execution_stack[secondary_value(relative_stack_position)]->value->contents.numeric))
 						overflow_underflow = OVERFLOW;
-					else if (execution_stack[initial_value(relative_stack_position)]->value->contents.floating < (DBL_MIN / execution_stack[secondary_value(relative_stack_position)]->value->contents.numeric))
+					else if (execution_stack[initial_value(relative_stack_position)]->value->contents.floating < (-LDBL_MAX / execution_stack[secondary_value(relative_stack_position)]->value->contents.numeric))
 						overflow_underflow = UNDERFLOW;
 					long double result = (execution_stack[initial_value(relative_stack_position)]->value->contents.floating * (long double)execution_stack[secondary_value(relative_stack_position)]->value->contents.numeric);
 					run_stack_free_value();
@@ -484,13 +480,13 @@ struct run_step_state run_stack_step(token_t *token, parsed_function_scope_t *fu
 				}
 				else if (value_types[1] == VARIABLE_DOUBLE)
 				{
-					if ((execution_stack[initial_value(relative_stack_position)]->value->contents.floating == -1) && (execution_stack[secondary_value(relative_stack_position)]->value->contents.floating == DBL_MIN))
+					if ((execution_stack[initial_value(relative_stack_position)]->value->contents.floating == -1) && (execution_stack[secondary_value(relative_stack_position)]->value->contents.floating == -LDBL_MAX))
 						overflow_underflow = OVERFLOW;
-					else if ((execution_stack[secondary_value(relative_stack_position)]->value->contents.floating == -1) && (execution_stack[initial_value(relative_stack_position)]->value->contents.floating == DBL_MIN))
+					else if ((execution_stack[secondary_value(relative_stack_position)]->value->contents.floating == -1) && (execution_stack[initial_value(relative_stack_position)]->value->contents.floating == -LDBL_MAX))
 						overflow_underflow = UNDERFLOW;
-					else if (execution_stack[initial_value(relative_stack_position)]->value->contents.floating > (DBL_MAX / execution_stack[secondary_value(relative_stack_position)]->value->contents.floating))
+					else if (execution_stack[initial_value(relative_stack_position)]->value->contents.floating > (LDBL_MAX / execution_stack[secondary_value(relative_stack_position)]->value->contents.floating))
 						overflow_underflow = OVERFLOW;
-					else if (execution_stack[initial_value(relative_stack_position)]->value->contents.floating < (DBL_MIN / execution_stack[secondary_value(relative_stack_position)]->value->contents.floating))
+					else if (execution_stack[initial_value(relative_stack_position)]->value->contents.floating < (-LDBL_MAX / execution_stack[secondary_value(relative_stack_position)]->value->contents.floating))
 						overflow_underflow = UNDERFLOW;
 					long double result = (execution_stack[initial_value(relative_stack_position)]->value->contents.floating * execution_stack[secondary_value(relative_stack_position)]->value->contents.floating);
 					run_stack_free_value();
@@ -508,10 +504,22 @@ struct run_step_state run_stack_step(token_t *token, parsed_function_scope_t *fu
 		}
 		else if (c == (signed long long)'/')
 		{
+			if ((value_types[0] == VARIABLE_INT || value_types[0] == VARIABLE_BOOLEAN) && (execution_stack[initial_value(relative_stack_position)]->value->contents.numeric > -LDBL_MAX && execution_stack[initial_value(relative_stack_position)]->value->contents.numeric < LDBL_MAX))
+			{
+				execution_stack[initial_value(relative_stack_position)]->value->contents.floating = (long double)execution_stack[initial_value(relative_stack_position)]->value->contents.numeric;
+				value_types[0] = VARIABLE_DOUBLE;
+			}
+			if ((value_types[1] == VARIABLE_INT || value_types[1] == VARIABLE_BOOLEAN) && (execution_stack[secondary_value(relative_stack_position)]->value->contents.numeric > -LDBL_MAX && execution_stack[secondary_value(relative_stack_position)]->value->contents.numeric < LDBL_MAX))
+			{
+				execution_stack[secondary_value(relative_stack_position)]->value->contents.floating = (long double)execution_stack[secondary_value(relative_stack_position)]->value->contents.numeric;			
+				value_types[1] = VARIABLE_DOUBLE;
+			}
 			if (value_types[0] == VARIABLE_INT || value_types[0] == VARIABLE_BOOLEAN)
 			{
 				if (value_types[1] == VARIABLE_INT || value_types[1] == VARIABLE_BOOLEAN)
 				{
+					if (execution_stack[secondary_value(relative_stack_position)]->value->contents.numeric == 0)
+						fatal_error_lined(ZERO_DIVISION_ERROR, token->line);
 					signed long long int result = (execution_stack[initial_value(relative_stack_position)]->value->contents.numeric / execution_stack[secondary_value(relative_stack_position)]->value->contents.numeric);
 					run_stack_free_value();
 					run_stack_free_value();
@@ -522,6 +530,8 @@ struct run_step_state run_stack_step(token_t *token, parsed_function_scope_t *fu
 				}
 				else if (value_types[1] == VARIABLE_DOUBLE)
 				{
+					if (execution_stack[secondary_value(relative_stack_position)]->value->contents.floating == 0)
+						fatal_error_lined(ZERO_DIVISION_ERROR, token->line);
 					long double result = (execution_stack[initial_value(relative_stack_position)]->value->contents.numeric / execution_stack[secondary_value(relative_stack_position)]->value->contents.floating);
 					run_stack_free_value();
 					run_stack_free_value();
@@ -537,6 +547,8 @@ struct run_step_state run_stack_step(token_t *token, parsed_function_scope_t *fu
 			{
 				if (value_types[1] == VARIABLE_INT || value_types[1] == VARIABLE_BOOLEAN)
 				{
+					if (execution_stack[secondary_value(relative_stack_position)]->value->contents.numeric == 0)
+						fatal_error_lined(ZERO_DIVISION_ERROR, token->line);
 					long double result = (execution_stack[initial_value(relative_stack_position)]->value->contents.floating / (long double)execution_stack[secondary_value(relative_stack_position)]->value->contents.numeric);
 					run_stack_free_value();
 					run_stack_free_value();
@@ -547,6 +559,8 @@ struct run_step_state run_stack_step(token_t *token, parsed_function_scope_t *fu
 				}
 				else if (value_types[1] == VARIABLE_DOUBLE)
 				{
+					if (execution_stack[secondary_value(relative_stack_position)]->value->contents.floating == 0)
+						fatal_error_lined(ZERO_DIVISION_ERROR, token->line);
 					long double result = (execution_stack[initial_value(relative_stack_position)]->value->contents.floating / execution_stack[secondary_value(relative_stack_position)]->value->contents.floating);
 					run_stack_free_value();
 					run_stack_free_value();
@@ -613,9 +627,9 @@ struct run_step_state run_stack_step(token_t *token, parsed_function_scope_t *fu
 				}
 				else if (value_types[1] == VARIABLE_DOUBLE)
 				{
-					if (execution_stack[initial_value(relative_stack_position)]->value->contents.numeric > (signed long long)DBL_MAX)
+					if (execution_stack[initial_value(relative_stack_position)]->value->contents.numeric > (signed long long)LDBL_MAX)
 						overflow_underflow = OVERFLOW;
-					else if (execution_stack[initial_value(relative_stack_position)]->value->contents.numeric < (signed long long)DBL_MIN)
+					else if (execution_stack[initial_value(relative_stack_position)]->value->contents.numeric < (signed long long)-LDBL_MAX)
 						overflow_underflow = UNDERFLOW;
 					result_floating = fmodl(execution_stack[initial_value(relative_stack_position)]->value->contents.numeric, execution_stack[secondary_value(relative_stack_position)]->value->contents.floating);
 				}
@@ -626,9 +640,9 @@ struct run_step_state run_stack_step(token_t *token, parsed_function_scope_t *fu
 			{
 				if (value_types[1] == VARIABLE_INT || value_types[1] == VARIABLE_BOOLEAN)
 				{
-					if (execution_stack[secondary_value(relative_stack_position)]->value->contents.numeric > (signed long long)DBL_MAX)
+					if (execution_stack[secondary_value(relative_stack_position)]->value->contents.numeric > (signed long long)LDBL_MAX)
 						overflow_underflow = OVERFLOW;
-					else if (execution_stack[secondary_value(relative_stack_position)]->value->contents.numeric < (signed long long)DBL_MIN)
+					else if (execution_stack[secondary_value(relative_stack_position)]->value->contents.numeric < (signed long long)-LDBL_MAX)
 						overflow_underflow = UNDERFLOW;
 					result_floating = fmodl(execution_stack[initial_value(relative_stack_position)]->value->contents.floating, execution_stack[secondary_value(relative_stack_position)]->value->contents.numeric);
 				}
@@ -961,14 +975,24 @@ int run(parsed_function_scope_t **functions)
 		current_token = current_token->next;
 	if (current_token == NULL)
 		return 0;
+#ifdef STOP_EXECUTION_ENABLED
+#include <emscripten.h>
+	unsigned char steps = 0;
+	for (;;steps++)
+	{
+		if (steps == 100)
+		{
+			steps = 0;
+			emscripten_sleep(10); // Allows for emscripten backend to listen to worker messages
+			if (stopping_execution())
+			{
+				output("Execution of program was terminated.", OUTPUT_ERROR);
+				return 0;
+			}
+		}
+#else
 	for (;;)
 	{
-#ifdef STOP_EXECUTION_ENABLED
-		if (stopping_execution())
-		{
-			output("Execution of program was terminated.", OUTPUT_ERROR);
-			return 0;
-		}
 #endif
 		struct run_step_state response = run_stack_step(current_token, current_function);
 		switch (response.state)
@@ -1162,9 +1186,9 @@ int run(parsed_function_scope_t **functions)
 					{
 					case VARIABLE_INT:
 					{
-						if (execution_stack[relative_position]->value->contents.numeric > (signed long long)DBL_MAX)
+						if (execution_stack[relative_position]->value->contents.numeric > (signed long long)LDBL_MAX)
 							output("Integer overflow just occurred.", OUTPUT_WARNING);
-						else if (execution_stack[relative_position]->value->contents.numeric < (signed long long)DBL_MAX)
+						else if (execution_stack[relative_position]->value->contents.numeric < (signed long long)LDBL_MAX)
 							output("Integer underflow just occurred.", OUTPUT_WARNING);
 						stack_result->value->contents.floating = (long double)execution_stack[relative_position]->value->contents.numeric;
 						break;

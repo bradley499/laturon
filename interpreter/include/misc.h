@@ -30,6 +30,7 @@ typedef enum error_codes
 	STACK_MEMORY_LIMIT_REACHED, // The total amount of stack memory available to execute your program has been reached
 	TOO_BIG_NUMERIC,			// Too many functions or variables are declared within your program to be handled within memory
 	VALUE_NOT_SET,				// Attempted to use a variable which has not been set yet
+	ZERO_DIVISION_ERROR,		// Zero division error
 } error_codes;
 
 typedef enum syntax_errors

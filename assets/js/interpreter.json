@@ -1,0 +1,12 @@
+{
+	"author": [
+		{
+			"name": "Bradley Marshall",
+			"handle": "bradley499"
+		}
+	],
+	"version": 0.2,
+	"build": 2751,
+	"worker": "laturon-0.2.2751.js",
+	"wasm": "laturon-0.2.2751.wasm"
+}

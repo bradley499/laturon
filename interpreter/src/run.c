@@ -75,7 +75,8 @@ void run_stack_free_value()
 		scope_function_references = scope_function_references->previous;
 		free(function_reference);
 		execution_stack[execution_stack_position]->operation_type = NOT_DEFINED;
-	} else if (execution_stack[execution_stack_position]->operation_type == VARIABLE_STRING)
+	}
+	else if (execution_stack[execution_stack_position]->operation_type == VARIABLE_STRING)
 		free(execution_stack[execution_stack_position]->value->contents.string);
 	free(execution_stack[execution_stack_position]->value);
 	free(execution_stack[execution_stack_position]);
@@ -251,7 +252,7 @@ struct run_step_state run_stack_step(token_t *token, parsed_function_scope_t *fu
 			if (relative_stack_position < 2)
 				fatal_error(STACK_REFERENCE_ERROR);
 			value_types[0] = execution_stack[initial_value(relative_stack_position)]->value->type;
-		}	
+		}
 		if (c == (signed long long)'+')
 		{
 			if (value_types[0] == VARIABLE_INT || value_types[0] == VARIABLE_BOOLEAN)
@@ -511,7 +512,7 @@ struct run_step_state run_stack_step(token_t *token, parsed_function_scope_t *fu
 			}
 			if ((value_types[1] == VARIABLE_INT || value_types[1] == VARIABLE_BOOLEAN) && (execution_stack[secondary_value(relative_stack_position)]->value->contents.numeric > -LDBL_MAX && execution_stack[secondary_value(relative_stack_position)]->value->contents.numeric < LDBL_MAX))
 			{
-				execution_stack[secondary_value(relative_stack_position)]->value->contents.floating = (long double)execution_stack[secondary_value(relative_stack_position)]->value->contents.numeric;			
+				execution_stack[secondary_value(relative_stack_position)]->value->contents.floating = (long double)execution_stack[secondary_value(relative_stack_position)]->value->contents.numeric;
 				value_types[1] = VARIABLE_DOUBLE;
 			}
 			if (value_types[0] == VARIABLE_INT || value_types[0] == VARIABLE_BOOLEAN)
@@ -904,7 +905,7 @@ struct run_step_state run_stack_step(token_t *token, parsed_function_scope_t *fu
 	}
 	case BREAK:
 	{
-		for (;execution_stack_position > 0; relative_stack_position--)
+		for (; execution_stack_position > 0; relative_stack_position--)
 		{
 			if (execution_stack[relative_stack_position]->operation_type == WHILE)
 			{
@@ -977,8 +978,7 @@ int run(parsed_function_scope_t **functions)
 		return 0;
 #ifdef STOP_EXECUTION_ENABLED
 #include <emscripten.h>
-	unsigned char steps = 0;
-	for (;;steps++)
+	for (unsigned char steps = 0;; steps++)
 	{
 		if (steps == 100)
 		{
@@ -1203,7 +1203,7 @@ int run(parsed_function_scope_t **functions)
 						for (size_t i = 0; i < strlen(execution_stack[relative_position]->value->contents.string); i++)
 						{
 							unsigned char c = execution_stack[relative_position]->value->contents.string[i];
-							if ((c < '0' || c > '9') && c != '-'  && c != '.')
+							if ((c < '0' || c > '9') && c != '-' && c != '.')
 								fatal_error_lined(CONVERSION_ERROR, current_token->line);
 							else if (c == '-')
 							{

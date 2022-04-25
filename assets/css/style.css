@@ -93,6 +93,10 @@ div.operationButton#start_stop {
 	background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgZmlsbD0iY3VycmVudENvbG9yIiBjbGFzcz0iYmkgYmktcGxheS1maWxsIiB2aWV3Qm94PSIwIDAgMTYgMTYiPgogIDxwYXRoIGQ9Im0xMS41OTYgOC42OTctNi4zNjMgMy42OTJjLS41NC4zMTMtMS4yMzMtLjA2Ni0xLjIzMy0uNjk3VjQuMzA4YzAtLjYzLjY5Mi0xLjAxIDEuMjMzLS42OTZsNi4zNjMgMy42OTJhLjgwMi44MDIgMCAwIDEgMCAxLjM5M3oiLz4KPC9zdmc+");
 }
 
+div.operationButton#start_stop.back {
+	background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgZmlsbD0iY3VycmVudENvbG9yIiB4bWxuczp2PSJodHRwczovL3ZlY3RhLmlvL25hbm8iPjxwYXRoIGQ9Ik02LjE0NiA3LjM0OGw0Ljk0NS0uMDAzLjMzMy4wMTZjLjExLjAxNi4yMTkuMDQ3LjMxNi4xMDFzLjE4Mi4xMzIuMjQuMjI3YS41OC41OCAwIDAgMSAuMDg0LjMxOGMtLjAwNC4xMTEtLjA0Mi4yMjEtLjEwNS4zMTJhLjY4LjY4IDAgMCAxLS4yNTEuMjE1Yy0uMTk4LjEwMS0uNDMuMTA4LS42NTIuMTA4aC00LjkxbDEuNTM0IDEuNTQ2LjIyMS4yNDVjLjA2Ni4wODguMTIuMTg2LjE1LjI5MmEuNjUuNjUgMCAwIDEgLjAxLjMyN2MtLjAyNi4xMDctLjA4Mi4yMDctLjE2Mi4yODNhLjU4LjU4IDAgMCAxLS4yOTEuMTQ3LjY3LjY3IDAgMCAxLS4zMjYtLjAyNGMtLjIxLS4wNjgtLjM3Ni0uMjI1LS41MzItLjM4Mkw0LjI2NSA4LjU3M2ExLjc2IDEuNzYgMCAwIDEtLjIxMS0uMjRjLS4wNi0uMDg4LS4xMDQtLjE4OC0uMTE2LS4yOTRhLjU1LjU1IDAgMCAxIC4wNTgtLjMwOWMuMDQ5LS4wOTUuMTIzLS4xNzQuMTk3LS4yNDlsMi40ODQtMi41MTNjLjE1Ny0uMTU5LjMyMi0uMzIxLjUzLS40MDQuMTA0LS4wNDIuMjE3LS4wNjMuMzI4LS4wNTRzLjIyMS4wNDcuMzExLjExNGEuNTcuNTcgMCAwIDEgLjE5Ny4yNjZjLjAzNy4xMDYuMDQyLjIyMi4wMTkuMzMxcy0uMDc0LjIxMi0uMTM5LjMwMy0uMTQ0LjE3Mi0uMjIyLjI1MXoiLz48L3N2Zz4") !important;
+}
+
 div.operationButton#start_stop.executing {
 	background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgZmlsbD0iY3VycmVudENvbG9yIiBjbGFzcz0iYmkgYmktc3RvcC1maWxsIiB2aWV3Qm94PSIwIDAgMTYgMTYiPgogIDxwYXRoIGQ9Ik01IDMuNWg2QTEuNSAxLjUgMCAwIDEgMTIuNSA1djZhMS41IDEuNSAwIDAgMS0xLjUgMS41SDVBMS41IDEuNSAwIDAgMSAzLjUgMTFWNUExLjUgMS41IDAgMCAxIDUgMy41eiIvPgo8L3N2Zz4=");
 }
@@ -346,15 +350,7 @@ div#alertContainer>div#authorAlertPicture {
 	background-size: cover;
 	margin: 310px 10px 10px;
 	border-radius: 100%;
-}
-
-div#alertContainer>div#authorAlertPicture.authorAlertPictureLeft {
-	-moz-transform: scaleX(-1);
-	-o-transform: scaleX(-1);
-	-webkit-transform: scaleX(-1);
-	transform: scaleX(-1);
-	filter: FlipH;
-	-ms-filter: "FlipH";
+	background-color: #ffffff;
 }
 
 div#alertContainer>div#alertContents::before {
@@ -465,6 +461,10 @@ div#alertContainer>div#alertContents>div>div#alertButtons>div:last-of-type {
 	div#interactsContainer>div.interactive#editor, div#interactsContainer>textarea.interactive#editor  {
 		width: 100% !important;
 		display: block !important;
+	}
+
+	div#interactsContainer.executing>textarea.interactive#editor {
+		display: none !important;
 	}
 
 	div#interactsContainer.executing>div.interactive#runner {

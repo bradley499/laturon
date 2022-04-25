@@ -10,17 +10,19 @@ Module.noInitialRun = true;
 var isInitial = null;
 var userInputString = null;
 var userInputState = 0;
-var showVersion = new Promise((resolve, reject) => {
-    setInterval(function () {
-        if (isInitial != null) {
-            if (isInitial){
-                resolve(true);
-            } else {
-                reject(false);
+function showVersion(){
+    return new Promise((resolve, reject) => {
+        setInterval(function () {
+            if (isInitial != null) {
+                if (isInitial){
+                    resolve();
+                } else {
+                    reject();
+                }
             }
-        }
-    }, 500);
-});
+        }, 100);
+    });
+}
 var stopping = false;
 
 self.addEventListener("message", async function(e) {
@@ -39,7 +41,7 @@ self.addEventListener("message", async function(e) {
                 outputMessage("An error occurred when receiving an input.", 2);
             }
         } else if (e["type"] == "sourceCode") {
-            await showVersion.then(function(){}).catch(function(){}).finally(function() {
+            await showVersion().then(function(){}).catch(function(){}).finally(function() {
                 updateSourceFile(e["data"]);
             });
         } else if (e["type"] == "startup") {
@@ -140,8 +142,8 @@ function checkStoppingState() {
 }
 
 Module.onRuntimeInitialized = async function(){
-    await showVersion.then(function(){
+    await showVersion().then(function(){
         Module.ccall("versioning", "number", [], []);
-    }).catch(e => null);
+    }).catch(function(){});
     setLoadState(1);
 }

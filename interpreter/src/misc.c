@@ -4,7 +4,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include "misc.h"
-#include "array.h"
 #include "interact.h"
 #include "tokenizer.h"
 #include "parse.h"

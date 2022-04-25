@@ -15,7 +15,7 @@ OBJDIR=obj
 FILES=$(wildcard $(SRCDIR)/*.c)
 OBJS=$(FILES:$(SRCDIR)/%.c=$(OBJDIR)/%.o)
 BUILD=build
-EXECNAME=program
+EXECNAME=laturon
 EXECEXTENSION=
 ifeq ($(EMCC),$(CC))
 EXECEXTENSION=.js

@@ -31,6 +31,7 @@ typedef enum error_codes
 	TOO_BIG_NUMERIC,			// Too many functions or variables are declared within your program to be handled within memory
 	VALUE_NOT_SET,				// Attempted to use a variable which has not been set yet
 	ZERO_DIVISION_ERROR,		// Zero division error
+	UNIMPLEMENTED_YET,			// You are attempting to use syntax that has not been finalised
 } error_codes;
 
 typedef enum syntax_errors
@@ -80,7 +81,7 @@ long double str_to_float(char *str);
 // Convert boolean to string
 void bool_to_string(double n, char *res);
 // Copy a string and verify a successful copy
-int copy_string(char *destination, char* source);
+int copy_string(char *destination, char *source);
 // Warning of numeric convertion of large number
 void convertion_numeric_warning();
 // Warning of floating point convertion of large number
@@ -91,7 +92,5 @@ void fatal_error(error_codes code);
 void fatal_error_lined(error_codes code, unsigned long long line);
 // Output a syntax error with its associative line number then exits the program
 void syntax_error(syntax_errors error, unsigned long long line);
-// Allocate a new string
-struct array_value_t *string_new(char *str);
 
 #endif

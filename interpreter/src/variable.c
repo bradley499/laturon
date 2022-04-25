@@ -5,6 +5,7 @@
 #include <string.h>
 #include "variable.h"
 #include "misc.h"
+#include "array.h"
 
 variable_t variables[VARIABLE_MAX_TOTAL];
 static unsigned short total_variables = 0;

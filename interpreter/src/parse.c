@@ -381,11 +381,13 @@ void parse_reformat_tokens(token_t **tokens)
 		}
 		case BRACKETS_OPEN:
 		{
+			fatal_error_lined(UNIMPLEMENTED_YET, current_token->line);
 			brackets_position++;
 			break;
 		}
 		case BRACKETS_CLOSE:
 		{
+			fatal_error_lined(UNIMPLEMENTED_YET, current_token->line);
 			if (brackets_position == 0)
 				break;
 			brackets_position--;
@@ -477,7 +479,7 @@ void parse_reformat_tokens(token_t **tokens)
 				special_operation[0] = current_token->type;
 				special_operation[1] = 1;
 				special_operation[2] = 0;
-				special_operation[3] = (int)&previous_token[0];
+				special_operation[3] = (unsigned long long)&previous_token[0];
 				special_operation[4] = current_token->line;
 				special_operation[5] = 1;
 				token_t *token_remove = current_token;

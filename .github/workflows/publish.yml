@@ -9,7 +9,7 @@ jobs:
       - uses: actions/checkout@v2
       - name: Setup Emscripten toolchain
         uses: mymindstorm/setup-emsdk@v11
-      - name:
+      - name: make
         run: emmake make
       - name: Deploy
         uses: s0/git-publish-subdir-action@develop

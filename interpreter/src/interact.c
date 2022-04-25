@@ -216,6 +216,9 @@ void error_code(error_codes code)
 	case ZERO_DIVISION_ERROR:
 		copy_string(buffer, "Zero division error.");
 		break;
+	case UNIMPLEMENTED_YET:
+		copy_string(buffer, "You are attempting to use syntax that has not been finalised yet.");
+		break;
 	case UNKNOWN_ERROR:
 	default:
 		copy_string(buffer, "An unknown error.");
@@ -273,10 +276,13 @@ void error_code_lined(error_codes code, unsigned long long line)
 		snprintf(buffer, ERROR_MESSAGE_SIZE, "Too many functions or variables are declared within your program to be handled within memory. On line: %lld", line);
 		break;
 	case VALUE_NOT_SET:
-		snprintf(buffer, "Attempted to use a variable which has not been set yet. On line: %lld\n", line);
+		snprintf(buffer, ERROR_MESSAGE_SIZE, "Attempted to use a variable which has not been set yet. On line: %lld\n", line);
 		break;
 	case ZERO_DIVISION_ERROR:
-		snprintf(buffer, "Zero division error. On line: %lld\n", line);
+		snprintf(buffer, ERROR_MESSAGE_SIZE, "Zero division error. On line: %lld\n", line);
+		break;
+	case UNIMPLEMENTED_YET:
+		snprintf(buffer, ERROR_MESSAGE_SIZE, "You are attempting to use syntax that has not been finalised yet. On line: %lld\n", line);
 		break;
 	case UNKNOWN_ERROR:
 	default:

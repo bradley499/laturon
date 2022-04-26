@@ -1,4 +1,4 @@
-var sourceFile = "user_source_file";
+var sourceFile = "user_source_file.lt";
 try {
 	FS.close(FS.open(sourceFile, "w+"));
 } catch {

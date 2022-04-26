@@ -14,7 +14,7 @@
 #include <limits.h>
 #include <emscripten/emscripten.h>
 
-#define INTERACT_WASM_SOURCE_FILE "./user_source_file"
+#define INTERACT_WASM_SOURCE_FILE "./user_source_file.lt"
 #define JAVASCRIPT_INPUT_MAX_SIZE (5 * 1024)
 
 time_t execution_time = 0;

@@ -976,24 +976,8 @@ int run(parsed_function_scope_t **functions)
 		current_token = current_token->next;
 	if (current_token == NULL)
 		return 0;
-#ifdef STOP_EXECUTION_ENABLED
-#include <emscripten.h>
-	for (unsigned char steps = 0;; steps++)
-	{
-		if (steps == 100 || (current_token->type == FUNCTION_CALL && current_token->contents.numeric == -2))
-		{
-			steps = 0;
-			emscripten_sleep(10); // Allows for emscripten backend to listen to worker messages
-			if (stopping_execution())
-			{
-				output("Execution of program was terminated.", OUTPUT_ERROR);
-				return 0;
-			}
-		}
-#else
 	for (;;)
 	{
-#endif
 		struct run_step_state response = run_stack_step(current_token, current_function);
 		switch (response.state)
 		{
@@ -1071,9 +1055,6 @@ int run(parsed_function_scope_t **functions)
 					stack_value_t *stack_result = run_stack_value_new(VARIABLE_STRING);
 					stack_result->operation_type = VARIABLE_STRING;
 					stack_result->value->contents.string = input();
-#ifdef STOP_EXECUTION_ENABLED
-					steps = 99;
-#endif
 					run_stack_add_value(stack_result);
 					break;
 				}

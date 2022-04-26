@@ -252,6 +252,8 @@ void tokenize_file(FILE *fp)
 							identifier_current_length = 0;
 							continue;
 						}
+						else
+							break;
 					}
 				}
 			}

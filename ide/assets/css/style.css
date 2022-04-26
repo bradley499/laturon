@@ -173,7 +173,7 @@ div.interactive#runner>div#output>p.output.systemic {
 	line-height: 2ch;
 }
 
-div.interactive#runner>div#output>p.output.systemic::before {
+div.interactive#runner>div#output>p.output.systemic:not(.generic)::before {
 	content: "";
 	width: 2ch;
 	height: 2ch;

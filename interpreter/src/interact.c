@@ -10,15 +10,12 @@
 
 #ifdef EMSCRIPTEN
 #include <stdbool.h>
-#include <time.h>
 #include <limits.h>
 #include <emscripten/emscripten.h>
 
 #define INTERACT_WASM_SOURCE_FILE "./user_source_file.lt"
 #define JAVASCRIPT_INPUT_MAX_SIZE (5 * 1024)
 
-time_t execution_time = 0;
-unsigned short execution_output = 0;
 unsigned int stopable = BOOLEAN_FALSE;
 
 EM_JS(void, js_request_user_input, (), {
@@ -63,28 +60,14 @@ char *input()
 	js_request_user_input();
 	do
 	{
-		emscripten_sleep(100);
+		emscripten_sleep(250);
 	} while (!js_get_user_input_state());
 	return js_get_user_input();
 }
 
 void output(char *message, output_types type)
 {
-	time_t current_clock = time(NULL);
-	unsigned long long delay = 0;
-	if (current_clock < (execution_time + 2))
-	{
-		if (execution_output++ > 500)
-		{
-			delay = (50 * (int)(execution_output / 50));
-			if (execution_output == 5000)
-				execution_output = 4999;
-		}
-	}
-	execution_time = current_clock;
 	js_output(message, type);
-	if (delay != 0)
-		emscripten_sleep(50 * (int)(execution_output / 500));
 }
 
 void error_code(unsigned int code)
@@ -113,14 +96,6 @@ FILE* get_execution_source_file()
 void set_load_state(unsigned int state)
 {
 	js_set_load_state(state);
-}
-
-int stopping_execution()
-{
-	int stopping = js_check_stopping_state();
-	if (stopping == BOOLEAN_TRUE)
-		execution_output = 0;
-	return stopping;
 }
 
 #else

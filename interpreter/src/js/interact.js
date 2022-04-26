@@ -23,7 +23,6 @@ function showVersion(){
         }, 100);
     });
 }
-var stopping = false;
 
 self.addEventListener("message", async function(e) {
     try {
@@ -46,10 +45,6 @@ self.addEventListener("message", async function(e) {
             });
         } else if (e["type"] == "startup") {
             ready(e["data"]);
-        } else if (e["type"] == "stop") {
-            userInputString = "";
-            userInputState = 1;
-            stopping = true;
         }
     } catch (err) {
         if (err["name"] == "ExitStatus") return;
@@ -136,10 +131,6 @@ function ready(state) {
             "state": 1
         });
     }
-}
-
-function checkStoppingState() {
-    return stopping;
 }
 
 Module.onRuntimeInitialized = async function(){

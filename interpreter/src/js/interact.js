@@ -47,8 +47,9 @@ self.addEventListener("message", async function(e) {
         } else if (e["type"] == "startup") {
             ready(e["data"]);
         } else if (e["type"] == "stop") {
-            stopping = true;
+            userInputString = "";
             userInputState = 1;
+            stopping = true;
         }
     } catch (err) {
         if (err["name"] == "ExitStatus") return;

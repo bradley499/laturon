@@ -980,7 +980,7 @@ int run(parsed_function_scope_t **functions)
 #include <emscripten.h>
 	for (unsigned char steps = 0;; steps++)
 	{
-		if (steps == 100)
+		if (steps == 100 || (current_token->type == FUNCTION_CALL && current_token->contents.numeric == -2))
 		{
 			steps = 0;
 			emscripten_sleep(10); // Allows for emscripten backend to listen to worker messages

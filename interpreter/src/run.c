@@ -1071,6 +1071,9 @@ int run(parsed_function_scope_t **functions)
 					stack_value_t *stack_result = run_stack_value_new(VARIABLE_STRING);
 					stack_result->operation_type = VARIABLE_STRING;
 					stack_result->value->contents.string = input();
+#ifdef STOP_EXECUTION_ENABLED
+					steps = 99;
+#endif
 					run_stack_add_value(stack_result);
 					break;
 				}
@@ -1282,8 +1285,13 @@ int run(parsed_function_scope_t **functions)
 					switch (execution_stack[relative_position]->value->type)
 					{
 					case VARIABLE_STRING:
-						length = strlen(execution_stack[relative_position]->value->contents.string);
+					{
+						if (execution_stack[relative_position]->value->contents.string == NULL)
+							length = 0;
+						else
+							length = strlen(execution_stack[relative_position]->value->contents.string);
 						break;
+					}
 					case VARIABLE_ARRAY:
 						length = array_length(execution_stack[relative_position]->value->contents.array);
 						break;

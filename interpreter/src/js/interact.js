@@ -133,6 +133,14 @@ function ready(state) {
     }
 }
 
+function terminate() {
+    self.postMessage({
+        "type": "terminate",
+        "state": 1
+    });
+}
+
+
 Module.onRuntimeInitialized = async function(){
     await showVersion().then(function(){
         Module.ccall("versioning", "number", [], []);

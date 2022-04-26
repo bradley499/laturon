@@ -204,6 +204,7 @@
 			} else {
 				sourceCode = interacts[0].value;
 			}
+			buttons[2].setAttribute("state", 1);
 			worker.postMessage({ "type": "sourceCode", "data": sourceCode });
 			interactsContainer.classList.add("executing");
 			loadingState("Tokenising source code", true);
@@ -211,22 +212,27 @@
 		} else if (buttonData[2]["state"] != 3) {
 			inputOutput[0][1].placeholder = "Program has finished execution!";
 			inputOutput[0][0].title = "Program has finished execution!";
-			tooltipIter(buttons[2], 2);
 			worker.terminate();
-			newOutput("error", "Execution of program was terminated.", false);
+			if (buttonData[2]["state"] != 2) {
+				newOutput("error", "Execution of program was terminated.", false);
+			}
 			newWorker(interpreterData, true);
 		}
 		if (buttonData[2]["state"] == 3){
 			buttons[2].classList.remove("back");
 			buttons[2].classList.remove("executing");
 			interactsContainer.classList.remove("executing");
+			tooltipIter(buttons[2], 2);
+			buttons[2].setAttribute("state", 0);
 			buttonData[2]["state"] = 0;
 		} else if (window.innerWidth > 600) {
 			buttons[2].classList.remove("executing");
 			interactsContainer.classList.remove("executing");
-			buttonData[2]["state"] = 0;
+			tooltipIter(buttons[2], 2);
+			buttons[2].setAttribute("state", 0);
 		} else {
 			buttons[2].classList.add("back");
+			buttons[2].title = "Back to editor";
 			buttonData[2]["state"] = 3;
 		}
 		executing = false;
@@ -513,8 +519,14 @@
 					newOutput(["info", "warning", "error", "generic"][e["state"]], e["message"]);
 					if (e["state"] == 2) {
 						changeExecutionState(null);
-						newWorker(interpreterData, true);
 					}
+					break;
+				case "terminate":
+					inputEnabler(false);
+					buttonData[2]["state"] = 2;
+					inputOutput[0][1].placeholder = "Program has finished execution!";
+					inputOutput[0][0].title = "Program has finished execution!";
+					changeExecutionState(null);
 					break;
 			}
 		};

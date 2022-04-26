@@ -114,6 +114,11 @@ void bool_to_string(double n, char *res)
 
 int copy_string(char *destination, char *source)
 {
+	if (source == NULL)
+	{
+		destination[0] = '\0';
+		return 1;
+	}
 	return (strcmp(strcpy(destination, source), source) == 0);
 }
 

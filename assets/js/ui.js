@@ -162,7 +162,6 @@
 		interacts[1].classList.add("loading");
 	}
 	loadingState(null, false);
-	let stopping = 0;
 	window.onresize = () => {
 		if (buttonData[2]["state"] == 3) {
 			if (window.innerWidth > 600){
@@ -205,36 +204,35 @@
 			} else {
 				sourceCode = interacts[0].value;
 			}
+			buttons[2].setAttribute("state", 1);
 			worker.postMessage({ "type": "sourceCode", "data": sourceCode });
 			interactsContainer.classList.add("executing");
 			loadingState("Tokenising source code", true);
 			return;
 		} else if (buttonData[2]["state"] != 3) {
-			if (stopping == 2) {
-				stopping = 0;
-				inputOutput[0][1].placeholder = "Program has finished execution!";
-				inputOutput[0][0].title = "Program has finished execution!";
-				tooltipIter(buttons[2], 2);
-			} else if (stopping == 0) {
-				inputEnabler(false);
-				worker.postMessage({ "type": "stop", "data": null });
-				stopping = 1;
-				return;
-			} else {
-				return;
+			inputOutput[0][1].placeholder = "Program has finished execution!";
+			inputOutput[0][0].title = "Program has finished execution!";
+			worker.terminate();
+			if (buttonData[2]["state"] != 2) {
+				newOutput("error", "Execution of program was terminated.", false);
 			}
+			newWorker(interpreterData, true);
 		}
 		if (buttonData[2]["state"] == 3){
 			buttons[2].classList.remove("back");
 			buttons[2].classList.remove("executing");
 			interactsContainer.classList.remove("executing");
+			tooltipIter(buttons[2], 2);
+			buttons[2].setAttribute("state", 0);
 			buttonData[2]["state"] = 0;
 		} else if (window.innerWidth > 600) {
 			buttons[2].classList.remove("executing");
 			interactsContainer.classList.remove("executing");
-			buttonData[2]["state"] = 0;
+			tooltipIter(buttons[2], 2);
+			buttons[2].setAttribute("state", 0);
 		} else {
 			buttons[2].classList.add("back");
+			buttons[2].title = "Back to editor";
 			buttonData[2]["state"] = 3;
 		}
 		executing = false;
@@ -458,7 +456,7 @@
 		worker.postMessage({ "type": "input", "state": 1, "message": inputOutput[0][1].value });
 		inputEnabler(false);
 	};
-	const newOutput = (type, message) => {
+	const newOutput = (type, message, errorOut = true) => {
 		let output = document.createElement("p");
 		output.classList.add("output");
 		if (type != null) {
@@ -469,7 +467,7 @@
 		inputEnabler(false);
 		inputOutput[1].appendChild(output);
 		inputOutput[1].scrollTop = inputOutput[1].scrollHeight;
-		if (type == "error") {
+		if (errorOut && type == "error") {
 			changeExecutionState(null);
 		}
 	};
@@ -511,11 +509,6 @@
 					}
 					if (e["state"] == 1 && !interpreterReady) {
 						interpreterReady = true;
-					} else if (e["state"] == 4) {
-						stopping = 2;
-						worker.terminate();
-						changeExecutionState(null);
-						newWorker(interpreterData, true);
 					}
 					break;
 				case "input":
@@ -525,11 +518,15 @@
 				case "output":
 					newOutput(["info", "warning", "error", "generic"][e["state"]], e["message"]);
 					if (e["state"] == 2) {
-						stopping = 2;
-						worker.terminate();
 						changeExecutionState(null);
-						newWorker(interpreterData, true);
 					}
+					break;
+				case "terminate":
+					inputEnabler(false);
+					buttonData[2]["state"] = 2;
+					inputOutput[0][1].placeholder = "Program has finished execution!";
+					inputOutput[0][0].title = "Program has finished execution!";
+					changeExecutionState(null);
 					break;
 			}
 		};

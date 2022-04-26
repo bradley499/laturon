@@ -166,7 +166,7 @@
 				changeExecutionState(null);
 			}
 		}
-		interactsContainer.style.height = (window.innerHeight - 115) + "px";
+		interactsContainer.style.height = (window.innerHeight - 119) + "px";
 	};
 	const changeExecutionState = async (button) => {
 		if (!interpreterReady) {

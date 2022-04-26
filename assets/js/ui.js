@@ -254,6 +254,7 @@
 		}
 		let element = document.createElement("input");
 		element.type = "file";
+		element.accept=".lt";
 		element.addEventListener("change", async () => {
 			if (element.files.length == 0) {
 				return;
@@ -307,7 +308,7 @@
 				return;
 			}
 		}
-		element.setAttribute("download", name + ".code");
+		element.setAttribute("download", name + ".lt");
 		element.click();
 		element.remove();
 	};

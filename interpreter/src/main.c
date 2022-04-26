@@ -2,6 +2,7 @@
 #include <emscripten/emscripten.h>
 #endif
 #include <stdio.h>
+#include <string.h>
 #include "interact.h"
 #include "tokenizer.h"
 #include "misc.h"
@@ -28,12 +29,16 @@ FILE *fp = NULL;
 
 #ifdef EMSCRIPTEN
 int EMSCRIPTEN_KEEPALIVE versioning()
-#else
-int versioning()
-#endif
 {
 	output("Version: " NUM_WRAPPER(VERSION), OUTPUT_INFO);
-	output("Build: " NUM_WRAPPER(BUILDNUMBER), OUTPUT_INFO);
+	output("Build : " NUM_WRAPPER(BUILDNUMBER), OUTPUT_INFO);
+#else
+int versioning()
+{
+	output("Laturon interpreter", OUTPUT_GENERIC);
+	output("Version: " NUM_WRAPPER(VERSION), OUTPUT_GENERIC);
+	output("Build  : " NUM_WRAPPER(BUILDNUMBER), OUTPUT_GENERIC);
+#endif
 	return 0;
 }
 
@@ -44,6 +49,13 @@ int main(int argc, char **argv)
 	{
 		output("Please give a location of your source code.", OUTPUT_ERROR);
 		return 1;
+	}
+	else if (strcmp("-v", argv[1]) == 0 || strcmp("--version", argv[1]) == 0)
+		return versioning();
+	else if (strcmp("-h", argv[1]) == 0 || strcmp("--help", argv[1]) == 0)
+	{
+		output("usage: laturon [option | file]\n\nOptions:\n-v  : print out the version of the interpreter (also --version)\n-h  : print this help message (also --help)\nfile: program read from file", OUTPUT_GENERIC);
+		return 0;
 	}
 	fp = get_execution_source_file(argv[1]);
 	run_file();

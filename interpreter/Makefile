@@ -43,8 +43,8 @@ setup: $(OBJDIR)
 	@mkdir -pv $(BUILD)
 
 $(EXECNAME):
-	$(CC) $(wildcard $(OBJDIR)/*.o) $(ARGS) -o $(BUILD)/$(EXECNAME)-$(VERSION).$(BUILDNUMBER)$(EXECEXTENSION)
 ifeq ($(EMCC),$(CC))
+	$(CC) $(wildcard $(OBJDIR)/*.o) $(ARGS) -o $(BUILD)/$(EXECNAME)-$(VERSION).$(BUILDNUMBER)$(EXECEXTENSION)
 	@echo "{\n\
 		\"author\": [\n\
 			{\n\
@@ -57,6 +57,8 @@ ifeq ($(EMCC),$(CC))
 		\"worker\": \"$(EXECNAME)-$(VERSION).$(BUILDNUMBER)$(EXECEXTENSION)\",\n\
 		\"wasm\": \"$(EXECNAME)-$(VERSION).$(BUILDNUMBER).wasm\"\n\
 	}" > $(BUILD)/interpreter.json
+else
+	$(CC) $(wildcard $(OBJDIR)/*.o) $(ARGS) -o $(BUILD)/$(EXECNAME)
 endif
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.c $(OBJDIR)

@@ -36,6 +36,9 @@
 	const loading = document.createElement("div");
 	const interacts = [document.createElement({ true: "div", false: "textarea" }[chromium]), document.createElement("div")];
 	interacts[0].setAttribute("spellcheck", false);
+	interacts[0].setAttribute("autocorrect","off");
+	interacts[0].setAttribute("autocapitalize","none");
+	interacts[0].setAttribute("autocomplete","off");
 	const buttons = [document.createElement("div"), document.createElement("div"), document.createElement("div"), document.createElement("div")];
 	loading.id = "loading";
 	let authorPictureBlob = null;

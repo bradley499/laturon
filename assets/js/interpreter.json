@@ -6,7 +6,7 @@
 		}
 	],
 	"version": 0.2,
-	"build": 2796,
-	"worker": "laturon-0.2.2796.js",
-	"wasm": "laturon-0.2.2796.wasm"
+	"build": 2802,
+	"worker": "laturon-0.2.2802.js",
+	"wasm": "laturon-0.2.2802.wasm"
 }

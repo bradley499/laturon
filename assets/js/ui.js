@@ -201,7 +201,7 @@
 			}
 			let sourceCode = "";
 			if (chromium) {
-				sourceCode = interacts[0].innerText;
+				sourceCode = (interacts[0].innerText || "").split("\n\n").join("\n");
 			} else {
 				sourceCode = interacts[0].value;
 			}

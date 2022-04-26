@@ -166,6 +166,7 @@
 				changeExecutionState(null);
 			}
 		}
+		interactsContainer.style.height = (window.innerHeight - 115) + "px";
 	};
 	const changeExecutionState = async (button) => {
 		if (!interpreterReady) {
@@ -455,7 +456,6 @@
 		inputEnabler(false);
 	};
 	const newOutput = (type, message) => {
-		console.log(message);
 		let output = document.createElement("p");
 		output.classList.add("output");
 		if (type != null) {

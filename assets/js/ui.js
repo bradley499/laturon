@@ -160,13 +160,17 @@
 	}
 	loadingState(null, false);
 	let stopping = 0;
+	const setIDEHeight = () => {
+		interactsContainer.style.height = (window.innerHeight - 119) + "px";
+		document.body.style.height = (window.innerHeight - 4) + "px";
+	};
 	window.onresize = () => {
 		if (buttonData[2]["state"] == 3) {
 			if (window.innerWidth > 600){
 				changeExecutionState(null);
 			}
 		}
-		interactsContainer.style.height = (window.innerHeight - 119) + "px";
+		setIDEHeight();
 	};
 	const changeExecutionState = async (button) => {
 		if (!interpreterReady) {
@@ -489,6 +493,7 @@
 	document.body.appendChild(interactsContainer);
 	loadingState("Loading...", true);
 	updateEditor();
+	setIDEHeight();
 	// Web worker data transition
 	const newWorker = (interpreterData, silentCreation = false) => {
 		if (interpreterData === false) {

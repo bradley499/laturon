@@ -491,6 +491,7 @@ div#alertContainer>div#alertContents>div>div#alertButtons>div:last-of-type {
 	div#interactsContainer>div.interactive#editor, div#interactsContainer>textarea.interactive#editor {
 		width: 100% !important;
 		display: block !important;
+		margin-right: 3px !important;
 	}
 
 	div#interactsContainer.executing>textarea.interactive#editor {
@@ -500,6 +501,7 @@ div#alertContainer>div#alertContents>div>div#alertButtons>div:last-of-type {
 	div#interactsContainer.executing>div.interactive#runner {
 		width: 100% !important;
 		display: flex !important;
+		margin-left: 3px !important;
 	}
 
 	div#interactsContainer>div.interactive#runner {

@@ -12,7 +12,11 @@ typedef struct stack_value_t
 	token_t *token;
 } stack_value_t;
 
+#ifdef EMSCRIPTEN
+#define EXECUTION_STACK_SIZE 300000
+#else
 #define EXECUTION_STACK_SIZE 500000
+#endif
 
 // Reset the execution stack
 void run_stack_reset();

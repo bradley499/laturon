@@ -31,8 +31,10 @@ default: clean_objs setup
 
 ifneq ($(EMCC),$(CC))
 debug: ARGS += -g -ggdb
+debug: OBJ_ARGS += -g -ggdb
 else
 debug: ARGS += -g -fdebug-compilation-dir='..'
+debug: OBJ_ARGS += -g -ggdb
 endif
 debug: all
 

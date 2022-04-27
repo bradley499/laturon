@@ -210,9 +210,9 @@
 			loadingState("Tokenising source code", true);
 			return;
 		} else if (buttonData[2]["state"] != 3) {
+			worker.terminate();
 			inputOutput[0][1].placeholder = "Program has finished execution!";
 			inputOutput[0][0].title = "Program has finished execution!";
-			worker.terminate();
 			if (buttonData[2]["state"] != 2 && buttonData[2]["state"] != 4) {
 				newOutput("error", "Execution of program was terminated.", false);
 			}
@@ -230,6 +230,7 @@
 			interactsContainer.classList.remove("executing");
 			tooltipIter(buttons[2], 2);
 			buttons[2].setAttribute("state", 0);
+			buttonData[2]["state"] = 0;
 		} else {
 			buttons[2].classList.add("back");
 			buttons[2].title = "Back to editor";
@@ -467,10 +468,6 @@
 		inputEnabler(false);
 		inputOutput[1].appendChild(output);
 		inputOutput[1].scrollTop = inputOutput[1].scrollHeight;
-		if (errorOut && type == "error") {
-			buttonData[2]["state"] = 4;
-			changeExecutionState(null);
-		}
 	};
 	inputOutput[0][2].type = "button";
 	inputOutput[0][0].id = "input";
@@ -518,10 +515,9 @@
 					break;
 				case "output":
 					newOutput(["info", "warning", "error", "generic"][e["state"]], e["message"]);
-					if (e["state"] == 2) {
-						changeExecutionState(null);
+					if (e["state"] != 2) {
+						break;
 					}
-					break;
 				case "terminate":
 					inputEnabler(false);
 					buttonData[2]["state"] = 2;

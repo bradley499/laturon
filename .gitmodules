@@ -1,0 +1,3 @@
+[submodule "examples"]
+	path = examples
+	url = https://github.com/bradley499/laturon_examples.git

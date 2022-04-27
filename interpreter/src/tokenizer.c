@@ -176,7 +176,7 @@ void tokenize_file(FILE *fp)
 			{
 				if (current_token == NULL)
 					syntax_error(NO_VARIABLE_DEFINITION, line);
-				else if (current_token->type != BRACKETS_OPEN && current_token->type != BRACKETS_CLOSE && current_token->type != PARENTHESES_CLOSE && current_token->type != VARIABLE && current_token->type != RETURN && !(current_token->type == OPERATOR && (current_token->contents.numeric == (int)'=' || current_token->contents.numeric == (int)',')))
+				else if (current_token->type != BRACKETS_OPEN && current_token->type != BRACKETS_CLOSE && current_token->type != PARENTHESES_OPEN && current_token->type != PARENTHESES_CLOSE && current_token->type != VARIABLE && current_token->type != RETURN && !(current_token->type == OPERATOR && (current_token->contents.numeric == (int)'=' || current_token->contents.numeric == (int)',')))
 					syntax_error(NO_VARIABLE_DEFINITION, line);
 			}
 			else if (current_token->type == RETURN)
@@ -596,7 +596,7 @@ void tokenize_file(FILE *fp)
 					{
 						if (current_literal == 0 && current_numeric == 0 && !variable_name_valid(identifier))
 						{
-							for (unsigned long long i = 0;identifier[i] != 0;i++)
+							for (unsigned long long i = 0; identifier[i] != 0; i++)
 								if (is_whitespace(identifier[i]))
 									syntax_error(INVALID_SYNTAX, line);
 							syntax_error(INVALID_VARIABLE_NAME, line);
@@ -667,7 +667,7 @@ void tokenize_file(FILE *fp)
 					syntax_error(INVALID_REMOVE, line);
 			}
 			else if (token->type != IF && token->type != ELSE && token->type != WHILE && token->type != BREAK)
-				syntax_error(INVALID_SYNTAX, line);
+				break;
 		}
 		if (token->type == VARIABLE)
 		{
@@ -708,7 +708,13 @@ void tokenize_file(FILE *fp)
 		position += identifier_current_length;
 		free(identifier);
 	}
-	if (current_parentheses != 0 || current_brackets != 0 || current_scope != 0 || current_literal > 0)
+	if (current_literal > 0)
+		syntax_error(INVALID_LITERAL_TERMINATION, line);
+	else if (current_brackets != 0)
+		syntax_error(INVALID_ARRAY_TERMINATION, line);
+	else if (current_scope != 0)
+		syntax_error(INVALID_SCOPE_TERMINATION, line);
+	else if (current_parentheses != 0)
 		syntax_error(INVALID_SYNTAX, line);
 }
 

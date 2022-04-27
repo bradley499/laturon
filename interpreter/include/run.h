@@ -12,8 +12,7 @@ typedef struct stack_value_t
 	token_t *token;
 } stack_value_t;
 
-#define EXECUTION_STACK_MAX_MEMORY_SIZE 30000
-#define EXECUTION_STACK_SIZE (EXECUTION_STACK_MAX_MEMORY_SIZE / sizeof(stack_value_t))
+#define EXECUTION_STACK_SIZE 500000
 
 // Reset the execution stack
 void run_stack_reset();

@@ -875,7 +875,11 @@ struct run_step_state run_stack_step(token_t *token, parsed_function_scope_t *fu
 		if (!run_stack_size_assigned_ok(1))
 			fatal_error(STACK_REFERENCE_ERROR);
 		if (run_stack_state_is_true(0))
+		{
+			if (execution_stack_while_references_position == EXECUTION_STACK_SIZE)
+				fatal_error(STACK_MEMORY_LIMIT_REACHED);
 			execution_stack_while_references[execution_stack_while_references_position++].execution_scope = execution_scope;
+		}
 		else
 		{
 			for (;; relative_stack_position--)

@@ -312,72 +312,71 @@ array_value_t *array_duplicate(array_value_t *array)
 	if (array == NULL)
 		fatal_error(ARRAY_TYPE_EXPECTED_ERROR);
 	array_value_t *array_copy = NULL;
-	typedef struct array_references
-	{
-		array_value_t *array;
-		array_value_t *parent;
-		struct array_references *next;
-	} array_references;
-	array_references *arrays = xmalloc(sizeof(array_references));
-	arrays->array = array;
-	arrays->next = NULL;
-	arrays->parent = NULL;
-	for (; arrays != NULL;)
-	{
-		array_references *current = arrays;
-		int is_nested = BOOLEAN_FALSE;
-		for (;;)
-		{
-			struct array_value_t *new_value = xmalloc(sizeof(struct array_value_t));
-			new_value->result_type = current->array->result_type;
-			// new_value->result_type = current->array->result_type;
-			// to do: array copy
-			new_value->next = NULL;
-			if (current->parent == NULL) // Top level array element
-			{
-				if (array_copy == NULL)
-					array_copy = new_value;
-				else
-				{
-					array_value_t *array_current = array_copy;
-					for (; array_current->next != NULL;)
-						array_current = array_current->next;
-					array_current->next = new_value;
-				}
-			}
-			else // Nested array
-			{
-				array_value_t *array_current = current->parent;
-				if (is_nested)
-				{
-					// struct array_value_t *array_nested = (array_value_t *)array_current->result.result_int;
-					// for (; array_nested->next != NULL;)
-					// 	array_nested = array_nested->next;
-					// array_nested->next = new_value;
-				}
-				else
-				{
-					// array_current->result.result_int = (long long int)&new_value;
-					is_nested = BOOLEAN_TRUE;
-				}
-			}
-			if (new_value->result_type == VARIABLE_ARRAY)
-			{
-				array_references *array_reference = xmalloc(sizeof(array_references));
-				// array_reference->array = (array_value_t *)new_value->result.result_int;
-				array_reference->parent = new_value;
-				array_references *arrays_appender = arrays;
-				for (; arrays_appender->next != NULL;)
-					arrays_appender = arrays_appender->next;
-				arrays_appender->next = array_reference;
-			}
-			current->array = current->array->next;
-			if (current->array == NULL) // End of current array
-				break;
-		}
-		arrays = arrays->next;
-		free(current);
-	}
+	// typedef struct array_references
+	// {
+	// 	array_value_t *array;
+	// 	array_value_t *parent;
+	// 	struct array_references *next;
+	// } array_references;
+	// array_references *arrays = xmalloc(sizeof(array_references));
+	// arrays->array = array;
+	// arrays->next = NULL;
+	// arrays->parent = NULL;
+	// for (; arrays != NULL;)
+	// {
+	// 	array_references *current = arrays;
+	// 	int is_nested = BOOLEAN_FALSE;
+	// 	for (;;)
+	// 	{
+	// 		struct array_value_t *new_value = xmalloc(sizeof(struct array_value_t));
+	// 		new_value->result_type = current->array->result_type;
+	// 		// new_value->result_type = current->array->result_type;
+	// 		new_value->next = NULL;
+	// 		if (current->parent == NULL) // Top level array element
+	// 		{
+	// 			if (array_copy == NULL)
+	// 				array_copy = new_value;
+	// 			else
+	// 			{
+	// 				array_value_t *array_current = array_copy;
+	// 				for (; array_current->next != NULL;)
+	// 					array_current = array_current->next;
+	// 				array_current->next = new_value;
+	// 			}
+	// 		}
+	// 		else // Nested array
+	// 		{
+	// 			array_value_t *array_current = current->parent;
+	// 			if (is_nested)
+	// 			{
+	// 				// struct array_value_t *array_nested = (array_value_t *)array_current->result.result_int;
+	// 				// for (; array_nested->next != NULL;)
+	// 				// 	array_nested = array_nested->next;
+	// 				// array_nested->next = new_value;
+	// 			}
+	// 			else
+	// 			{
+	// 				// array_current->result.result_int = (long long int)&new_value;
+	// 				is_nested = BOOLEAN_TRUE;
+	// 			}
+	// 		}
+	// 		if (new_value->result_type == VARIABLE_ARRAY)
+	// 		{
+	// 			array_references *array_reference = xmalloc(sizeof(array_references));
+	// 			// array_reference->array = (array_value_t *)new_value->result.result_int;
+	// 			array_reference->parent = new_value;
+	// 			array_references *arrays_appender = arrays;
+	// 			for (; arrays_appender->next != NULL;)
+	// 				arrays_appender = arrays_appender->next;
+	// 			arrays_appender->next = array_reference;
+	// 		}
+	// 		current->array = current->array->next;
+	// 		if (current->array == NULL) // End of current array
+	// 			break;
+	// 	}
+	// 	arrays = arrays->next;
+	// 	free(current);
+	// }
 	return array_copy;
 }
 

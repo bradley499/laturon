@@ -31,7 +31,7 @@ FILE *fp = NULL;
 int EMSCRIPTEN_KEEPALIVE versioning()
 {
 	output("Version: " NUM_WRAPPER(VERSION), OUTPUT_INFO);
-	output("Build : " NUM_WRAPPER(BUILDNUMBER), OUTPUT_INFO);
+	output("Build: " NUM_WRAPPER(BUILDNUMBER), OUTPUT_INFO);
 #else
 int versioning()
 {

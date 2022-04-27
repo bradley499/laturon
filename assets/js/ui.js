@@ -259,8 +259,10 @@
 				return;
 			}
 			let file = element.files[0];
-			if (file.type.slice(0, 4) != "text") {
-				return await alertBuilder("Unable to read that file", "Sorry, but that sort of file is not able to be read.", null, null);
+			if (!file.name.endsWith(".lt")) {
+				if (await alertBuilder("Unrecognised file type", "Sorry, but that sort of file is not recognised, would you still like to load it?", ["Yes", "No"], null) == 1) {
+					return;
+				}
 			}
 			let reader = new FileReader();
 			reader.addEventListener("load", function (event) {

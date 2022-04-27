@@ -213,7 +213,7 @@
 			inputOutput[0][1].placeholder = "Program has finished execution!";
 			inputOutput[0][0].title = "Program has finished execution!";
 			worker.terminate();
-			if (buttonData[2]["state"] != 2) {
+			if (buttonData[2]["state"] != 2 && buttonData[2]["state"] != 4) {
 				newOutput("error", "Execution of program was terminated.", false);
 			}
 			newWorker(interpreterData, true);
@@ -468,6 +468,7 @@
 		inputOutput[1].appendChild(output);
 		inputOutput[1].scrollTop = inputOutput[1].scrollHeight;
 		if (errorOut && type == "error") {
+			buttonData[2]["state"] = 4;
 			changeExecutionState(null);
 		}
 	};

@@ -361,10 +361,16 @@ void parse_reformat_tokens(token_t **tokens)
 			break;
 		}
 		case PARENTHESES_OPEN:
-		case FUNCTION_CALL_PARAMETERS:
 		{
 			parentheses_position++;
 			if (special_operation[0] != 0)
+				special_operation[1]++;
+			break;
+		}
+		case FUNCTION_CALL_PARAMETERS:
+		{
+			parentheses_position++;
+			if (special_operation[0] != 0 && previous_token[2]->type != FUNCTION_CALL)
 				special_operation[1]++;
 			break;
 		}
@@ -503,6 +509,7 @@ void parse_reformat_tokens(token_t **tokens)
 				if (current_token->next->type == PARENTHESES_OPEN)
 					current_token->next->type = FUNCTION_CALL_PARAMETERS;
 				preserve_token = 4;
+				previous_token[2] = current_token;
 				break;
 			}
 			case OPERATOR:
@@ -545,8 +552,13 @@ void parse_reformat_tokens(token_t **tokens)
 		case NUMERIC:
 		case DOUBLE:
 		{
-			if (current_token->next != NULL && current_token->next->type == OPERATOR)
-				special_operation[1]++;
+			if (current_token->next != NULL)
+			{
+				if (current_token->next->type == OPERATOR)
+					special_operation[1]++;
+				else if (current_token->next == PARENTHESES_CLOSE || current_token->next == BRACKETS_CLOSE || current_token->next == SCOPE_CLOSE)
+					special_operation[1]--;
+			}
 			break;
 		}
 		default:
@@ -564,7 +576,7 @@ void parse_reformat_tokens(token_t **tokens)
 			special_operation[1] = 0;
 		if (special_operation[2] != 2)
 		{
-			if (preserve_token != 3 && special_operation[0] != 0 && special_operation[1] == !(current_token->type == FUNCTION_CALL || current_token->type == FUNCTION_DECLARATION || current_token->type == IF || current_token->type == WHILE || current_token->type == RETURN) && special_operation[5] == 0)
+			if (preserve_token != 3 && special_operation[0] != 0 && special_operation[1] == !(current_token->type == FUNCTION_CALL || current_token->type == FUNCTION_DECLARATION || current_token->type == IF || current_token->type == WHILE || current_token->type == RETURN || current_token->type == FUNCTION_CALL_PARAMETERS) && special_operation[5] == 0)
 				special_operation[2] = 1;
 		}
 		else

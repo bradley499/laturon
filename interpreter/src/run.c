@@ -1395,20 +1395,40 @@ int run(parsed_function_scope_t **functions)
 			current_function = scope_function_references->function;
 			current_token = scope_function_references->token->next;
 			unsigned long long relative_stack_position = (execution_stack_position - 1);
-			unsigned long long return_execution_stack_position = relative_stack_position;
-			execution_stack_position--;
-			relative_stack_position--;
-			for (;;)
+			stack_value_t *stack_result = run_stack_value_new(execution_stack[relative_stack_position]->value->type);
+			stack_result->operation_type = stack_result->value->type;
+			switch (stack_result->operation_type)
 			{
-				if (execution_stack[relative_stack_position--]->operation_type == FUNCTION_CALL_HOST_OPERATION)
-					break;
-				run_stack_free_value();
+			case VARIABLE_INT:
+			case VARIABLE_BOOLEAN:
+			case VARIABLE_NULL:
+				stack_result->value->contents.numeric = execution_stack[relative_stack_position]->value->contents.numeric;
+				break;
+			case VARIABLE_DOUBLE:
+				stack_result->value->contents.floating = execution_stack[relative_stack_position]->value->contents.floating;
+				break;
+			case VARIABLE_STRING:
+			{
+				stack_result->value->contents.string = xmalloc(strlen(execution_stack[relative_stack_position]->value->contents.string) + 1);
+				if (!copy_string(stack_result->value->contents.string, execution_stack[relative_stack_position]->value->contents.string))
+					fatal_error(MEMORY_ALLOCATION_ERROR);
+				break;
 			}
-			run_stack_free_value();
-			execution_stack[execution_stack_position++] = execution_stack[return_execution_stack_position];
-			execution_stack[return_execution_stack_position] = NULL;
-			if (current_function != functions_root)
-				current_token = NULL;
+			case VARIABLE_ARRAY:
+				stack_result->value->contents.array = array_duplicate(execution_stack[relative_stack_position]->value->contents.array);
+				break;
+			default:
+				fatal_error(UNKNOWN_ERROR);
+				break;
+			}
+			for (char type = NOT_DEFINED;;relative_stack_position--)
+			{
+				type = execution_stack[relative_stack_position]->operation_type; 
+				run_stack_free_value();
+				if (type == FUNCTION_CALL_HOST_OPERATION)
+					break;
+			}
+			run_stack_add_value(stack_result);
 			execution_scope--;
 			function_scope--;
 			break;

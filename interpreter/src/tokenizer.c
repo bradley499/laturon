@@ -250,10 +250,10 @@ void tokenize_file(FILE *fp)
 							for (unsigned int i = 0; i < identifier_current_length; i++)
 								identifier[i] = 0;
 							identifier_current_length = 0;
-							continue;
+							if (!(token->type == RETURN || token->type == REMOVE))
+								continue;
 						}
-						else
-							break;
+						break;
 					}
 				}
 			}
@@ -490,7 +490,7 @@ void tokenize_file(FILE *fp)
 			strncpy(token->contents.string, identifier, identifier_current_length);
 			token->contents.string[identifier_current_length] = '\0';
 		}
-		else
+		else if (token->type != RETURN && token->type != REMOVE)
 		{
 			if (token->type == VARIABLE)
 			{

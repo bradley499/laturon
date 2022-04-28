@@ -57,6 +57,16 @@ body.loading {
 	}
 }
 
+@keyframes spin {
+	from {
+		transform: rotate(0deg)
+	}
+
+	to {
+		transform: rotate(360deg)
+	}
+}
+
 div#loading {
 	line-height: 3ch;
 	height: 3ch;
@@ -129,6 +139,21 @@ div.operationButton#start_stop.back {
 
 div.operationButton#start_stop.executing {
 	background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgZmlsbD0iY3VycmVudENvbG9yIiBjbGFzcz0iYmkgYmktc3RvcC1maWxsIiB2aWV3Qm94PSIwIDAgMTYgMTYiPgogIDxwYXRoIGQ9Ik01IDMuNWg2QTEuNSAxLjUgMCAwIDEgMTIuNSA1djZhMS41IDEuNSAwIDAgMS0xLjUgMS41SDVBMS41IDEuNSAwIDAgMSAzLjUgMTFWNUExLjUgMS41IDAgMCAxIDUgMy41eiIvPgo8L3N2Zz4=");
+}
+
+div.operationButton#loadingSpinner {
+	cursor: progress;
+	background-color: #f39090 !important;
+}
+
+div.operationButton#loadingSpinner>div#loadingSpinner {
+	background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgZmlsbD0iY3VycmVudENvbG9yIiB4bWxuczp2PSJodHRwczovL3ZlY3RhLmlvL25hbm8iPjxwYXRoIGQ9Ik04LjAwNCAzLjgyNEM1LjY5NyAzLjgyNCAzLjgyOCA1LjY5NCAzLjgyOCA4czEuODY5IDQuMTc2IDQuMTc2IDQuMTc2YzIuMjMyLS4wMDEgNC4wNTUtMS43NTMgNC4xNjgtMy45NTctLjAyMS0uODQ2LTEuMjQ1LS45MjMtMS4yODYuMDIzbC0uMDM1LjI4MmEyLjkxIDIuOTEgMCAwIDEtLjEzMy40OSAyLjkxIDIuOTEgMCAwIDEtLjIxMy40NTkgMi45MSAyLjkxIDAgMCAxLS42NS43NzMgMi45MSAyLjkxIDAgMCAxLS44NzUuNTA2IDIuOTEgMi45MSAwIDAgMS0uOTk0LjE3NCAyLjkxIDIuOTEgMCAwIDEtLjk5NC0uMTc0IDIuOTEgMi45MSAwIDAgMS0uODc1LS41MDYgMi45MSAyLjkxIDAgMCAxLS42NDgtLjc3MyAyLjkxIDIuOTEgMCAwIDEtLjM0Ni0uOTQ5IDIuOTEgMi45MSAwIDAgMS0uMDQ1LS41MDYgMi45MSAyLjkxIDAgMCAxIC4xNzYtLjk5NCAyLjkxIDIuOTEgMCAwIDEgLjIxNS0uNDU5IDIuOTEgMi45MSAwIDAgMSAuMjg5LS40MTYgMi45MSAyLjkxIDAgMCAxIC43NzUtLjY0OCAyLjkxIDIuOTEgMCAwIDEgLjk0OS0uMzQ2IDIuOTEgMi45MSAwIDAgMSAuNTA0LS4wNDVjMS4xMi0uMDc0Ljk4Mi0xLjI4MS4wMTgtMS4yODV6IiBmaWxsLXJ1bGU9ImV2ZW5vZGQiIHBhaW50LW9yZGVyPSJzdHJva2UgZmlsbCBtYXJrZXJzIi8+PC9zdmc+") !important;
+	animation: spin 1s linear infinite;
+	height: 100%;
+    width: 100%;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 70px;
 }
 
 div.operationButton#resize {

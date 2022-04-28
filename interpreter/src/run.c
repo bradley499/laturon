@@ -32,13 +32,7 @@ struct scope_function_reference
 
 struct scope_function_reference *scope_function_references = NULL;
 
-struct scope_states
-{
-	unsigned long long function_scope;
-	unsigned long long execution_scope;
-} scope_states;
-
-struct scope_states execution_stack_while_references[EXECUTION_STACK_SIZE];
+unsigned long long execution_stack_while_references[EXECUTION_STACK_SIZE];
 unsigned long long int execution_stack_while_references_position = 0;
 
 void run_stack_free_value();
@@ -223,8 +217,9 @@ struct run_step_state run_stack_step(token_t *token, parsed_function_scope_t *fu
 	{
 		variable_cleanup(execution_scope);
 		execution_scope--;
-		if (execution_stack_while_references_position > 0 && execution_stack_while_references[(execution_stack_while_references_position - 1)].execution_scope == execution_scope)
+		if (execution_stack_while_references_position > 0 && execution_stack_while_references[(execution_stack_while_references_position - 1)] == execution_scope)
 		{
+			execution_stack_while_references_position--;
 			for (;; relative_stack_position--)
 			{
 				if (execution_stack[relative_stack_position]->operation_type == WHILE)
@@ -878,7 +873,7 @@ struct run_step_state run_stack_step(token_t *token, parsed_function_scope_t *fu
 		{
 			if (execution_stack_while_references_position == EXECUTION_STACK_SIZE)
 				fatal_error(STACK_MEMORY_LIMIT_REACHED);
-			execution_stack_while_references[execution_stack_while_references_position++].execution_scope = execution_scope;
+			execution_stack_while_references[execution_stack_while_references_position++] = execution_scope;
 		}
 		else
 		{
@@ -1360,7 +1355,7 @@ int run(parsed_function_scope_t **functions)
 			if (response.state == BREAK)
 			{
 				scope = execution_scope;
-				scope_exit = execution_stack_while_references[--execution_stack_while_references_position].execution_scope;
+				scope_exit = execution_stack_while_references[--execution_stack_while_references_position];
 			}
 			if (response.state != BREAK)
 			{
@@ -1438,6 +1433,16 @@ int run(parsed_function_scope_t **functions)
 			current_token = current_token->next;
 			break;
 		}
+		}
+		if (execution_stack_while_references_position > 0)
+		{
+			for (unsigned long long relative_execution_stack_while_references_position = (execution_stack_while_references_position - 1);;relative_execution_stack_while_references_position--)
+			{
+				if (execution_scope < execution_stack_while_references[relative_execution_stack_while_references_position])
+					relative_execution_stack_while_references_position--;
+				if (relative_execution_stack_while_references_position == 0)
+					break;
+			}
 		}
 		for (; current_token == NULL;)
 		{

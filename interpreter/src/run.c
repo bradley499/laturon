@@ -1135,7 +1135,7 @@ int run(parsed_function_scope_t **functions)
 						for (size_t i = 0; i < strlen(execution_stack[relative_position]->value->contents.string); i++)
 						{
 							unsigned char c = execution_stack[relative_position]->value->contents.string[i];
-							if (c < '0' && c > '9' && c != '-')
+							if ((c < '0' || c > '9') && c != '-')
 								fatal_error_lined(CONVERSION_ERROR, current_token->line);
 							else if (c == '-')
 							{

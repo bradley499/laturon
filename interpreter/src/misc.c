@@ -244,6 +244,9 @@ void syntax_error(syntax_errors error, unsigned long long line)
 	case INVALID_SCOPE_TERMINATION:
 		snprintf(buffer, SYNTAX_ERROR_BUFFER_SIZE, "An open scope was not closed. On line: %lld", line);
 		break;
+	case DANGLING_VARIABLE_REFERENCE:
+		snprintf(buffer, SYNTAX_ERROR_BUFFER_SIZE, "A dangling variable reference occurred prior to an operation. On line: %lld", line);
+		break;
 	case INVALID_SYNTAX:
 	default:
 		snprintf(buffer, SYNTAX_ERROR_BUFFER_SIZE, "Invalid syntax. On line: %lld", line);

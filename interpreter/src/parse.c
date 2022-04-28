@@ -156,7 +156,7 @@ int parse_tokens(parsed_function_scope_t **functions)
 	signed long long active_parameters = 0;
 	for (; current_token != NULL;)
 	{
-		if (function_scope_unable == 1 && !((current_token->type == SCOPE_OPEN && previous_token[0]->type == PARENTHESES_CLOSE) || current_token->type == PARENTHESES_CLOSE) && current_token->type != VARIABLE && !(current_token->type == OPERATOR && current_token->contents.numeric == (int)',') && current_token->type != PARENTHESES_CLOSE &&  !(current_token->type == PARENTHESES_OPEN && previous_token[0]->type == FUNCTION_DECLARATION))
+		if (function_scope_unable == 1 && !((current_token->type == SCOPE_OPEN && previous_token[0]->type == PARENTHESES_CLOSE) || current_token->type == PARENTHESES_CLOSE) && current_token->type != VARIABLE && !(current_token->type == OPERATOR && current_token->contents.numeric == (int)',') && current_token->type != PARENTHESES_CLOSE && !(current_token->type == PARENTHESES_OPEN && previous_token[0]->type == FUNCTION_DECLARATION))
 			syntax_error(INVALID_PARAMETERS, current_token->line);
 		switch (current_token->type)
 		{
@@ -240,7 +240,7 @@ int parse_tokens(parsed_function_scope_t **functions)
 		default:
 		{
 			if (function_scope_unable == 0)
-					previous_token[1] = current_token;
+				previous_token[1] = current_token;
 			break;
 		}
 		}
@@ -283,14 +283,14 @@ void parse_reformat_tokens(token_t **tokens)
 				current_token->contents.numeric = 0;
 				operator_count = 0;
 			}
-			else 
+			else
 			{
 				if (current_token->contents.numeric == (int)'-')
 				{
 					if (operator_count != 1)
-							current_token->type = NEGATE;
-					else if (previous_token[0] != NULL && (previous_token[0]->type == ASSIGN || previous_token[0]->type == INSERT  || previous_token[0]->type == EQUALITY || previous_token[0]->type == NOT_EQUALITY || previous_token[0]->type == LESS_OR_EQUALITY || previous_token[0]->type == MORE_OR_EQUALITY || previous_token[0]->type == AND || previous_token[0]->type == OR || previous_token[0]->type == NEGATE || previous_token[0]->type == BRACKETS_OPEN || previous_token[0]->type == PARENTHESES_OPEN || previous_token[0]->type == RETURN || (previous_token[0]->type == OPERATOR && (previous_token[0]->contents.numeric == (int)'<' || previous_token[0]->contents.numeric == (int)'>'))))
-							current_token->type = NEGATE;
+						current_token->type = NEGATE;
+					else if (previous_token[0] != NULL && (previous_token[0]->type == ASSIGN || previous_token[0]->type == INSERT || previous_token[0]->type == EQUALITY || previous_token[0]->type == NOT_EQUALITY || previous_token[0]->type == LESS_OR_EQUALITY || previous_token[0]->type == MORE_OR_EQUALITY || previous_token[0]->type == AND || previous_token[0]->type == OR || previous_token[0]->type == NEGATE || previous_token[0]->type == BRACKETS_OPEN || previous_token[0]->type == PARENTHESES_OPEN || previous_token[0]->type == RETURN || (previous_token[0]->type == OPERATOR && (previous_token[0]->contents.numeric == (int)'<' || previous_token[0]->contents.numeric == (int)'>'))))
+						current_token->type = NEGATE;
 				}
 				if (current_token->contents.numeric == (int)'+' && operator_count != 1)
 				{
@@ -347,6 +347,7 @@ void parse_reformat_tokens(token_t **tokens)
 	int function_scope[2] = {0, 0};
 	for (; current_token != NULL; iteration++)
 	{
+		int additional_variable = 0;
 		int reorganised = 1;
 		int preserve_token = 0;
 		switch (current_token->type)
@@ -373,6 +374,8 @@ void parse_reformat_tokens(token_t **tokens)
 			if (function_call == 0 && function_scope[1] == 1 && function_scope[0] == 0 && current_token->next != NULL && current_token->next->type == SCOPE_OPEN)
 				function_scope[0] = (scope_position + 1);
 			reorganised = 0;
+			if (current_token->next != NULL && (current_token->next->type == VARIABLE || current_token->next->type == LITERAL || current_token->next->type == NUMERIC || current_token->next->type == DOUBLE))
+				additional_variable = 1;
 			break;
 		}
 		case BRACKETS_OPEN:
@@ -389,6 +392,9 @@ void parse_reformat_tokens(token_t **tokens)
 				break;
 			brackets_position--;
 			reorganised = 0;
+			if (current_token->next != NULL && (current_token->next->type == VARIABLE || current_token->next->type == LITERAL || current_token->next->type == NUMERIC || current_token->next->type == DOUBLE))
+				additional_variable = 1;
+			break;
 		}
 		case SCOPE_OPEN:
 		{
@@ -409,6 +415,10 @@ void parse_reformat_tokens(token_t **tokens)
 			reorganised = 0;
 			break;
 		}
+		case INSERT:
+		case REMOVE:
+			fatal_error_lined(UNIMPLEMENTED_YET, current_token->line);
+			break;
 		case FUNCTION_CALL:
 		case IF:
 		case WHILE:
@@ -419,7 +429,6 @@ void parse_reformat_tokens(token_t **tokens)
 		case MORE_OR_EQUALITY:
 		case AND:
 		case OR:
-		case INSERT:
 		case OPERATOR:
 		case RETURN:
 		case NEGATE:
@@ -517,6 +526,8 @@ void parse_reformat_tokens(token_t **tokens)
 		case DOUBLE:
 		{
 			reorganised = 0;
+			if (current_token->next != NULL && (current_token->next->type == VARIABLE || current_token->next->type == LITERAL || current_token->next->type == NUMERIC || current_token->next->type == DOUBLE))
+				additional_variable = 1;
 			break;
 		}
 		default:
@@ -668,6 +679,8 @@ void parse_reformat_tokens(token_t **tokens)
 			} while (reinsertable);
 			preserve_token = 2;
 		}
+		else if (additional_variable == 1)
+			syntax_error(DANGLING_VARIABLE_REFERENCE, current_token->line);
 		else if (preserve_token == 1 || preserve_token == 4 || preserve_token == 5)
 			continue;
 		else if (preserve_token < 2)
@@ -832,7 +845,7 @@ void parse_numeric_reformat(parsed_function_scope_t **function_scopes)
 				current_token->contents.numeric = variable_id;
 				if (is_function_declaration)
 				{
-					struct function_parameter_variable* parameter = xmalloc(sizeof(struct function_parameter_variable));
+					struct function_parameter_variable *parameter = xmalloc(sizeof(struct function_parameter_variable));
 					parameter->variable_id = variable_id;
 					parameter->previous = parameter_variable_stack;
 					parameter_variable_stack = parameter;

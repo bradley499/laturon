@@ -69,6 +69,7 @@ typedef enum syntax_errors
 	INVALID_LITERAL_TERMINATION,   // A string was incorrectly terminated
 	INVALID_ARRAY_TERMINATION,	   // An list was not closed off
 	INVALID_SCOPE_TERMINATION,	   // An open scope was not closed
+	DANGLING_VARIABLE_REFERENCE,   // A dangling variable reference occurred prior to an operation
 } syntax_errors;
 
 // Blocking malloc which will exit program execution on failure

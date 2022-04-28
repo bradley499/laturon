@@ -463,9 +463,23 @@ void parse_reformat_tokens(token_t **tokens)
 				if (current_token->contents.numeric == (int)',')
 					break;
 			if (current_token->type == RETURN)
-			{
 				if (current_token->next != NULL && current_token->next->type == SCOPE_CLOSE)
 					syntax_error(EMPTY_RETURN, current_token->line);
+			switch (current_token->type)
+			{
+			case EQUALITY:
+			case NOT_EQUALITY:
+			case LESS_OR_EQUALITY:
+			case MORE_OR_EQUALITY:
+			case AND:
+			case OR:
+			case ASSIGN:
+			case INSERT:
+				if (current_token->next == NULL || current_token->next->type == SCOPE_CLOSE || current_token->next->type == BRACKETS_CLOSE || current_token->next->type == PARENTHESES_CLOSE)
+					syntax_error(INVALID_SYNTAX, ((current_token->next != NULL) ? current_token->next->line : current_token->line));
+				break;
+			default:
+				break;
 			}
 			switch (current_token->type)
 			{

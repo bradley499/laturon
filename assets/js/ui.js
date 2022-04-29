@@ -567,8 +567,8 @@
 			} catch (e) {}
 			return false;
 		})();
-		if (!window.Worker || !supportsWebAssembly) {
-			alertBuilder("Browser not supported", "Sorry, but your browser is not supported due to it have missing (or disabled) features required to run the Laturon IDE.", null, null);
+		if (!window.Worker || !supportsWebAssembly || (typeof Int8Array === "undefined" || typeof Int16Array === "undefined" || typeof Int32Array === "undefined" || typeof Uint8Array === "undefined" || typeof Uint16Array === "undefined" || typeof Uint32Array === "undefined" || typeof Float32Array === "undefined" || typeof Float64Array === "undefined" || typeof BigInt64Array === "undefined" || typeof BigUint64Array === "undefined")) {
+			alertBuilder("Browser not supported", "Sorry, but your browser is not supported due to it have missing (or disabled) features that are required to run the Laturon IDE.", null, null);
 			buttons[2].remove();
 			buttons[3].remove();
 			buttons[4].remove();

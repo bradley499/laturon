@@ -104,10 +104,10 @@ int run_stack_state_is_true(unsigned int relative_position)
 	{
 	case VARIABLE_INT:
 	case VARIABLE_BOOLEAN:
-		return (execution_stack[relative_stack_position]->value->contents.numeric == BOOLEAN_TRUE);
+		return (execution_stack[relative_stack_position]->value->contents.numeric != BOOLEAN_FALSE);
 		break;
 	case VARIABLE_DOUBLE:
-		return (execution_stack[relative_stack_position]->value->contents.floating == BOOLEAN_TRUE);
+		return (execution_stack[relative_stack_position]->value->contents.floating != BOOLEAN_FALSE);
 		break;
 	default:
 		break;

@@ -86,6 +86,9 @@ int run_file()
 	variable_initialisation();
 	run_stack_reset();
 	tokenize_file(fp);
+#ifdef EMSCRIPTEN
+	set_load_state(TOKENIZING_DONE);
+#endif
 	fclose(fp);
 	fp = NULL;
 	parsed_function_scope_t *functions = NULL;

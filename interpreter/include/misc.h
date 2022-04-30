@@ -54,6 +54,7 @@ typedef enum syntax_errors
 	INVALID_VARIABLE_NAME,		   // A variable has a name that is not supported
 	INVALID_FUNCTION_NAME,		   // A function has a name that is not supported
 	INVALID_FUNCTION_PARAMETERS,   // The total amount of parameters used in a function call does not match the function definition
+	INVALID_PARAMETER_NAME_GLOBAL, // A parameter has the same name as a variable that is declared within the global scope
 	INVALID_OPERATION,			   // An invalid operation was defined within the syntax
 	INVALID_NUMERIC,			   // An invalid numerical value was given
 	RETURN_WITHOUT_FUNCTION,	   // Unable to return when not use within a function

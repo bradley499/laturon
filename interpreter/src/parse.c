@@ -754,7 +754,7 @@ void parse_cleanup_variable_references()
 }
 
 // Assign a numeric reference to a variable by name and scope
-variable_id parse_get_variable_numeric(char *name, int function_numeric_reference)
+variable_id parse_get_variable_numeric(char *name, int function_numeric_reference, int is_parameter)
 {
 	if (strcmp(name, "false") == 0)
 		return BOOLEAN_FALSE;
@@ -783,6 +783,8 @@ variable_id parse_get_variable_numeric(char *name, int function_numeric_referenc
 		}
 		if (strcmp(current_variable->name, name) == 0)
 		{
+			if (is_parameter == 1)
+				return -1;
 			if (current_variable->function_numeric_reference == 0 || current_variable->function_numeric_reference == function_numeric_reference)
 				return current_variable->numeric_reference;
 		}
@@ -824,6 +826,7 @@ void parse_numeric_reformat(parsed_function_scope_t **function_scopes)
 		};
 		struct function_parameter_variable *parameter_variable_stack = NULL;
 		int is_function_declaration = 0;
+		int is_function_parameter = 0;
 		for (; current_token != NULL;)
 		{
 			int removable = 0;
@@ -854,8 +857,10 @@ void parse_numeric_reformat(parsed_function_scope_t **function_scopes)
 			}
 			case VARIABLE:
 			{
-				variable_id variable_id = parse_get_variable_numeric(current_token->contents.string, function_count);
+				variable_id variable_id = parse_get_variable_numeric(current_token->contents.string, function_count, is_function_parameter);
 				free(current_token->contents.string);
+				if (is_function_parameter == 1 && variable_id == -1)
+					syntax_error(INVALID_PARAMETER_NAME_GLOBAL, current_token->line);
 				current_token->contents.numeric = variable_id;
 				if (is_function_declaration)
 				{
@@ -898,6 +903,13 @@ void parse_numeric_reformat(parsed_function_scope_t **function_scopes)
 			}
 			case PARENTHESES_OPEN:
 			{
+				if (is_function_declaration == 1)
+				{
+					if (is_function_parameter == 1)
+						syntax_error(INVALID_PARAMETERS, current_token->line);
+					else
+						is_function_parameter = 1;
+				}
 				removable = 1;
 				break;
 			}
@@ -951,6 +963,7 @@ void parse_numeric_reformat(parsed_function_scope_t **function_scopes)
 			case PARENTHESES_CLOSE:
 			{
 				removable = 1;
+				is_function_parameter = 0;
 				break;
 			}
 			default:

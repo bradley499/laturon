@@ -199,6 +199,9 @@ void syntax_error(syntax_errors error, unsigned long long line)
 	case INVALID_FUNCTION_PARAMETERS:
 		snprintf(buffer, SYNTAX_ERROR_BUFFER_SIZE, "The total amount of parameters used in a function call does not match the function definition. On line: %lld", line);
 		break;
+	case INVALID_PARAMETER_NAME_GLOBAL:
+		snprintf(buffer, SYNTAX_ERROR_BUFFER_SIZE, "A parameter has the same name as a variable that is declared within the global scope. On line: %lld", line);
+		break;
 	case RETURN_WITHOUT_FUNCTION:
 		snprintf(buffer, SYNTAX_ERROR_BUFFER_SIZE, "Unable to return when not use within a function. On line: %lld", line);
 		break;

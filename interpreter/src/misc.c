@@ -242,7 +242,7 @@ void syntax_error(syntax_errors error, unsigned long long line)
 		snprintf(buffer, SYNTAX_ERROR_BUFFER_SIZE, "A string was incorrectly terminated. On line: %lld", line);
 		break;
 	case INVALID_ARRAY_TERMINATION:
-		snprintf(buffer, SYNTAX_ERROR_BUFFER_SIZE, "An list was not closed off. On line: %lld", line);
+		snprintf(buffer, SYNTAX_ERROR_BUFFER_SIZE, "A list was not closed off. On line: %lld", line);
 		break;
 	case INVALID_SCOPE_TERMINATION:
 		snprintf(buffer, SYNTAX_ERROR_BUFFER_SIZE, "An open scope was not closed. On line: %lld", line);

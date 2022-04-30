@@ -68,7 +68,7 @@ typedef enum syntax_errors
 	INVALID_VARIABLE_REFERENCE,	   // A reference to a variable could not be established due to an invalid format
 	INVALID_PARAMETERS,			   // A functions parameters were incorrectly defined
 	INVALID_LITERAL_TERMINATION,   // A string was incorrectly terminated
-	INVALID_ARRAY_TERMINATION,	   // An list was not closed off
+	INVALID_ARRAY_TERMINATION,	   // A list was not closed off
 	INVALID_SCOPE_TERMINATION,	   // An open scope was not closed
 	DANGLING_VARIABLE_REFERENCE,   // A dangling variable reference occurred prior to an operation
 } syntax_errors;

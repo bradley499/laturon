@@ -14,7 +14,7 @@
 
 typedef enum error_codes
 {
-	UNKNOWN_ERROR,				// An unknown error
+	UNKNOWN_ERROR,				// An unknown error occurred
 	MEMORY_ALLOCATION_ERROR,	// Failed to allocate memory
 	LOGIC_ERROR,				// Logical operation failed
 	CONVERSION_ERROR,			// Failure to convert to another type

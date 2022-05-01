@@ -196,7 +196,7 @@ void error_code(error_codes code)
 		break;
 	case UNKNOWN_ERROR:
 	default:
-		copy_string(buffer, "An unknown error.");
+		copy_string(buffer, "An unknown error occurred.");
 		break;
 	}
 	output(buffer, OUTPUT_ERROR);
@@ -261,7 +261,7 @@ void error_code_lined(error_codes code, unsigned long long line)
 		break;
 	case UNKNOWN_ERROR:
 	default:
-		snprintf(buffer, ERROR_MESSAGE_SIZE, "An unknown error. On line: %lld", line);
+		snprintf(buffer, ERROR_MESSAGE_SIZE, "An unknown error occurred. On line: %lld", line);
 		break;
 	}
 	output(buffer, OUTPUT_ERROR);

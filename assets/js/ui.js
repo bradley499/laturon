@@ -181,7 +181,7 @@
 				return;
 			}
 			if (initialExecution) {
-				alertBuilder("Unable to run", "Sorry, but the interpreter is still being loaded... Until the interpreter has loaded, you'll have to wait before you can run your program.", null, null);
+				alertBuilder("Unable to run", "Sorry, but the Laturon interpreter is still being loaded... Until the Laturon interpreter has loaded, you'll have to wait before you can run your program.", null, null);
 			} else {
 				buttons[3].style.display = "inline-block";
 				buttons[2].style.display = "none";
@@ -506,12 +506,29 @@
 	updateEditor();
 	// Web worker data transition
 	const newWorker = (interpreterData, silentCreation = false) => {
+		interpreterReady = false;
 		if (interpreterData === false) {
-			alertBuilder("Failed to load", "Sorry, but unfortunately the information required to load up the interpreter failed to load.\nThis means that you will be unable to execute your program, however you are still able to: load, edit, and save; your source code.", null, null);
+			alertBuilder("Failed to load", "Sorry, but unfortunately the information required to load up the Laturon interpreter failed to load.\nThis means that you will be unable to execute your program, however you are still able to: load, edit, and save; your source code.", null, null);
 			return;
 		}
-		interpreterReady = false;
 		worker = new Worker("./assets/js/" + interpreterData["worker"]);
+		worker.onerror = (e) => {
+			if (!interpreterReady) {
+				alertBuilder("Failed to load", "Sorry, but unfortunately a new instance of the Laturon interpreter failed to load.\nThis means that you will be unable to execute your program, however you are still able to: load, edit, and save; your source code.", null, null);
+				worker.terminate();
+				interpreterReady = true;
+				buttons[2].classList.remove("executing");
+				interactsContainer.classList.remove("executing");
+				buttons[2].setAttribute("state", 0);
+				buttonData[2]["state"] = 0;
+				tooltipIter(buttons[2], 2);
+				buttons[3].style.display = "none";
+				buttons[2].style.display = "inline-block";
+				executing = false;
+				loadingState(null, false);
+			}
+			return;
+		}
 		worker.postMessage({ "type": "startup", "data": [initialExecution, silentCreation] });
 		worker.onmessage = (e) => {
 			e = e.data;

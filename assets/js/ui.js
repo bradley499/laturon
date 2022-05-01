@@ -181,7 +181,7 @@
 				return;
 			}
 			if (initialExecution) {
-				alertBuilder("Unable to run", "Sorry, but the Laturon interpreter is still being loaded... Until the Laturon interpreter has loaded, you'll have to wait before you can run your program.", null, null);
+				return alertBuilder("Unable to run", "Sorry, but the Laturon interpreter is still being loaded... Until the Laturon interpreter has loaded, you'll have to wait before you can run your program.", null, null);
 			} else {
 				buttons[3].style.display = "inline-block";
 				buttons[2].style.display = "none";
@@ -195,7 +195,6 @@
 				buttons[3].style.display = "none";
 				buttons[2].style.display = "inline-block";
 			}
-			return;
 		}
 		let state = buttonData[2]["state"];
 		if (state == 0 && button != null) {
@@ -514,9 +513,8 @@
 		worker = new Worker("./assets/js/" + interpreterData["worker"]);
 		worker.onerror = (e) => {
 			if (!interpreterReady) {
-				alertBuilder("Failed to load", "Sorry, but unfortunately a new instance of the Laturon interpreter failed to load.\nThis means that you will be unable to execute your program, however you are still able to: load, edit, and save; your source code.", null, null);
+				alertBuilder("Failed to load", "Sorry, but unfortunately a new instance of the Laturon interpreter failed to load.\nThis means that you will now be unable to execute your program, however you are still able to: load, edit, and save; your source code.", null, null);
 				worker.terminate();
-				interpreterReady = true;
 				buttons[2].classList.remove("executing");
 				interactsContainer.classList.remove("executing");
 				buttons[2].setAttribute("state", 0);
@@ -526,6 +524,10 @@
 				buttons[2].style.display = "inline-block";
 				executing = false;
 				loadingState(null, false);
+				buttons[2].remove();
+				buttons[3].remove();
+				buttons[4].remove();	
+				interactsContainer.className = "editorSizing100";
 			}
 			return;
 		}

@@ -954,12 +954,6 @@ void parse_numeric_reformat(parsed_function_scope_t **function_scopes)
 				}
 				break;
 			}
-			case SCOPE_CLOSE:
-			{
-				if (current_token->next == NULL && function_count > 0)
-					removable = 1;
-				break;
-			}
 			case PARENTHESES_CLOSE:
 			{
 				removable = 1;

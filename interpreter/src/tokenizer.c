@@ -433,7 +433,7 @@ void tokenize_file(FILE *fp)
 					}
 					else if (current_numeric == 2)
 					{
-						if ((identifier_current_length - numeric_counter[0]) == 6 && numeric_counter[1] == 0)
+						if ((identifier_current_length - numeric_counter[0]) == 7 && numeric_counter[1] == 0)
 						{
 							numeric_counter[1] = 1;
 							convertion_floating_warning();

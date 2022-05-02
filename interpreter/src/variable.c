@@ -19,7 +19,7 @@ void variable_initialisation()
 	variable_set_value(new_variable(0, 0, VARIABLE_NULL), VARIABLE_NULL, BOOLEAN_FALSE, 0, 0, 0);	 // Create null variable
 }
 
-unsigned short new_variable(unsigned int execution_scope, unsigned int function_scope, variable_id id)
+unsigned short new_variable(unsigned long long execution_scope, unsigned long long function_scope, variable_id id)
 {
 	if (total_variables >= VARIABLE_MAX_TOTAL) // Too many variables have been declared in memory
 		fatal_error(TOO_BIG_NUMERIC);
@@ -39,17 +39,6 @@ unsigned short new_variable(unsigned int execution_scope, unsigned int function_
 	return new_variable_position;
 }
 
-void variable_refresh_scope(variable_id id, unsigned int function_scope, unsigned int execution_scope)
-{
-	for (unsigned int i = 0; i < VARIABLE_MAX_TOTAL; i++)
-		if (variables[i].function_scope == function_scope)
-			if (variables[i].variable_id == id)
-			{
-				variables[i].execution_scope = execution_scope; // Refresh scope size
-				return;
-			}
-}
-
 void variable_delete(unsigned short variable_position)
 {
 	variables[variable_position].function_scope = VARIABLE_UNASSIGNED;															  // Unassign variable function scope
@@ -60,7 +49,7 @@ void variable_delete(unsigned short variable_position)
 	total_variables -= 1;																										  // Decrease total variable count
 }
 
-variable_value_t variable_get_value(variable_id id, unsigned int function_scope, unsigned int execution_scope)
+variable_value_t variable_get_value(variable_id id, unsigned long long function_scope, unsigned long long execution_scope)
 {
 	for (unsigned int i = 0; i < VARIABLE_MAX_TOTAL; i++)
 		if (variables[i].function_scope == function_scope || variables[i].function_scope == VARIABLE_SCOPE_GLOBAL)
@@ -116,7 +105,7 @@ variable_id variable_get_host_id(unsigned short variable_position)
 	return variables[variable_position].variable_id;
 }
 
-void variable_cleanup(unsigned int execution_scope)
+void variable_cleanup(unsigned long long execution_scope)
 {
 	for (unsigned int i = 0; i < VARIABLE_MAX_TOTAL; i++)
 		if (((execution_scope == VARIABLE_SCOPE_GLOBAL) ? 1 : variables[i].execution_scope > execution_scope)) // If variable scope is destroyed

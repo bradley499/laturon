@@ -58,11 +58,11 @@ typedef struct variable_t
 // Initialise variable array
 void variable_initialisation();
 // Create a new variable with referenced execution scope and function scope
-unsigned short new_variable(unsigned int execution_scope, unsigned int function_scope, variable_id id);
+unsigned short new_variable(unsigned long long execution_scope, unsigned long long function_scope, variable_id id);
 // Delete variable reference
 void variable_delete(unsigned short variable_position);
 // Get value of variable
-variable_value_t variable_get_value(variable_id id, unsigned int function_scope, unsigned int execution_scope);
+variable_value_t variable_get_value(variable_id id, unsigned long long function_scope, unsigned long long execution_scope);
 // Set value of variable
 void variable_set_value(unsigned short variable_position, char type, signed long long int numeric, long double floating, char *string, struct array_value_t *array);
 // Check and declare variable assigned state
@@ -70,7 +70,7 @@ variable_id variable_value_assigned(variable_id id, int declare_as_defined);
 // Get the variable host ID from position
 variable_id variable_get_host_id(unsigned short variable_position);
 // Clean up all variables within execution scope
-void variable_cleanup(unsigned int execution_scope);
+void variable_cleanup(unsigned long long execution_scope);
 // Validates if a name is a valid name for a variable or function
 int variable_name_valid(char *name);
 

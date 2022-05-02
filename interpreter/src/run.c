@@ -1105,7 +1105,7 @@ int run(parsed_function_scope_t **functions)
 						break;
 					}
 					default:
-						fatal_error_lined(STACK_REFERENCE_ERROR, current_token->line);
+						fatal_error_lined(CONVERSION_ERROR, current_token->line);
 						break;
 					}
 					run_stack_free_value();
@@ -1154,7 +1154,7 @@ int run(parsed_function_scope_t **functions)
 						stack_result->value->contents.numeric = run_stack_state_is_true(0);
 						break;
 					default:
-						fatal_error_lined(STACK_REFERENCE_ERROR, current_token->line);
+						fatal_error_lined(CONVERSION_ERROR, current_token->line);
 						break;
 					}
 					run_stack_free_value();
@@ -1216,7 +1216,7 @@ int run(parsed_function_scope_t **functions)
 						stack_result->value->contents.floating = (long double)run_stack_state_is_true(0);
 						break;
 					default:
-						fatal_error_lined(STACK_REFERENCE_ERROR, current_token->line);
+						fatal_error_lined(CONVERSION_ERROR, current_token->line);
 						break;
 					}
 					run_stack_free_value();
@@ -1240,8 +1240,13 @@ int run(parsed_function_scope_t **functions)
 						stack_result->value->contents.numeric = (long double)run_stack_state_is_true(0);
 						break;
 					case VARIABLE_STRING:
-						stack_result->value->contents.numeric = (long double)(strlen(execution_stack[relative_position]->value->contents.string) > 0);
+					{
+						if (execution_stack[relative_position]->value->contents.string == NULL)
+							stack_result->value->contents.numeric = 0;
+						else
+							stack_result->value->contents.numeric = (long double)(strlen(execution_stack[relative_position]->value->contents.string) > 0);
 						break;
+					}
 					case VARIABLE_BOOLEAN:
 						stack_result->value->contents.numeric = (long double)run_stack_state_is_true(0);
 						break;
@@ -1252,7 +1257,7 @@ int run(parsed_function_scope_t **functions)
 						stack_result->value->contents.numeric = BOOLEAN_FALSE;
 						break;
 					default:
-						fatal_error_lined(STACK_REFERENCE_ERROR, current_token->line);
+						fatal_error_lined(CONVERSION_ERROR, current_token->line);
 						break;
 					}
 					run_stack_free_value();
@@ -1307,7 +1312,7 @@ int run(parsed_function_scope_t **functions)
 						success = copy_string(stack_result->value->contents.string, "integer");
 						break;
 					case VARIABLE_DOUBLE:
-						success = copy_string(stack_result->value->contents.string, "double");
+						success = copy_string(stack_result->value->contents.string, "float");
 						break;
 					case VARIABLE_STRING:
 						success = copy_string(stack_result->value->contents.string, "string");

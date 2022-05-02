@@ -211,8 +211,12 @@ struct run_step_state run_stack_step(token_t *token, parsed_function_scope_t *fu
 	case BRACKETS_CLOSE:
 		break;
 	case SCOPE_OPEN:
+	{
+		if (execution_scope == (VARIABLE_UNASSIGNED - 1))
+			fatal_error(STACK_MEMORY_LIMIT_REACHED);
 		execution_scope++;
 		break;
+	}
 	case SCOPE_CLOSE:
 	{
 		variable_cleanup(execution_scope);
@@ -1342,6 +1346,9 @@ int run(parsed_function_scope_t **functions)
 				if (current_function == NULL)
 					fatal_error_lined(EXECUTION_ERROR, current_token->line);
 				current_token = current_function->function_token;
+				if (function_scope == (VARIABLE_UNASSIGNED - 1))
+					fatal_error(STACK_REFERENCE_ERROR);
+				function_scope++;
 			}
 			break;
 		}

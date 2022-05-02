@@ -150,7 +150,7 @@ void error_code(error_codes code)
 		copy_string(buffer, "Logical operation failed.");
 		break;
 	case CONVERSION_ERROR:
-		copy_string(buffer, "Failure to convert to another type.");
+		copy_string(buffer, "Failed to convert to another type.");
 		break;
 	case CLEANUP_ERROR:
 		copy_string(buffer, "Failed to cleanup variables outside of current scope.");
@@ -215,7 +215,7 @@ void error_code_lined(error_codes code, unsigned long long line)
 		snprintf(buffer, ERROR_MESSAGE_SIZE, "Logical operation failed. On line: %lld", line);
 		break;
 	case CONVERSION_ERROR:
-		snprintf(buffer, ERROR_MESSAGE_SIZE, "Failure to convert to another type. On line: %lld", line);
+		snprintf(buffer, ERROR_MESSAGE_SIZE, "Failed to convert to another type. On line: %lld", line);
 		break;
 	case CLEANUP_ERROR:
 		snprintf(buffer, ERROR_MESSAGE_SIZE, "Failed to cleanup variables outside of current scope. On line: %lld", line);

@@ -17,7 +17,7 @@ typedef enum error_codes
 	UNKNOWN_ERROR,				// An unknown error occurred
 	MEMORY_ALLOCATION_ERROR,	// Failed to allocate memory
 	LOGIC_ERROR,				// Logical operation failed
-	CONVERSION_ERROR,			// Failure to convert to another type
+	CONVERSION_ERROR,			// Failed to convert to another type
 	CLEANUP_ERROR,				// Failed to cleanup variables outside of current scope
 	EXECUTION_ERROR,			// Failed to execute operation
 	STACK_REFERENCE_ERROR,		// An invalid reference to a call stack scope occurred

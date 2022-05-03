@@ -8,6 +8,7 @@
 #include "tokenizer.h"
 #include "variable.h"
 #include "misc.h"
+#include "variable.h"
 
 typedef struct parsed_function_type_t
 {
@@ -754,7 +755,7 @@ void parse_cleanup_variable_references()
 }
 
 // Assign a numeric reference to a variable by name and scope
-variable_id parse_get_variable_numeric(char *name, int function_numeric_reference, int is_parameter)
+variable_id parse_get_variable_numeric(char *name, unsigned long long function_numeric_reference, int is_parameter, unsigned long long execution_scope)
 {
 	if (strcmp(name, "false") == 0)
 		return BOOLEAN_FALSE;
@@ -762,14 +763,16 @@ variable_id parse_get_variable_numeric(char *name, int function_numeric_referenc
 		return BOOLEAN_TRUE;
 	else if (strcmp(name, "null") == 0)
 		return VALUE_NULL;
-	parsed_variable_type_t *new_variable = xmalloc(sizeof(parsed_variable_type_t));
-	new_variable->name = xmalloc(strlen(name) + 1);
-	new_variable->function_numeric_reference = function_numeric_reference;
-	strcpy(new_variable->name, name);
+	parsed_variable_type_t *new_variable_numeric = xmalloc(sizeof(parsed_variable_type_t));
+	new_variable_numeric->name = xmalloc(strlen(name) + 1);
+	new_variable_numeric->function_numeric_reference = function_numeric_reference;
+	strcpy(new_variable_numeric->name, name);
 	if (parse_variable_references == NULL)
 	{
-		new_variable->numeric_reference = VARIABLE_NUMERIC_REFERENCE_START;
-		parse_variable_references = new_variable;
+		new_variable_numeric->numeric_reference = VARIABLE_NUMERIC_REFERENCE_START;
+		parse_variable_references = new_variable_numeric;
+		if (function_numeric_reference == 0)
+			new_variable(execution_scope, function_numeric_reference, new_variable_numeric->numeric_reference);
 		return VARIABLE_NUMERIC_REFERENCE_START;
 	}
 	parsed_variable_type_t *current_variable = parse_variable_references;
@@ -778,7 +781,7 @@ variable_id parse_get_variable_numeric(char *name, int function_numeric_referenc
 	{
 		if (numeric_reference == VARIABLE_UNASSIGNED)
 		{
-			free(new_variable);
+			free(new_variable_numeric);
 			fatal_error(TOO_BIG_NUMERIC);
 		}
 		if (strcmp(current_variable->name, name) == 0)
@@ -790,8 +793,10 @@ variable_id parse_get_variable_numeric(char *name, int function_numeric_referenc
 		}
 		if (current_variable->next == NULL)
 		{
-			new_variable->numeric_reference = ++numeric_reference;
-			current_variable->next = new_variable;
+			new_variable_numeric->numeric_reference = ++numeric_reference;
+			if (function_numeric_reference == 0)
+				new_variable(execution_scope, function_numeric_reference, new_variable_numeric->numeric_reference);
+			current_variable->next = new_variable_numeric;
 			return numeric_reference;
 		}
 		current_variable = current_variable->next;
@@ -827,6 +832,7 @@ void parse_numeric_reformat(parsed_function_scope_t **function_scopes)
 		struct function_parameter_variable *parameter_variable_stack = NULL;
 		int is_function_declaration = 0;
 		int is_function_parameter = 0;
+		unsigned long long execution_scope = 0;
 		for (; current_token != NULL;)
 		{
 			int removable = 0;
@@ -857,7 +863,7 @@ void parse_numeric_reformat(parsed_function_scope_t **function_scopes)
 			}
 			case VARIABLE:
 			{
-				variable_id variable_id = parse_get_variable_numeric(current_token->contents.string, function_count, is_function_parameter);
+				variable_id variable_id = parse_get_variable_numeric(current_token->contents.string, function_count, is_function_parameter, execution_scope);
 				free(current_token->contents.string);
 				if (is_function_parameter == 1 && variable_id == -1)
 					syntax_error(INVALID_PARAMETER_NAME_GLOBAL, current_token->line);
@@ -925,6 +931,7 @@ void parse_numeric_reformat(parsed_function_scope_t **function_scopes)
 			}
 			case SCOPE_OPEN:
 			{
+				execution_scope++;
 				if (is_function_declaration == 1)
 				{
 					is_function_declaration = 0;
@@ -954,6 +961,9 @@ void parse_numeric_reformat(parsed_function_scope_t **function_scopes)
 				}
 				break;
 			}
+			case SCOPE_CLOSE:
+				execution_scope--;
+				break;
 			case PARENTHESES_CLOSE:
 			{
 				removable = 1;

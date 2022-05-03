@@ -245,7 +245,7 @@ struct run_step_state run_stack_step(token_t *token, parsed_function_scope_t *fu
 		int value_types[2] = {0, execution_stack[secondary_value(relative_stack_position)]->value->type};
 		signed long long c = token->contents.numeric;
 		if (!run_stack_size_assigned_ok(1 + (c != (signed long long)'!')))
-			fatal_error(VALUE_NOT_SET);
+			fatal_error(UNASSIGNED_ERROR);
 		if (c != (signed long long)'!')
 		{
 			if (relative_stack_position < 2)
@@ -580,7 +580,7 @@ struct run_step_state run_stack_step(token_t *token, parsed_function_scope_t *fu
 			if (relative_stack_position < 2)
 				fatal_error(STACK_REFERENCE_ERROR);
 			if (!run_stack_size_assigned_ok(2))
-				fatal_error(STACK_REFERENCE_ERROR);
+				fatal_error(UNASSIGNED_ERROR);
 			int value_types[2] = {execution_stack[initial_value(relative_stack_position)]->value->type, execution_stack[secondary_value(relative_stack_position)]->value->type};
 			int is_equality = -1;
 			if (value_types[0] == VARIABLE_INT || value_types[0] == VARIABLE_BOOLEAN)
@@ -613,7 +613,7 @@ struct run_step_state run_stack_step(token_t *token, parsed_function_scope_t *fu
 			if (relative_stack_position < 2)
 				fatal_error(STACK_REFERENCE_ERROR);
 			if (!run_stack_size_assigned_ok(2))
-				fatal_error(STACK_REFERENCE_ERROR);
+				fatal_error(UNASSIGNED_ERROR);
 			int value_types[2] = {execution_stack[initial_value(relative_stack_position)]->value->type, execution_stack[secondary_value(relative_stack_position)]->value->type};
 			signed long long result_numeric = 0;
 			long double result_floating = 0;
@@ -738,7 +738,7 @@ struct run_step_state run_stack_step(token_t *token, parsed_function_scope_t *fu
 		if (relative_stack_position < 2)
 			fatal_error(STACK_REFERENCE_ERROR);
 		if (!run_stack_size_assigned_ok(2))
-			fatal_error(STACK_REFERENCE_ERROR);
+			fatal_error(UNASSIGNED_ERROR);
 		int value_types[2] = {execution_stack[initial_value(relative_stack_position)]->value->type, execution_stack[secondary_value(relative_stack_position)]->value->type};
 		int is_equality = 0;
 		if (value_types[0] == VARIABLE_INT || value_types[0] == VARIABLE_BOOLEAN)
@@ -773,7 +773,7 @@ struct run_step_state run_stack_step(token_t *token, parsed_function_scope_t *fu
 		if (relative_stack_position < 2)
 			fatal_error(STACK_REFERENCE_ERROR);
 		if (!run_stack_size_assigned_ok(2))
-			fatal_error(STACK_REFERENCE_ERROR);
+			fatal_error(UNASSIGNED_ERROR);
 		int value_types[2] = {execution_stack[initial_value(relative_stack_position)]->value->type, execution_stack[secondary_value(relative_stack_position)]->value->type};
 		int is_equality = -1;
 		if (value_types[0] == VARIABLE_INT || value_types[0] == VARIABLE_BOOLEAN)
@@ -824,7 +824,7 @@ struct run_step_state run_stack_step(token_t *token, parsed_function_scope_t *fu
 		if (relative_stack_position < 2)
 			fatal_error(STACK_REFERENCE_ERROR);
 		if (!run_stack_size_assigned_ok(2))
-			fatal_error(STACK_REFERENCE_ERROR);
+			fatal_error(UNASSIGNED_ERROR);
 		stack_value_t *stack_result = run_stack_value_new(VARIABLE_BOOLEAN);
 		stack_result->value->contents.numeric = (run_stack_state_is_true(0) && run_stack_state_is_true(1));
 		stack_result->operation_type = VARIABLE_BOOLEAN;
@@ -838,7 +838,7 @@ struct run_step_state run_stack_step(token_t *token, parsed_function_scope_t *fu
 		if (relative_stack_position < 2)
 			fatal_error(STACK_REFERENCE_ERROR);
 		if (!run_stack_size_assigned_ok(2))
-			fatal_error(STACK_REFERENCE_ERROR);
+			fatal_error(UNASSIGNED_ERROR);
 		stack_value_t *stack_result = run_stack_value_new(VARIABLE_BOOLEAN);
 		stack_result->value->contents.numeric = (run_stack_state_is_true(0) || run_stack_state_is_true(1));
 		stack_result->operation_type = VARIABLE_BOOLEAN;
@@ -856,7 +856,7 @@ struct run_step_state run_stack_step(token_t *token, parsed_function_scope_t *fu
 		if (relative_stack_position < 1)
 			fatal_error(STACK_REFERENCE_ERROR);
 		if (!run_stack_size_assigned_ok(1))
-			fatal_error(STACK_REFERENCE_ERROR);
+			fatal_error(UNASSIGNED_ERROR);
 		if (!run_stack_state_is_true(0))
 			response.state = IF;
 		run_stack_free_value();
@@ -872,7 +872,7 @@ struct run_step_state run_stack_step(token_t *token, parsed_function_scope_t *fu
 		if (relative_stack_position < 1)
 			fatal_error(STACK_REFERENCE_ERROR);
 		if (!run_stack_size_assigned_ok(1))
-			fatal_error(STACK_REFERENCE_ERROR);
+			fatal_error(UNASSIGNED_ERROR);
 		if (run_stack_state_is_true(0))
 		{
 			if (execution_stack_while_references_position == EXECUTION_STACK_SIZE)
@@ -927,7 +927,7 @@ struct run_step_state run_stack_step(token_t *token, parsed_function_scope_t *fu
 		if (relative_stack_position < 1)
 			fatal_error(STACK_REFERENCE_ERROR);
 		if (!run_stack_size_assigned_ok(1))
-			fatal_error(STACK_REFERENCE_ERROR);
+			fatal_error(UNASSIGNED_ERROR);
 		variable_type_t value_type = execution_stack[relative_stack_position]->value->type;
 		switch (value_type)
 		{

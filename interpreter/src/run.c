@@ -1033,7 +1033,7 @@ int run(parsed_function_scope_t **functions)
 						break;
 					}
 					default:
-						fatal_error_lined(STACK_REFERENCE_ERROR, current_token->line);
+						fatal_error_lined(UNASSIGNED_ERROR, current_token->line);
 						break;
 					}
 					output(output_string, OUTPUT_GENERIC);
@@ -1105,7 +1105,7 @@ int run(parsed_function_scope_t **functions)
 						break;
 					}
 					default:
-						fatal_error_lined(CONVERSION_ERROR, current_token->line);
+						fatal_error_lined(UNASSIGNED_ERROR, current_token->line);
 						break;
 					}
 					run_stack_free_value();
@@ -1153,8 +1153,11 @@ int run(parsed_function_scope_t **functions)
 					case VARIABLE_BOOLEAN:
 						stack_result->value->contents.numeric = run_stack_state_is_true(0);
 						break;
-					default:
+					case VARIABLE_NULL:
 						fatal_error_lined(CONVERSION_ERROR, current_token->line);
+						break;
+					default:
+						fatal_error_lined(UNASSIGNED_ERROR, current_token->line);
 						break;
 					}
 					run_stack_free_value();
@@ -1215,8 +1218,12 @@ int run(parsed_function_scope_t **functions)
 					case VARIABLE_BOOLEAN:
 						stack_result->value->contents.floating = (long double)run_stack_state_is_true(0);
 						break;
-					default:
+					case VARIABLE_ARRAY:
+					case VARIABLE_NULL:
 						fatal_error_lined(CONVERSION_ERROR, current_token->line);
+						break;
+					default:
+						fatal_error_lined(UNASSIGNED_ERROR, current_token->line);
 						break;
 					}
 					run_stack_free_value();
@@ -1257,7 +1264,7 @@ int run(parsed_function_scope_t **functions)
 						stack_result->value->contents.numeric = BOOLEAN_FALSE;
 						break;
 					default:
-						fatal_error_lined(CONVERSION_ERROR, current_token->line);
+						fatal_error_lined(UNASSIGNED_ERROR, current_token->line);
 						break;
 					}
 					run_stack_free_value();
@@ -1284,8 +1291,14 @@ int run(parsed_function_scope_t **functions)
 					case VARIABLE_ARRAY:
 						length = array_length(execution_stack[relative_position]->value->contents.array);
 						break;
-					default:
+					case VARIABLE_INT:
+					case VARIABLE_DOUBLE:
+					case VARIABLE_BOOLEAN:
+					case VARIABLE_NULL:
 						fatal_error_lined(EXECUTION_ERROR, current_token->line);
+						break;
+					default:
+						fatal_error_lined(UNASSIGNED_ERROR, current_token->line);
 						break;
 					}
 					run_stack_free_value();
@@ -1327,7 +1340,7 @@ int run(parsed_function_scope_t **functions)
 						success = copy_string(stack_result->value->contents.string, "null");
 						break;
 					default:
-						fatal_error(UNKNOWN_ERROR);
+						fatal_error_lined(UNASSIGNED_ERROR, current_token->line);
 						break;
 					}
 					if (!success)

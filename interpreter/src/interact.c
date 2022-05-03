@@ -152,6 +152,9 @@ void error_code(error_codes code)
 	case CONVERSION_ERROR:
 		copy_string(buffer, "Failed to convert to another type.");
 		break;
+	case UNASSIGNED_ERROR:
+		copy_string(buffer, "Variable has not been assigned.");
+		break;
 	case CLEANUP_ERROR:
 		copy_string(buffer, "Failed to cleanup variables outside of current scope.");
 		break;
@@ -216,6 +219,9 @@ void error_code_lined(error_codes code, unsigned long long line)
 		break;
 	case CONVERSION_ERROR:
 		snprintf(buffer, ERROR_MESSAGE_SIZE, "Failed to convert to another type. On line: %lld", line);
+		break;
+	case UNASSIGNED_ERROR:
+		snprintf(buffer, ERROR_MESSAGE_SIZE, "Variable has not been assigned. On line: %lld", line);
 		break;
 	case CLEANUP_ERROR:
 		snprintf(buffer, ERROR_MESSAGE_SIZE, "Failed to cleanup variables outside of current scope. On line: %lld", line);

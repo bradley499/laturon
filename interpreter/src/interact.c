@@ -153,7 +153,7 @@ void error_code(error_codes code)
 		copy_string(buffer, "Failed to convert to another type.");
 		break;
 	case UNASSIGNED_ERROR:
-		copy_string(buffer, "Variable has not been assigned.");
+		copy_string(buffer, "Attempted to use a value from a variable has not been assigned.");
 		break;
 	case CLEANUP_ERROR:
 		copy_string(buffer, "Failed to cleanup variables outside of current scope.");
@@ -188,9 +188,6 @@ void error_code(error_codes code)
 	case TOO_BIG_NUMERIC:
 		copy_string(buffer, "Too many functions or variables are declared within your program to be handled within memory.");
 		break;
-	case VALUE_NOT_SET:
-		copy_string(buffer, "Attempted to use a variable which has not been set yet.");
-		break;
 	case ZERO_DIVISION_ERROR:
 		copy_string(buffer, "Zero division error.");
 		break;
@@ -221,7 +218,7 @@ void error_code_lined(error_codes code, unsigned long long line)
 		snprintf(buffer, ERROR_MESSAGE_SIZE, "Failed to convert to another type. On line: %lld", line);
 		break;
 	case UNASSIGNED_ERROR:
-		snprintf(buffer, ERROR_MESSAGE_SIZE, "Variable has not been assigned. On line: %lld", line);
+		snprintf(buffer, ERROR_MESSAGE_SIZE, "Attempted to use a value from a variable has not been assigned. On line: %lld", line);
 		break;
 	case CLEANUP_ERROR:
 		snprintf(buffer, ERROR_MESSAGE_SIZE, "Failed to cleanup variables outside of current scope. On line: %lld", line);
@@ -255,9 +252,6 @@ void error_code_lined(error_codes code, unsigned long long line)
 		break;
 	case TOO_BIG_NUMERIC:
 		snprintf(buffer, ERROR_MESSAGE_SIZE, "Too many functions or variables are declared within your program to be handled within memory. On line: %lld", line);
-		break;
-	case VALUE_NOT_SET:
-		snprintf(buffer, ERROR_MESSAGE_SIZE, "Attempted to use a variable which has not been set yet. On line: %lld\n", line);
 		break;
 	case ZERO_DIVISION_ERROR:
 		snprintf(buffer, ERROR_MESSAGE_SIZE, "Zero division error. On line: %lld\n", line);

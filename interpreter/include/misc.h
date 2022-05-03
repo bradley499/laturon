@@ -18,7 +18,7 @@ typedef enum error_codes
 	MEMORY_ALLOCATION_ERROR,	// Failed to allocate memory
 	LOGIC_ERROR,				// Logical operation failed
 	CONVERSION_ERROR,			// Failed to convert to another type
-	UNASSIGNED_ERROR,			// Variable has not been assigned
+	UNASSIGNED_ERROR,			// Attempted to use a value from a variable has not been assigned
 	CLEANUP_ERROR,				// Failed to cleanup variables outside of current scope
 	EXECUTION_ERROR,			// Failed to execute operation
 	STACK_REFERENCE_ERROR,		// An invalid reference to a call stack scope occurred
@@ -30,7 +30,6 @@ typedef enum error_codes
 	INVALID_SYNTAX_GENERIC,		// The source provided has invalid syntax
 	STACK_MEMORY_LIMIT_REACHED, // The total amount of stack memory available to execute your program has been reached
 	TOO_BIG_NUMERIC,			// Too many functions or variables are declared within your program to be handled within memory
-	VALUE_NOT_SET,				// Attempted to use a variable which has not been set yet
 	ZERO_DIVISION_ERROR,		// Zero division error
 	UNIMPLEMENTED_YET,			// You are attempting to use syntax that has not been finalised
 } error_codes;

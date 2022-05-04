@@ -666,6 +666,8 @@ void tokenize_file(FILE *fp)
 				else
 					syntax_error(INVALID_REMOVE, line);
 			}
+			else if (token->type == ELSE && (current_token == NULL || current_token->type != SCOPE_CLOSE))
+				syntax_error(INVALID_SYNTAX, line);
 			else if (token->type != IF && token->type != ELSE && token->type != WHILE && token->type != BREAK)
 				break;
 		}

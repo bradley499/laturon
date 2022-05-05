@@ -45,9 +45,14 @@ int versioning()
 #ifndef EMSCRIPTEN
 int main(int argc, char **argv)
 {
-	if (argc != 2)
+	if (argc < 2)
 	{
 		output("Please give a location of your source code.", OUTPUT_ERROR);
+		return 1;
+	}
+	else if (argc > 2)
+	{
+		output("Please specify only one location for your source code.", OUTPUT_ERROR);
 		return 1;
 	}
 	else if (strcmp("-v", argv[1]) == 0 || strcmp("--version", argv[1]) == 0)

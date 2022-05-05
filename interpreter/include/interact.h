@@ -24,7 +24,6 @@ void error_code_lined(error_codes code, unsigned long long line);
 FILE* get_execution_source_file();
 // Set the current loading state
 void set_load_state(unsigned int state);
-#define STOP_EXECUTION_ENABLED
 typedef enum loading_states {
 	TOKENIZING_DONE = 2,
 	PARSING_DONE,

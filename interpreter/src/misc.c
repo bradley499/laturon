@@ -122,6 +122,13 @@ int copy_string(char *destination, char *source)
 	return (strcmp(strcpy(destination, source), source) == 0);
 }
 
+unsigned long long string_length(char *string)
+{
+	if (string == NULL)
+		return 0;
+	return strlen(string);
+}
+
 void fatal_error(error_codes code)
 {
 	error_code(code);

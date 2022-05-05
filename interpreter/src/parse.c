@@ -100,8 +100,9 @@ int parse_create_function_scope(char *name)
 	parsed_function_type_t *function_definition = parse_function_type_new();
 	if (name != NULL)
 	{
-		function_definition->name = xmalloc(strlen(name) + 1);
-		strcpy(function_definition->name, name);
+		function_definition->name = xmalloc(string_length(name) + 1);
+		if (!copy_string(function_definition->name, name))
+			fatal_error(MEMORY_ALLOCATION_ERROR);
 	}
 	else
 		fatal_error(INVALID_SYNTAX_GENERIC);
@@ -764,9 +765,10 @@ variable_id parse_get_variable_numeric(char *name, unsigned long long function_n
 	else if (strcmp(name, "null") == 0)
 		return VALUE_NULL;
 	parsed_variable_type_t *new_variable_numeric = xmalloc(sizeof(parsed_variable_type_t));
-	new_variable_numeric->name = xmalloc(strlen(name) + 1);
+	new_variable_numeric->name = xmalloc(string_length(name) + 1);
 	new_variable_numeric->function_numeric_reference = function_numeric_reference;
-	strcpy(new_variable_numeric->name, name);
+	if (!copy_string(new_variable_numeric->name, name))
+		fatal_error(MEMORY_ALLOCATION_ERROR);
 	if (parse_variable_references == NULL)
 	{
 		new_variable_numeric->numeric_reference = VARIABLE_NUMERIC_REFERENCE_START;

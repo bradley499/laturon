@@ -76,7 +76,7 @@ void variable_set_value(unsigned short variable_position, char type, signed long
 		break;
 	case VARIABLE_STRING:
 	{
-		variables[variable_position].value.contents.string = xmalloc(strlen(string) + 1);
+		variables[variable_position].value.contents.string = xmalloc(string_length(string) + 1);
 		if (!copy_string(variables[variable_position].value.contents.string, string))
 			fatal_error(MEMORY_ALLOCATION_ERROR);
 		break;

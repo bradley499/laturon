@@ -142,7 +142,7 @@ int array_update(array_value_t *array, unsigned long long at, unsigned char type
 				break;
 			case VARIABLE_STRING:
 			{
-				current->value.string = xmalloc(strlen(string) + 1);
+				current->value.string = xmalloc(string_length(string) + 1);
 				if (!copy_string(current->value.string, string))
 					fatal_error(MEMORY_ALLOCATION_ERROR);
 				break;
@@ -194,7 +194,7 @@ int array_insert(array_value_t *array, unsigned long long at, unsigned char type
 					break;
 				case VARIABLE_STRING:
 				{
-					array_insert->value.string = xmalloc(strlen(string) + 1);
+					array_insert->value.string = xmalloc(string_length(string) + 1);
 					if (!copy_string(array_insert->value.string, string))
 						fatal_error(MEMORY_ALLOCATION_ERROR);
 					break;
@@ -222,7 +222,7 @@ int array_insert(array_value_t *array, unsigned long long at, unsigned char type
 					break;
 				case VARIABLE_STRING:
 				{
-					array_insert->value.string = xmalloc(strlen(string) + 1);
+					array_insert->value.string = xmalloc(string_length(string) + 1);
 					if (!copy_string(array_insert->value.string, string))
 						fatal_error(MEMORY_ALLOCATION_ERROR);
 					break;
@@ -256,7 +256,7 @@ int array_insert(array_value_t *array, unsigned long long at, unsigned char type
 				break;
 			case VARIABLE_STRING:
 			{
-				array_insert->value.string = xmalloc(strlen(string) + 1);
+				array_insert->value.string = xmalloc(string_length(string) + 1);
 				if (!copy_string(array_insert->value.string, string))
 					fatal_error(MEMORY_ALLOCATION_ERROR);
 				break;

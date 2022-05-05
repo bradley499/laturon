@@ -190,7 +190,7 @@ struct run_step_state run_stack_step(token_t *token, parsed_function_scope_t *fu
 			break;
 		case VARIABLE_STRING:
 		{
-			stack_result->value->contents.string = xmalloc(strlen(variable_value.contents.string) + 1);
+			stack_result->value->contents.string = xmalloc(string_length(variable_value.contents.string) + 1);
 			if (!copy_string(stack_result->value->contents.string, variable_value.contents.string))
 				fatal_error(MEMORY_ALLOCATION_ERROR);
 			break;
@@ -324,12 +324,12 @@ struct run_step_state run_stack_step(token_t *token, parsed_function_scope_t *fu
 			{
 				if (value_types[1] == VARIABLE_STRING)
 				{
-					unsigned long result_size = (strlen(execution_stack[initial_value(relative_stack_position)]->value->contents.string)) + strlen(execution_stack[secondary_value(relative_stack_position)]->value->contents.string);
+					unsigned long result_size = (string_length(execution_stack[initial_value(relative_stack_position)]->value->contents.string)) + string_length(execution_stack[secondary_value(relative_stack_position)]->value->contents.string);
 					char *result_string = xmalloc(result_size + 1);
 					if (!copy_string(result_string, execution_stack[initial_value(relative_stack_position)]->value->contents.string))
 						fatal_error(MEMORY_ALLOCATION_ERROR);
 					result_string = strcat(result_string, execution_stack[secondary_value(relative_stack_position)]->value->contents.string);
-					if (strlen(result_string) != result_size)
+					if (string_length(result_string) != result_size)
 						fatal_error(MEMORY_ALLOCATION_ERROR);
 					run_stack_free_value();
 					run_stack_free_value();
@@ -686,7 +686,7 @@ struct run_step_state run_stack_step(token_t *token, parsed_function_scope_t *fu
 	{
 		stack_value_t *stack_result = run_stack_value_new(VARIABLE_STRING);
 		stack_result->operation_type = VARIABLE_STRING;
-		stack_result->value->contents.string = xmalloc(strlen(token->contents.string) + 1);
+		stack_result->value->contents.string = xmalloc(string_length(token->contents.string) + 1);
 		if (!copy_string(stack_result->value->contents.string, token->contents.string))
 			fatal_error(MEMORY_ALLOCATION_ERROR);
 		run_stack_add_value(stack_result);
@@ -1014,7 +1014,7 @@ int run(parsed_function_scope_t **functions)
 						break;
 					case VARIABLE_STRING:
 					{
-						output_string = xmalloc(strlen(execution_stack[relative_position]->value->contents.string) + 1);
+						output_string = xmalloc(string_length(execution_stack[relative_position]->value->contents.string) + 1);
 						if (!copy_string(output_string, execution_stack[relative_position]->value->contents.string))
 							fatal_error(MEMORY_ALLOCATION_ERROR);
 						break;
@@ -1084,7 +1084,7 @@ int run(parsed_function_scope_t **functions)
 					}
 					case VARIABLE_STRING:
 					{
-						stack_result->value->contents.string = xmalloc(strlen(execution_stack[relative_position]->value->contents.string) + 1);
+						stack_result->value->contents.string = xmalloc(string_length(execution_stack[relative_position]->value->contents.string) + 1);
 						if (!copy_string(stack_result->value->contents.string, execution_stack[relative_position]->value->contents.string))
 							fatal_error(MEMORY_ALLOCATION_ERROR);
 						break;
@@ -1131,7 +1131,7 @@ int run(parsed_function_scope_t **functions)
 					case VARIABLE_STRING:
 					{
 						int is_negative = -1;
-						for (size_t i = 0; i < strlen(execution_stack[relative_position]->value->contents.string); i++)
+						for (size_t i = 0; i < string_length(execution_stack[relative_position]->value->contents.string); i++)
 						{
 							unsigned char c = execution_stack[relative_position]->value->contents.string[i];
 							if ((c < '0' || c > '9') && c != '-')
@@ -1190,7 +1190,7 @@ int run(parsed_function_scope_t **functions)
 					{
 						int is_negative = -1;
 						int is_decimal = 0;
-						for (size_t i = 0; i < strlen(execution_stack[relative_position]->value->contents.string); i++)
+						for (size_t i = 0; i < string_length(execution_stack[relative_position]->value->contents.string); i++)
 						{
 							unsigned char c = execution_stack[relative_position]->value->contents.string[i];
 							if ((c < '0' || c > '9') && c != '-' && c != '.')
@@ -1251,7 +1251,7 @@ int run(parsed_function_scope_t **functions)
 						if (execution_stack[relative_position]->value->contents.string == NULL)
 							stack_result->value->contents.numeric = 0;
 						else
-							stack_result->value->contents.numeric = (long double)(strlen(execution_stack[relative_position]->value->contents.string) > 0);
+							stack_result->value->contents.numeric = (long double)(string_length(execution_stack[relative_position]->value->contents.string) > 0);
 						break;
 					}
 					case VARIABLE_BOOLEAN:
@@ -1285,7 +1285,7 @@ int run(parsed_function_scope_t **functions)
 						if (execution_stack[relative_position]->value->contents.string == NULL)
 							length = 0;
 						else
-							length = strlen(execution_stack[relative_position]->value->contents.string);
+							length = string_length(execution_stack[relative_position]->value->contents.string);
 						break;
 					}
 					case VARIABLE_ARRAY:
@@ -1429,7 +1429,7 @@ int run(parsed_function_scope_t **functions)
 				break;
 			case VARIABLE_STRING:
 			{
-				stack_result->value->contents.string = xmalloc(strlen(execution_stack[relative_stack_position]->value->contents.string) + 1);
+				stack_result->value->contents.string = xmalloc(string_length(execution_stack[relative_stack_position]->value->contents.string) + 1);
 				if (!copy_string(stack_result->value->contents.string, execution_stack[relative_stack_position]->value->contents.string))
 					fatal_error(MEMORY_ALLOCATION_ERROR);
 				break;

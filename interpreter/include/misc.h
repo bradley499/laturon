@@ -87,6 +87,8 @@ long double str_to_float(char *str);
 void bool_to_string(double n, char *res);
 // Copy a string and verify a successful copy
 int copy_string(char *destination, char *source);
+// Return length of string
+unsigned long long string_length(char *string);
 // Warning of numeric convertion of large number
 void convertion_numeric_warning();
 // Warning of floating point convertion of large number

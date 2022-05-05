@@ -106,6 +106,7 @@ int is_comment(char c)
 	return (c == '#');
 }
 
+// Generates a new token
 token_t *token_generate()
 {
 	token_t *token = xmalloc(sizeof(token_t));
@@ -118,6 +119,7 @@ token_t *token_generate()
 
 token_t *tokens = NULL;
 
+// Validates if a token is a statement
 int token_is_statement(char *identifier, unsigned long long identifier_current_length, int no_whitespace)
 {
 	if (identifier_current_length == (IDENTIFIER_RETURN_MAX_LENGTH - no_whitespace)) // Same length as IDENTIFIER_TYPE_RETURN_MAX_LENGTH

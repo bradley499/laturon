@@ -37,12 +37,14 @@ unsigned long long int execution_stack_while_references_position = 0;
 
 void run_stack_free_value();
 
+// 
 void run_stack_reset()
 {
 	for (; execution_stack_position != 0;)
 		run_stack_free_value();
 }
 
+// Create a new execution stack value
 stack_value_t *run_stack_value_new(variable_type_t type)
 {
 	stack_value_t *stack_value_new = xmalloc(sizeof(stack_value_t));
@@ -51,6 +53,7 @@ stack_value_t *run_stack_value_new(variable_type_t type)
 	return stack_value_new;
 }
 
+// Push a value onto the execution stack
 void run_stack_add_value(stack_value_t *value)
 {
 	if (execution_stack_position == (EXECUTION_STACK_SIZE - 1))
@@ -58,6 +61,7 @@ void run_stack_add_value(stack_value_t *value)
 	execution_stack[execution_stack_position++] = value;
 }
 
+// Free the latest value on the execution stack
 void run_stack_free_value()
 {
 	if (execution_stack_position == 0)
@@ -77,6 +81,7 @@ void run_stack_free_value()
 	execution_stack[execution_stack_position] = NULL;
 }
 
+// If the current value (or values) have values assigned to them
 int run_stack_size_assigned_ok(unsigned char size)
 {
 	if (size > execution_stack_position)
@@ -95,6 +100,7 @@ int run_stack_size_assigned_ok(unsigned char size)
 	return 1;
 }
 
+// If the latest value (or values) on the stack equate to not false
 int run_stack_state_is_true(unsigned int relative_position)
 {
 	if (execution_stack_position < (relative_position + 1))
@@ -122,6 +128,7 @@ struct run_step_state
 	token_t *token;
 } run_step_state;
 
+// Executes a single token
 struct run_step_state run_stack_step(token_t *token, parsed_function_scope_t *function)
 {
 	struct run_step_state response = {
@@ -240,7 +247,7 @@ struct run_step_state run_stack_step(token_t *token, parsed_function_scope_t *fu
 	}
 	case OPERATOR:
 	{
-		if (relative_stack_position < 1)
+		if (relative_stack_position == 0)
 			fatal_error(STACK_REFERENCE_ERROR);
 		int value_types[2] = {0, execution_stack[secondary_value(relative_stack_position)]->value->type};
 		signed long long c = token->contents.numeric;
@@ -248,7 +255,7 @@ struct run_step_state run_stack_step(token_t *token, parsed_function_scope_t *fu
 			fatal_error(UNASSIGNED_ERROR);
 		if (c != (signed long long)'!')
 		{
-			if (relative_stack_position < 2)
+			if (execution_stack_position < 2)
 				fatal_error(STACK_REFERENCE_ERROR);
 			value_types[0] = execution_stack[initial_value(relative_stack_position)]->value->type;
 		}
@@ -577,7 +584,7 @@ struct run_step_state run_stack_step(token_t *token, parsed_function_scope_t *fu
 		}
 		else if (c == (signed long long)'<' || c == (signed long long)'>')
 		{
-			if (relative_stack_position < 2)
+			if (execution_stack_position < 2)
 				fatal_error(STACK_REFERENCE_ERROR);
 			if (!run_stack_size_assigned_ok(2))
 				fatal_error(UNASSIGNED_ERROR);
@@ -610,7 +617,7 @@ struct run_step_state run_stack_step(token_t *token, parsed_function_scope_t *fu
 		}
 		else if (c == (signed long long)'%')
 		{
-			if (relative_stack_position < 2)
+			if (execution_stack_position < 2)
 				fatal_error(STACK_REFERENCE_ERROR);
 			if (!run_stack_size_assigned_ok(2))
 				fatal_error(UNASSIGNED_ERROR);
@@ -735,7 +742,7 @@ struct run_step_state run_stack_step(token_t *token, parsed_function_scope_t *fu
 	case EQUALITY:
 	case NOT_EQUALITY:
 	{
-		if (relative_stack_position < 2)
+		if (execution_stack_position < 2)
 			fatal_error(STACK_REFERENCE_ERROR);
 		if (!run_stack_size_assigned_ok(2))
 			fatal_error(UNASSIGNED_ERROR);
@@ -770,7 +777,7 @@ struct run_step_state run_stack_step(token_t *token, parsed_function_scope_t *fu
 	case LESS_OR_EQUALITY:
 	case MORE_OR_EQUALITY:
 	{
-		if (relative_stack_position < 2)
+		if (execution_stack_position < 2)
 			fatal_error(STACK_REFERENCE_ERROR);
 		if (!run_stack_size_assigned_ok(2))
 			fatal_error(UNASSIGNED_ERROR);
@@ -821,7 +828,7 @@ struct run_step_state run_stack_step(token_t *token, parsed_function_scope_t *fu
 	}
 	case AND:
 	{
-		if (relative_stack_position < 2)
+		if (execution_stack_position < 2)
 			fatal_error(STACK_REFERENCE_ERROR);
 		if (!run_stack_size_assigned_ok(2))
 			fatal_error(UNASSIGNED_ERROR);
@@ -835,7 +842,7 @@ struct run_step_state run_stack_step(token_t *token, parsed_function_scope_t *fu
 	}
 	case OR:
 	{
-		if (relative_stack_position < 2)
+		if (execution_stack_position < 2)
 			fatal_error(STACK_REFERENCE_ERROR);
 		if (!run_stack_size_assigned_ok(2))
 			fatal_error(UNASSIGNED_ERROR);
@@ -853,7 +860,7 @@ struct run_step_state run_stack_step(token_t *token, parsed_function_scope_t *fu
 		break;
 	case IF:
 	{
-		if (relative_stack_position < 1)
+		if (execution_stack_position == 0)
 			fatal_error(STACK_REFERENCE_ERROR);
 		if (!run_stack_size_assigned_ok(1))
 			fatal_error(UNASSIGNED_ERROR);
@@ -869,7 +876,7 @@ struct run_step_state run_stack_step(token_t *token, parsed_function_scope_t *fu
 	}
 	case WHILE:
 	{
-		if (relative_stack_position < 1)
+		if (execution_stack_position == 0)
 			fatal_error(STACK_REFERENCE_ERROR);
 		if (!run_stack_size_assigned_ok(1))
 			fatal_error(UNASSIGNED_ERROR);
@@ -924,7 +931,7 @@ struct run_step_state run_stack_step(token_t *token, parsed_function_scope_t *fu
 	}
 	case NEGATE:
 	{
-		if (relative_stack_position < 1)
+		if (execution_stack_position == 0)
 			fatal_error(STACK_REFERENCE_ERROR);
 		if (!run_stack_size_assigned_ok(1))
 			fatal_error(UNASSIGNED_ERROR);
@@ -963,6 +970,7 @@ struct run_step_state run_stack_step(token_t *token, parsed_function_scope_t *fu
 	return response;
 }
 
+// Push a null value onto the stack
 void run_stack_value_add_null()
 {
 	stack_value_t *stack_result = run_stack_value_new(VARIABLE_NULL);

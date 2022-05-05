@@ -42,7 +42,7 @@ typedef enum syntax_errors
 	NO_VARIABLE_DEFINITION,		   // No variable definition or reference was given
 	SCOPE_OPEN_WITHIN_EXPRESSION,  // Attempting to open a scope within an expression
 	SCOPE_CLOSE_UNABLE,			   // Closing a scope that has not been opened
-	PARENTHESES_CLOSE_UNABLE,	   // Closing a parentheses that has not been opened
+	PARENTHESES_CLOSE_UNABLE,	   // Closing a parenthesis that has not been opened
 	BRACKET_CLOSE_UNABLE,		   // Closing a bracket that has not been opened
 	INVALID_FUNCTION_DEFINITION,   // Invalid function definition
 	PARAMETER_ABUSED,			   // Too many parameters were declared to be handled within a function

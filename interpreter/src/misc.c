@@ -171,7 +171,7 @@ void syntax_error(syntax_errors error, unsigned long long line)
 		snprintf(buffer, SYNTAX_ERROR_BUFFER_SIZE, "Closing a scope that has not been opened. On line: %lld", line);
 		break;
 	case PARENTHESES_CLOSE_UNABLE:
-		snprintf(buffer, SYNTAX_ERROR_BUFFER_SIZE, "Closing a parentheses that has not been opened. On line: %lld", line);
+		snprintf(buffer, SYNTAX_ERROR_BUFFER_SIZE, "Closing a parenthesis that has not been opened. On line: %lld", line);
 		break;
 	case BRACKET_CLOSE_UNABLE:
 		snprintf(buffer, SYNTAX_ERROR_BUFFER_SIZE, "Closing a bracket that has not been opened. On line: %lld", line);

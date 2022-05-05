@@ -32,6 +32,7 @@
 	let worker = false;
 	let executing = false;
 	let interpreterReady = false;
+	let previousSave = "";
 	const interactsContainer = document.createElement("div");
 	const loading = document.createElement("div");
 	const interacts = [document.createElement({ true: "div", false: "textarea" }[chromium]), document.createElement("div")];
@@ -68,7 +69,9 @@
 			const container = document.createElement("div");
 			const containerContents = [document.createElement("div"), document.createElement("div"), document.createElement("div")];
 			containerContents[0].id = "authorAlertPicture";
-			containerContents[0].style.backgroundImage = "url(\"" + authorPictureBlob + "\")";
+			if (authorPictureBlob != null) {
+				containerContents[0].style.backgroundImage = "url(\"" + authorPictureBlob + "\")";
+			}
 			containerContents[2].id = "alertContents";
 			let containerContentsDynamic = [];
 			if (title != null && title.trim().length > 0) {
@@ -249,14 +252,18 @@
 		loadingState(null, false);
 	};
 	const load = async (button) => {
-		let empty = false;
+		let contents = "";
 		if (chromium) {
-			empty = (interacts[0].innerText.trim().length == 0);
+			contents = interacts[0].innerText;
 		} else {
-			empty = (interacts[0].value.trim().length == 0);
+			contents = interacts[0].value;
 		}
-		if (!empty) {
-			if (await alertBuilder("You have unsaved work", "Are you sure you want to load a new file, whilst you're still working on something?\nAll progress of your current project will be lost.", ["Load a file", "Cancel"], null) == 1) {
+		if (contents.length > 0) {
+			if (previousSave == contents) {
+				if (await alertBuilder("You're already working on a project", "Are you sure you want to load a new file, whilst you're still working on something?\nYou have previously saved this project.", ["Load a file", "Cancel"], null) == 1) {
+					return;
+				}
+			} else if (await alertBuilder("You have unsaved work", "Are you sure you want to load a new file, whilst you're still working on something?\nAll unsaved progress of your current project will be lost.", ["Load a file", "Cancel"], null) == 1) {
 				return;
 			}
 		}
@@ -307,8 +314,10 @@
 		}
 		let element = document.createElement("a");
 		if (chromium) {
+			previousSave = interacts[0].innerText;
 			element.setAttribute("href", "data:text/plain;charset=utf-8," + encodeURIComponent(interacts[0].innerText));
 		} else {
+			previousSave = interacts[0].value;
 			element.setAttribute("href", "data:text/plain;charset=utf-8," + encodeURIComponent(interacts[0].value));
 		}
 		let name = " ";
@@ -526,7 +535,7 @@
 				loadingState(null, false);
 				buttons[2].remove();
 				buttons[3].remove();
-				buttons[4].remove();	
+				buttons[4].remove();
 				interactsContainer.className = "editorSizing100";
 			}
 			return;
@@ -583,7 +592,7 @@
 					if (module instanceof WebAssembly.Module)
 						return new WebAssembly.Instance(module) instanceof WebAssembly.Instance;
 				}
-			} catch (e) {}
+			} catch (e) { }
 			return false;
 		})();
 		if (!window.Worker || !supportsWebAssembly || (typeof Int8Array === "undefined" || typeof Int16Array === "undefined" || typeof Int32Array === "undefined" || typeof Uint8Array === "undefined" || typeof Uint16Array === "undefined" || typeof Uint32Array === "undefined" || typeof Float32Array === "undefined" || typeof Float64Array === "undefined" || typeof BigInt64Array === "undefined" || typeof BigUint64Array === "undefined")) {

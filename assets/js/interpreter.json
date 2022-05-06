@@ -5,8 +5,8 @@
 			"handle": "bradley499"
 		}
 	],
-	"version": 0.2,
-	"build": 3286,
-	"worker": "laturon-0.2.3286.js",
-	"wasm": "laturon-0.2.3286.wasm"
+	"version": 0.3,
+	"build": 3294,
+	"worker": "laturon-0.3.3294.js",
+	"wasm": "laturon-0.3.3294.wasm"
 }

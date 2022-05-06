@@ -773,7 +773,7 @@ variable_id parse_get_variable_numeric(char *name, unsigned long long function_n
 	{
 		new_variable_numeric->numeric_reference = VARIABLE_NUMERIC_REFERENCE_START;
 		parse_variable_references = new_variable_numeric;
-		if (function_numeric_reference == 0)
+		if (function_numeric_reference == 0 && execution_scope == 0)
 			new_variable(execution_scope, function_numeric_reference, new_variable_numeric->numeric_reference);
 		return VARIABLE_NUMERIC_REFERENCE_START;
 	}
@@ -796,7 +796,7 @@ variable_id parse_get_variable_numeric(char *name, unsigned long long function_n
 		if (current_variable->next == NULL)
 		{
 			new_variable_numeric->numeric_reference = ++numeric_reference;
-			if (function_numeric_reference == 0)
+			if (function_numeric_reference == 0 && execution_scope == 0)
 				new_variable(execution_scope, function_numeric_reference, new_variable_numeric->numeric_reference);
 			current_variable->next = new_variable_numeric;
 			return numeric_reference;

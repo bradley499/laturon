@@ -356,7 +356,7 @@ void tokenize_file(FILE *fp)
 					if (token_type == NUMERIC)
 					{
 						errno = 0;
-						if (current_numeric == -2)
+						if (current_numeric == -2 || current_numeric == 2)
 						{
 							new_token->contents.floating = str_to_float(identifier);
 							new_token->type = DOUBLE;
